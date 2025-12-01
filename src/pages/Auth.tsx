@@ -12,7 +12,13 @@ import { z } from "zod";
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().email("Invalid email address").max(255),
-  password: z.string().min(8, "Password must be at least 8 characters").max(100),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100)
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
 });
 
 const loginSchema = z.object({
@@ -138,6 +144,25 @@ const Auth = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {!isLogin && formData.password && (
+              <div className="mt-2 space-y-1 text-xs">
+                <p className={formData.password.length >= 8 ? "text-green-600" : "text-muted-foreground"}>
+                  ✓ At least 8 characters
+                </p>
+                <p className={/[A-Z]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
+                  ✓ One uppercase letter
+                </p>
+                <p className={/[a-z]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
+                  ✓ One lowercase letter
+                </p>
+                <p className={/[0-9]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
+                  ✓ One number
+                </p>
+                <p className={/[^A-Za-z0-9]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
+                  ✓ One special character
+                </p>
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
