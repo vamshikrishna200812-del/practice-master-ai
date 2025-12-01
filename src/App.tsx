@@ -13,6 +13,7 @@ import Courses from "./pages/Courses";
 import Schedule from "./pages/Schedule";
 import Notifications from "./pages/Notifications";
 import Help from "./pages/Help";
+import CameraDemo from "./pages/CameraDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/camera-demo" element={<CameraDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
