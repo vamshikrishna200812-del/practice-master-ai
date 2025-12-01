@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Brain } from "lucide-react";
 import { z } from "zod";
+import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -139,29 +140,39 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            
             {!isLogin && formData.password && (
-              <div className="mt-2 space-y-1 text-xs">
-                <p className={formData.password.length >= 8 ? "text-green-600" : "text-muted-foreground"}>
-                  ✓ At least 8 characters
-                </p>
-                <p className={/[A-Z]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
-                  ✓ One uppercase letter
-                </p>
-                <p className={/[a-z]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
-                  ✓ One lowercase letter
-                </p>
-                <p className={/[0-9]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
-                  ✓ One number
-                </p>
-                <p className={/[^A-Za-z0-9]/.test(formData.password) ? "text-green-600" : "text-muted-foreground"}>
-                  ✓ One special character
-                </p>
-              </div>
+              <>
+                <div className="mt-3">
+                  <PasswordStrengthMeter password={formData.password} />
+                </div>
+                
+                <div className="mt-3 space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Password requirements:</p>
+                  <div className="grid grid-cols-1 gap-1 text-xs">
+                    <p className={`transition-colors ${formData.password.length >= 8 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                      {formData.password.length >= 8 ? "✓" : "○"} At least 8 characters
+                    </p>
+                    <p className={`transition-colors ${/[A-Z]/.test(formData.password) ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                      {/[A-Z]/.test(formData.password) ? "✓" : "○"} One uppercase letter
+                    </p>
+                    <p className={`transition-colors ${/[a-z]/.test(formData.password) ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                      {/[a-z]/.test(formData.password) ? "✓" : "○"} One lowercase letter
+                    </p>
+                    <p className={`transition-colors ${/[0-9]/.test(formData.password) ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                      {/[0-9]/.test(formData.password) ? "✓" : "○"} One number
+                    </p>
+                    <p className={`transition-colors ${/[^A-Za-z0-9]/.test(formData.password) ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                      {/[^A-Za-z0-9]/.test(formData.password) ? "✓" : "○"} One special character
+                    </p>
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
