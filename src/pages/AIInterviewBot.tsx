@@ -1,13 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Video, 
   Mic, 
   MicOff, 
-  VideoOff, 
   Send,
   Brain,
   Code,
@@ -18,10 +16,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { CameraFeed } from "@/components/camera/CameraFeed";
 
 const AIInterviewBot = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState("");
   const [scores, setScores] = useState({
@@ -29,8 +28,6 @@ const AIInterviewBot = () => {
     communication: 0,
     codingAccuracy: 0,
   });
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     // Add welcome message
@@ -42,32 +39,14 @@ const AIInterviewBot = () => {
     ]);
   }, []);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-      }
-      
-      setIsCameraOn(true);
-      toast.success("Camera and microphone activated");
-    } catch (error) {
-      toast.error("Failed to access camera/microphone");
-    }
+  const handleStreamReady = (stream: MediaStream) => {
+    setIsCameraActive(true);
+    toast.success("Camera ready for interview");
   };
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraOn(false);
-    toast.success("Camera and microphone stopped");
+  const handleStreamStop = () => {
+    setIsCameraActive(false);
+    setIsRecording(false);
   };
 
   const toggleRecording = () => {
@@ -125,56 +104,33 @@ const AIInterviewBot = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Video & Chat Section */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Video Feed */}
-            <Card className="p-6">
-              <div className="aspect-video bg-muted rounded-lg relative overflow-hidden mb-4">
-                {isCameraOn ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <VideoOff className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Camera is off</p>
-                    </div>
-                  </div>
-                )}
+            {/* Camera Feed Component */}
+            <CameraFeed 
+              onStreamReady={handleStreamReady}
+              onStreamStop={handleStreamStop}
+            />
 
-                {/* Recording Indicator */}
-                {isRecording && (
-                  <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    Recording
+            {/* Recording Control */}
+            {isCameraActive && (
+              <Card className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${isRecording ? "bg-red-500 animate-pulse" : "bg-muted"}`} />
+                    <span className="font-medium">
+                      {isRecording ? "Recording your response..." : "Ready to record"}
+                    </span>
                   </div>
-                )}
-              </div>
-
-              {/* Camera Controls */}
-              <div className="flex gap-2 justify-center">
-                <Button
-                  variant={isCameraOn ? "destructive" : "default"}
-                  onClick={isCameraOn ? stopCamera : startCamera}
-                  className="gap-2"
-                >
-                  {isCameraOn ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                  {isCameraOn ? "Stop Camera" : "Start Camera"}
-                </Button>
-                <Button
-                  variant={isRecording ? "destructive" : "secondary"}
-                  onClick={toggleRecording}
-                  disabled={!isCameraOn}
-                  className="gap-2"
-                >
-                  {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                  {isRecording ? "Stop Recording" : "Start Recording"}
-                </Button>
-              </div>
-            </Card>
+                  <Button
+                    variant={isRecording ? "destructive" : "default"}
+                    onClick={toggleRecording}
+                    className="gap-2"
+                  >
+                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    {isRecording ? "Stop Recording" : "Start Recording"}
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             {/* Chat Interface */}
             <Card className="p-6">
