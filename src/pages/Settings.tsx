@@ -159,7 +159,7 @@ const Settings = () => {
 
                 <div>
                   <Label htmlFor="skillLevel">Skill Level</Label>
-                  <Select value={profile.skill_level} onValueChange={(value) => setProfile({ ...profile, skill_level: value })}>
+                  <Select value={profile.skill_level} onValueChange={(value) => setProfile({ ...profile, skill_level: value as "beginner" | "intermediate" | "advanced" | "expert" })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your skill level" />
                     </SelectTrigger>
