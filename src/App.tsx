@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AIInterviewBot from "./pages/AIInterviewBot";
+import VideoInterview from "./pages/VideoInterview";
 import Settings from "./pages/Settings";
 import Practice from "./pages/Practice";
 import Courses from "./pages/Courses";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/interview-bot" element={<AIInterviewBot />} />
+          <Route path="/video-interview" element={<VideoInterview />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/practice" element={<Practice />} />
           <Route path="/courses" element={<Courses />} />
