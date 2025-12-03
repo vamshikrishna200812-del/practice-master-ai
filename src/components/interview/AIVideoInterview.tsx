@@ -1,31 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Mic, 
-  MicOff, 
-  Video, 
-  VideoOff,
-  Play,
-  Square,
-  SkipForward,
-  Volume2,
-  VolumeX,
-  Loader2,
-  Brain,
-  MessageSquare,
-  Award,
-  TrendingUp,
-  CheckCircle2,
-  AlertCircle
-} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useBrowserTTS } from "@/hooks/useBrowserTTS";
-import { InterviewAvatar } from "./InterviewAvatar";
+import { VideoCallInterface } from "./VideoCallInterface";
+import { InterviewSetup } from "./InterviewSetup";
+import { InterviewReport } from "./InterviewReport";
+import { InterviewProcessing } from "./InterviewProcessing";
 
 interface InterviewResponse {
   question: string;
@@ -67,6 +48,7 @@ export const AIVideoInterview = ({
   const [responses, setResponses] = useState<InterviewResponse[]>([]);
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentFeedback, setCurrentFeedback] = useState<InterviewResponse["feedback"] | null>(null);
 
   // Avatar state
   const [avatarVideoUrl, setAvatarVideoUrl] = useState<string | null>(null);
@@ -75,7 +57,6 @@ export const AIVideoInterview = ({
 
   // Media state
   const [isCameraOn, setIsCameraOn] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
 
@@ -106,7 +87,7 @@ export const AIVideoInterview = ({
     rate: 0.95,
     onEnd: () => {
       // Auto-start listening after AI finishes speaking
-      if (phase === "interview" && !isRecording) {
+      if (phase === "interview" && !isRecording && !isLoading) {
         startRecording();
       }
     },
@@ -149,7 +130,6 @@ export const AIVideoInterview = ({
     setAvatarError(null);
 
     try {
-      // Create talk
       const { data: createData, error: createError } = await supabase.functions.invoke("did-avatar", {
         body: { type: "create_talk", text },
       });
@@ -258,6 +238,7 @@ export const AIVideoInterview = ({
       setFinalReport(data);
       setPhase("complete");
       onComplete?.(data);
+      stopCamera();
     } catch (error) {
       console.error("Report error:", error);
       toast.error("Failed to generate report");
@@ -311,7 +292,7 @@ export const AIVideoInterview = ({
     resetTranscript();
     setUserTranscript("");
     startListening();
-    toast.info("Recording... Speak your answer");
+    toast.info("Listening... Speak your answer", { duration: 2000 });
   };
 
   // Stop recording and process response
@@ -338,10 +319,11 @@ export const AIVideoInterview = ({
         feedback,
       };
       setResponses(prev => [...prev, newResponse]);
+      setCurrentFeedback(feedback);
 
       // Show brief feedback
       if (feedback?.feedback) {
-        toast.success(feedback.feedback, { duration: 4000 });
+        toast.success(`Score: ${feedback.score}/100`, { duration: 3000 });
       }
 
       // Move to next question or finish
@@ -353,6 +335,10 @@ export const AIVideoInterview = ({
         const nextQuestion = await generateQuestion();
         setCurrentQuestion(nextQuestion);
         previousQuestionsRef.current.push(nextQuestion);
+
+        // Reset user transcript
+        resetTranscript();
+        setUserTranscript("");
 
         // Generate avatar for next question
         const videoUrl = await generateAvatarVideo(nextQuestion);
@@ -367,13 +353,11 @@ export const AIVideoInterview = ({
       toast.error("Failed to process response");
     } finally {
       setIsLoading(false);
-      resetTranscript();
-      setUserTranscript("");
     }
   };
 
   // Skip current question
-  const skipQuestion = () => {
+  const skipQuestion = async () => {
     stopListening();
     setIsRecording(false);
     
@@ -384,15 +368,63 @@ export const AIVideoInterview = ({
     setResponses(prev => [...prev, newResponse]);
 
     if (questionNumber >= totalQuestions) {
+      await generateFinalReport();
+    } else {
+      setIsLoading(true);
+      setQuestionNumber(prev => prev + 1);
+      
+      try {
+        const nextQuestion = await generateQuestion();
+        setCurrentQuestion(nextQuestion);
+        previousQuestionsRef.current.push(nextQuestion);
+        
+        resetTranscript();
+        setUserTranscript("");
+        
+        const videoUrl = await generateAvatarVideo(nextQuestion);
+        if (videoUrl) {
+          setAvatarVideoUrl(videoUrl);
+        } else {
+          speak(nextQuestion);
+        }
+      } catch (error) {
+        console.error("Skip error:", error);
+        toast.error("Failed to load next question");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // End interview early
+  const endInterview = () => {
+    if (responses.length > 0) {
       generateFinalReport();
     } else {
-      setQuestionNumber(prev => prev + 1);
-      generateQuestion().then(q => {
-        setCurrentQuestion(q);
-        previousQuestionsRef.current.push(q);
-        speak(q);
-      });
+      stopCamera();
+      stopSpeaking();
+      setPhase("setup");
     }
+  };
+
+  // Handle avatar video end
+  const handleAvatarVideoEnd = () => {
+    if (!isRecording && !isLoading && phase === "interview") {
+      startRecording();
+    }
+  };
+
+  // Reset interview
+  const resetInterview = () => {
+    setPhase("setup");
+    setResponses([]);
+    setQuestionNumber(0);
+    setFinalReport(null);
+    setCurrentFeedback(null);
+    setCurrentQuestion("");
+    setUserTranscript("");
+    setAvatarVideoUrl(null);
+    previousQuestionsRef.current = [];
   };
 
   // Cleanup on unmount
@@ -404,357 +436,61 @@ export const AIVideoInterview = ({
     };
   }, []);
 
-  // Render setup phase
+  // Render based on phase
   if (phase === "setup") {
     return (
-      <Card className="p-8 max-w-2xl mx-auto">
-        <div className="text-center space-y-6">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10">
-            <Brain className="w-10 h-10 text-primary" />
-          </div>
-          
-          <div>
-            <h2 className="text-2xl font-bold mb-2">AI Video Interview</h2>
-            <p className="text-muted-foreground">
-              Practice your {interviewType} interview skills with our AI interviewer.
-              You'll answer {totalQuestions} questions with real-time feedback.
-            </p>
-          </div>
-
-          {/* Camera preview */}
-          <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-            <video
-              ref={userVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-              style={{ transform: "scaleX(-1)" }}
-            />
-            {!isCameraOn && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <VideoOff className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">Camera is off</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Controls */}
-          <div className="flex justify-center gap-4">
-            <Button
-              variant={isCameraOn ? "destructive" : "outline"}
-              onClick={isCameraOn ? stopCamera : startCamera}
-            >
-              {isCameraOn ? <VideoOff className="w-4 h-4 mr-2" /> : <Video className="w-4 h-4 mr-2" />}
-              {isCameraOn ? "Turn Off Camera" : "Turn On Camera"}
-            </Button>
-          </div>
-
-          {/* Browser support warnings */}
-          {!isSpeechSupported && (
-            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg">
-              <AlertCircle className="w-5 h-5" />
-              <span className="text-sm">Speech recognition not supported. Please use Chrome or Edge.</span>
-            </div>
-          )}
-
-          {/* Start button */}
-          <Button
-            size="lg"
-            onClick={startInterview}
-            disabled={!isCameraOn || isLoading}
-            className="w-full max-w-xs"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Preparing...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Start Interview
-              </>
-            )}
-          </Button>
-        </div>
-      </Card>
+      <InterviewSetup
+        interviewType={interviewType}
+        totalQuestions={totalQuestions}
+        isCameraOn={isCameraOn}
+        isSpeechSupported={isSpeechSupported}
+        isLoading={isLoading}
+        userVideoRef={userVideoRef}
+        onStartCamera={startCamera}
+        onStopCamera={stopCamera}
+        onStartInterview={startInterview}
+      />
     );
   }
 
-  // Render interview phase
   if (phase === "interview") {
     return (
-      <div className="space-y-6">
-        {/* Progress bar */}
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">Question {questionNumber} of {totalQuestions}</span>
-          <Progress value={(questionNumber / totalQuestions) * 100} className="flex-1" />
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* AI Avatar */}
-          <Card className="overflow-hidden">
-            <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-secondary/20">
-              <InterviewAvatar
-                videoUrl={avatarVideoUrl}
-                isLoading={isAvatarLoading}
-                isSpeaking={isSpeaking}
-                error={avatarError}
-                onVideoEnd={() => {
-                  if (!isRecording) {
-                    startRecording();
-                  }
-                }}
-              />
-              
-              {/* Speaking indicator */}
-              {(isSpeaking || isAvatarLoading) && (
-                <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-full">
-                  <Volume2 className="w-4 h-4 animate-pulse" />
-                  <span className="text-sm font-medium">
-                    {isAvatarLoading ? "Preparing..." : "AI Speaking"}
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            {/* Current question */}
-            <div className="p-4">
-              <p className="text-lg font-medium">{currentQuestion}</p>
-            </div>
-          </Card>
-
-          {/* User camera */}
-          <Card className="overflow-hidden">
-            <div className="relative aspect-video bg-muted">
-              <video
-                ref={userVideoRef}
-                autoPlay
-                playsInline
-                muted={isMuted}
-                className="w-full h-full object-cover"
-                style={{ transform: "scaleX(-1)" }}
-              />
-              
-              {/* Recording indicator */}
-              {isRecording && (
-                <div className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 text-white px-3 py-1.5 rounded-full animate-pulse">
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                  <span className="text-sm font-medium">Recording</span>
-                </div>
-              )}
-
-              {/* Listening indicator */}
-              {isListening && (
-                <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-full">
-                  <Mic className="w-4 h-4" />
-                  <span className="text-sm font-medium">Listening...</span>
-                </div>
-              )}
-            </div>
-
-            {/* User transcript */}
-            <div className="p-4 min-h-[100px]">
-              <p className="text-sm text-muted-foreground mb-1">Your response:</p>
-              <p className="text-sm">{userTranscript || transcript || "Start speaking to see your response here..."}</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Controls */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsMuted(!isMuted)}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isRecording ? (
-                <Button
-                  onClick={stopRecording}
-                  disabled={isLoading}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Square className="w-4 h-4 mr-2" />
-                      Submit Answer
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={startRecording}
-                  disabled={isLoading || isSpeaking || isAvatarLoading}
-                >
-                  <Mic className="w-4 h-4 mr-2" />
-                  Start Speaking
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                onClick={skipQuestion}
-                disabled={isLoading}
-              >
-                <SkipForward className="w-4 h-4 mr-2" />
-                Skip
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <VideoCallInterface
+        avatarVideoUrl={avatarVideoUrl}
+        isAvatarLoading={isAvatarLoading}
+        isSpeaking={isSpeaking}
+        avatarError={avatarError}
+        onAvatarVideoEnd={handleAvatarVideoEnd}
+        currentQuestion={currentQuestion}
+        questionNumber={questionNumber}
+        totalQuestions={totalQuestions}
+        userTranscript={userTranscript || transcript}
+        isRecording={isRecording}
+        isListening={isListening}
+        isLoading={isLoading}
+        currentFeedback={currentFeedback}
+        onStartRecording={startRecording}
+        onStopRecording={stopRecording}
+        onSkipQuestion={skipQuestion}
+        onEndInterview={endInterview}
+        userVideoRef={userVideoRef}
+        isCameraOn={isCameraOn}
+      />
     );
   }
 
-  // Render processing phase
   if (phase === "processing") {
-    return (
-      <Card className="p-8 max-w-xl mx-auto">
-        <div className="text-center space-y-6">
-          <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Analyzing Your Performance</h2>
-            <p className="text-muted-foreground">
-              Our AI is reviewing your responses and generating a detailed feedback report...
-            </p>
-          </div>
-        </div>
-      </Card>
-    );
+    return <InterviewProcessing />;
   }
 
-  // Render complete phase
   if (phase === "complete" && finalReport) {
     return (
-      <div className="space-y-6 max-w-3xl mx-auto">
-        <Card className="p-6">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-4">
-              <CheckCircle2 className="w-10 h-10 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Interview Complete!</h2>
-            <p className="text-muted-foreground">{finalReport.summary}</p>
-          </div>
-
-          {/* Score cards */}
-          <div className="grid sm:grid-cols-4 gap-4 mb-8">
-            <div className="text-center p-4 bg-primary/10 rounded-lg">
-              <Award className="w-6 h-6 mx-auto text-primary mb-2" />
-              <p className="text-2xl font-bold text-primary">{finalReport.overallScore}</p>
-              <p className="text-sm text-muted-foreground">Overall</p>
-            </div>
-            <div className="text-center p-4 bg-blue-100 rounded-lg">
-              <MessageSquare className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-              <p className="text-2xl font-bold text-blue-600">{finalReport.communicationScore}</p>
-              <p className="text-sm text-muted-foreground">Communication</p>
-            </div>
-            <div className="text-center p-4 bg-green-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 mx-auto text-green-600 mb-2" />
-              <p className="text-2xl font-bold text-green-600">{finalReport.confidenceScore}</p>
-              <p className="text-sm text-muted-foreground">Confidence</p>
-            </div>
-            <div className="text-center p-4 bg-purple-100 rounded-lg">
-              <Brain className="w-6 h-6 mx-auto text-purple-600 mb-2" />
-              <p className="text-2xl font-bold text-purple-600">{finalReport.technicalScore}</p>
-              <p className="text-sm text-muted-foreground">Technical</p>
-            </div>
-          </div>
-
-          {/* Strengths & Improvements */}
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                Strengths
-              </h3>
-              <ul className="space-y-2">
-                {finalReport.strengths.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">•</span>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-amber-600" />
-                Areas to Improve
-              </h3>
-              <ul className="space-y-2">
-                {finalReport.improvements.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-600">•</span>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Recommendations */}
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-3">Recommendations</h3>
-            <ul className="space-y-2">
-              {finalReport.recommendations.map((r, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <Badge variant="secondary" className="text-xs">{i + 1}</Badge>
-                  {r}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-
-        {/* Response details */}
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Your Responses</h3>
-          <div className="space-y-4">
-            {responses.map((r, i) => (
-              <div key={i} className="border-b last:border-0 pb-4 last:pb-0">
-                <p className="font-medium text-sm text-primary mb-1">Q{i + 1}: {r.question}</p>
-                <p className="text-sm text-muted-foreground mb-2">{r.answer}</p>
-                {r.feedback && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant={r.feedback.score >= 70 ? "default" : "secondary"}>
-                      Score: {r.feedback.score}/100
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex justify-center gap-4">
-          <Button onClick={() => {
-            setPhase("setup");
-            setResponses([]);
-            setQuestionNumber(0);
-            setFinalReport(null);
-            previousQuestionsRef.current = [];
-          }}>
-            <Play className="w-4 h-4 mr-2" />
-            Practice Again
-          </Button>
-        </div>
-      </div>
+      <InterviewReport
+        report={finalReport}
+        responses={responses}
+        interviewType={interviewType}
+        onPracticeAgain={resetInterview}
+      />
     );
   }
 
