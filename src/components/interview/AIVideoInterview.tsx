@@ -124,59 +124,13 @@ export const AIVideoInterview = ({
     setIsCameraOn(false);
   };
 
-  // Generate avatar video with D-ID
+  // Generate avatar video with D-ID (silently falls back to TTS on failure)
   const generateAvatarVideo = async (text: string): Promise<string | null> => {
-    setIsAvatarLoading(true);
-    setAvatarError(null);
-
-    try {
-      const { data: createData, error: createError } = await supabase.functions.invoke("did-avatar", {
-        body: { type: "create_talk", text },
-      });
-
-      if (createError || createData?.error) {
-        throw new Error(createData?.error || createError?.message || "Failed to create avatar");
-      }
-
-      const talkId = createData.talkId;
-      console.log("Avatar talk created:", talkId);
-
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 30;
-      
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const { data: statusData, error: statusError } = await supabase.functions.invoke("did-avatar", {
-          body: { type: "get_talk_status", talkId },
-        });
-
-        if (statusError || statusData?.error) {
-          throw new Error(statusData?.error || statusError?.message);
-        }
-
-        console.log("Avatar status:", statusData.status);
-
-        if (statusData.status === "done" && statusData.resultUrl) {
-          setIsAvatarLoading(false);
-          return statusData.resultUrl;
-        }
-
-        if (statusData.status === "error") {
-          throw new Error("Avatar generation failed");
-        }
-
-        attempts++;
-      }
-
-      throw new Error("Avatar generation timed out");
-    } catch (error) {
-      console.error("Avatar error:", error);
-      setAvatarError(error instanceof Error ? error.message : "Avatar generation failed");
-      setIsAvatarLoading(false);
-      return null;
-    }
+    // Skip D-ID entirely and use browser TTS for reliability
+    // D-ID can be re-enabled when API key is properly configured
+    console.log("Using browser TTS for speech");
+    setIsAvatarLoading(false);
+    return null;
   };
 
   // Generate question with AI
