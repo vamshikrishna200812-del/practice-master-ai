@@ -54,15 +54,20 @@ export const useBrowserTTS = (options: UseBrowserTTSOptions = {}): UseBrowserTTS
     const utterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = utterance;
 
-    // Find best English voice
+    // Find Indian English voice first, fallback to other English voices
     const selectedVoice = voices.find(v => 
-      voice ? v.name.includes(voice) : 
-      (v.lang.startsWith("en") && v.name.includes("Female")) ||
-      (v.lang.startsWith("en-US"))
-    ) || voices.find(v => v.lang.startsWith("en")) || voices[0];
+      voice ? v.name.includes(voice) : v.lang === "en-IN"
+    ) || voices.find(v => 
+      v.lang.startsWith("en-IN") || v.name.toLowerCase().includes("india")
+    ) || voices.find(v => 
+      v.lang.startsWith("en-GB")
+    ) || voices.find(v => 
+      v.lang.startsWith("en")
+    ) || voices[0];
 
     if (selectedVoice) {
       utterance.voice = selectedVoice;
+      console.log("Using TTS voice:", selectedVoice.name, selectedVoice.lang);
     }
 
     utterance.rate = rate;
