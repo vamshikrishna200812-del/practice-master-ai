@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +10,6 @@ import {
   VideoOff,
   PhoneOff,
   Volume2,
-  VolumeX,
   MessageSquare,
   Brain,
   Loader2,
@@ -20,11 +18,11 @@ import {
   CheckCircle2,
   Settings,
   Maximize2,
-  BarChart3,
-  User
+  BarChart3
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { AnimatedAvatar } from "./AnimatedAvatar";
 
 interface FeedbackData {
   score: number;
@@ -160,7 +158,7 @@ export const VideoCallInterface = ({
         <div className="flex-1 p-4 flex flex-col gap-4">
           {/* AI Interviewer - Main Stage */}
           <div className="flex-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-[hsl(220_25%_12%)] to-[hsl(220_25%_8%)] border border-[hsl(220_25%_18%)]">
-            {/* Avatar Video or Fallback */}
+            {/* Avatar Video or Animated Avatar */}
             {avatarVideoUrl && !avatarError ? (
               <video
                 ref={avatarVideoRef}
@@ -171,47 +169,10 @@ export const VideoCallInterface = ({
                 playsInline
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center space-y-6">
-                  {/* Animated Avatar Placeholder */}
-                  <motion.div 
-                    className={cn(
-                      "w-32 h-32 rounded-full mx-auto flex items-center justify-center",
-                      "bg-gradient-to-br from-primary/30 to-accent/30",
-                      "border-4 border-primary/50"
-                    )}
-                    animate={isSpeaking ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ duration: 0.5, repeat: Infinity }}
-                  >
-                    {isAvatarLoading ? (
-                      <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                    ) : (
-                      <User className="w-16 h-16 text-primary" />
-                    )}
-                  </motion.div>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground">AI Interviewer</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isAvatarLoading ? "Preparing response..." : isSpeaking ? "Speaking..." : "Ready"}
-                    </p>
-                  </div>
-
-                  {/* Audio Waveform */}
-                  {(isSpeaking || isAvatarLoading) && (
-                    <div className="flex items-center justify-center gap-1 h-8">
-                      {audioWaveform.map((height, i) => (
-                        <motion.div
-                          key={i}
-                          className="w-1.5 bg-primary rounded-full"
-                          animate={{ height: `${Math.max(8, height * 0.4)}px` }}
-                          transition={{ duration: 0.1 }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <AnimatedAvatar 
+                isSpeaking={isSpeaking} 
+                isLoading={isAvatarLoading || isLoading} 
+              />
             )}
 
             {/* Loading Overlay */}

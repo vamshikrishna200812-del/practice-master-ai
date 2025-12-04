@@ -13,10 +13,30 @@ import {
   Play,
   Download,
   Share2,
-  Target
+  Target,
+  Home
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+} from "recharts";
 
 interface InterviewResponse {
   question: string;
@@ -53,6 +73,8 @@ export const InterviewReport = ({
   interviewType,
   onPracticeAgain,
 }: InterviewReportProps) => {
+  const navigate = useNavigate();
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-500";
     if (score >= 60) return "text-amber-500";
@@ -65,6 +87,73 @@ export const InterviewReport = ({
     if (score >= 70) return "Good";
     if (score >= 60) return "Fair";
     return "Needs Improvement";
+  };
+
+  // Radar chart data
+  const radarData = [
+    { skill: "Communication", score: report.communicationScore, fullMark: 100 },
+    { skill: "Confidence", score: report.confidenceScore, fullMark: 100 },
+    { skill: "Technical", score: report.technicalScore, fullMark: 100 },
+    { skill: "Overall", score: report.overallScore, fullMark: 100 },
+  ];
+
+  // Question-by-question performance data
+  const questionScores = responses.map((r, i) => ({
+    question: `Q${i + 1}`,
+    score: r.feedback?.score || 0,
+    fullName: r.question.substring(0, 30) + "...",
+  }));
+
+  // Download report as JSON
+  const handleDownload = () => {
+    const reportData = {
+      date: new Date().toISOString(),
+      interviewType,
+      scores: {
+        overall: report.overallScore,
+        communication: report.communicationScore,
+        confidence: report.confidenceScore,
+        technical: report.technicalScore,
+      },
+      summary: report.summary,
+      strengths: report.strengths,
+      improvements: report.improvements,
+      recommendations: report.recommendations,
+      responses: responses.map(r => ({
+        question: r.question,
+        answer: r.answer,
+        score: r.feedback?.score,
+        feedback: r.feedback?.feedback,
+      })),
+    };
+    
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `interview-report-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Report downloaded!");
+  };
+
+  // Share report
+  const handleShare = async () => {
+    const shareText = `I just completed an AI Interview! 🎯\n\nOverall Score: ${report.overallScore}/100\nCommunication: ${report.communicationScore}/100\nConfidence: ${report.confidenceScore}/100\nTechnical: ${report.technicalScore}/100`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "My AI Interview Results",
+          text: shareText,
+        });
+      } catch (err) {
+        console.error("Share failed:", err);
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("Results copied to clipboard!");
+    }
   };
 
   const scoreCards = [
@@ -170,6 +259,76 @@ export const InterviewReport = ({
                 </div>
                 <Progress value={report.overallScore} className="h-3" />
               </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Performance Charts */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="grid md:grid-cols-2 gap-6"
+        >
+          {/* Radar Chart */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-foreground mb-4">Skills Overview</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="hsl(var(--muted-foreground) / 0.3)" />
+                  <PolarAngleAxis 
+                    dataKey="skill" 
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                  />
+                  <PolarRadiusAxis 
+                    angle={30} 
+                    domain={[0, 100]} 
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                  />
+                  <Radar
+                    name="Score"
+                    dataKey="score"
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.4}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Question Performance Bar Chart */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-foreground mb-4">Question Performance</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={questionScores}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.2)" />
+                  <XAxis 
+                    dataKey="question" 
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                  />
+                  <YAxis 
+                    domain={[0, 100]} 
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "hsl(var(--foreground))" }}
+                  />
+                  <Bar 
+                    dataKey="score" 
+                    fill="hsl(var(--primary))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </Card>
         </motion.div>
@@ -300,13 +459,17 @@ export const InterviewReport = ({
             <Play className="w-4 h-4 mr-2" />
             Practice Again
           </Button>
-          <Button size="lg" variant="outline">
+          <Button size="lg" variant="outline" onClick={handleDownload}>
             <Download className="w-4 h-4 mr-2" />
             Download Report
           </Button>
-          <Button size="lg" variant="outline">
+          <Button size="lg" variant="outline" onClick={handleShare}>
             <Share2 className="w-4 h-4 mr-2" />
             Share Results
+          </Button>
+          <Button size="lg" variant="ghost" onClick={() => navigate("/ai-interview-bot")}>
+            <Home className="w-4 h-4 mr-2" />
+            Back to Home
           </Button>
         </motion.div>
       </div>
