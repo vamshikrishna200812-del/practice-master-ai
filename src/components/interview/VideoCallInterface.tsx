@@ -61,6 +61,7 @@ interface VideoCallInterfaceProps {
   
   // Camera ref
   userVideoRef: React.RefObject<HTMLVideoElement>;
+  userStream: MediaStream | null;
   isCameraOn: boolean;
 }
 
@@ -83,6 +84,7 @@ export const VideoCallInterface = ({
   onSkipQuestion,
   onEndInterview,
   userVideoRef,
+  userStream,
   isCameraOn,
 }: VideoCallInterfaceProps) => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
@@ -90,6 +92,13 @@ export const VideoCallInterface = ({
   const [isMuted, setIsMuted] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(true);
   const [audioWaveform, setAudioWaveform] = useState<number[]>([]);
+
+  // Re-attach stream when component mounts
+  useEffect(() => {
+    if (userStream && userVideoRef.current) {
+      userVideoRef.current.srcObject = userStream;
+    }
+  }, [userStream, userVideoRef]);
 
   // Generate waveform animation when speaking
   useEffect(() => {
@@ -232,21 +241,27 @@ export const VideoCallInterface = ({
 
         {/* Right Sidebar */}
         <div className="w-80 border-l border-[hsl(220_25%_18%)] flex flex-col bg-[hsl(220_25%_10%)]">
-          {/* User Camera Preview */}
+          {/* User Camera Preview - Enhanced */}
           <div className="p-4 border-b border-[hsl(220_25%_18%)]">
-            <div className="relative aspect-video rounded-lg overflow-hidden bg-[hsl(220_25%_8%)]">
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-[hsl(220_25%_8%)] ring-2 ring-primary/30 shadow-lg shadow-primary/10">
               <video
                 ref={userVideoRef}
                 autoPlay
                 playsInline
-                muted={isMuted}
-                className="w-full h-full object-cover"
+                muted
+                className={cn(
+                  "w-full h-full object-cover transition-opacity duration-300",
+                  isCameraOn ? "opacity-100" : "opacity-0"
+                )}
                 style={{ transform: "scaleX(-1)" }}
               />
               
               {!isCameraOn && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[hsl(220_25%_12%)]">
-                  <VideoOff className="w-8 h-8 text-muted-foreground" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[hsl(220_25%_15%)] to-[hsl(220_25%_8%)]">
+                  <div className="w-16 h-16 rounded-full bg-[hsl(220_25%_20%)] flex items-center justify-center mb-2">
+                    <VideoOff className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Camera Off</span>
                 </div>
               )}
 
@@ -259,17 +274,27 @@ export const VideoCallInterface = ({
                     exit={{ opacity: 0, scale: 0.9 }}
                     className="absolute top-2 right-2"
                   >
-                    <Badge className="bg-red-600 text-white gap-1.5 animate-pulse">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                      {isListening ? "Listening" : "Recording"}
+                    <Badge className="bg-red-600 text-white gap-1.5 animate-pulse shadow-lg">
+                      <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      {isListening ? "Listening..." : "Recording"}
                     </Badge>
                   </motion.div>
                 )}
               </AnimatePresence>
 
+              {/* Live indicator when camera is on */}
+              {isCameraOn && !isRecording && !isListening && (
+                <div className="absolute top-2 left-2">
+                  <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs bg-black/50">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse" />
+                    LIVE
+                  </Badge>
+                </div>
+              )}
+
               {/* User Name Badge */}
               <div className="absolute bottom-2 left-2">
-                <Badge variant="secondary" className="bg-[hsl(220_25%_15%)/90] text-foreground text-xs">
+                <Badge variant="secondary" className="bg-black/60 backdrop-blur-sm text-foreground text-xs border border-white/10">
                   You
                 </Badge>
               </div>

@@ -428,6 +428,7 @@ export const AIVideoInterview = ({
         onSkipQuestion={skipQuestion}
         onEndInterview={endInterview}
         userVideoRef={userVideoRef}
+        userStream={userStreamRef.current}
         isCameraOn={isCameraOn}
       />
     );
