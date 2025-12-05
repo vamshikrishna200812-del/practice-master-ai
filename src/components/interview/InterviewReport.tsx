@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { generateReportHTML } from "@/utils/generateReportHTML";
 import {
   RadarChart,
   PolarGrid,
@@ -104,37 +105,17 @@ export const InterviewReport = ({
     fullName: r.question.substring(0, 30) + "...",
   }));
 
-  // Download report as JSON
+  // Download report as beautiful HTML
   const handleDownload = () => {
-    const reportData = {
-      date: new Date().toISOString(),
-      interviewType,
-      scores: {
-        overall: report.overallScore,
-        communication: report.communicationScore,
-        confidence: report.confidenceScore,
-        technical: report.technicalScore,
-      },
-      summary: report.summary,
-      strengths: report.strengths,
-      improvements: report.improvements,
-      recommendations: report.recommendations,
-      responses: responses.map(r => ({
-        question: r.question,
-        answer: r.answer,
-        score: r.feedback?.score,
-        feedback: r.feedback?.feedback,
-      })),
-    };
-    
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+    const htmlContent = generateReportHTML(report, responses, interviewType);
+    const blob = new Blob([htmlContent], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `interview-report-${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `interview-report-${new Date().toISOString().split("T")[0]}.html`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Report downloaded!");
+    toast.success("Report downloaded! Open the HTML file in your browser to view.");
   };
 
   // Share report
