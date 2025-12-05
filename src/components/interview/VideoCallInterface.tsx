@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { AnimatedAvatar } from "./AnimatedAvatar";
+import { HumanAvatar } from "./HumanAvatar";
+import { FaceDetectionFeedback } from "./FaceDetectionFeedback";
 
 interface FeedbackData {
   score: number;
@@ -178,7 +179,7 @@ export const VideoCallInterface = ({
                 playsInline
               />
             ) : (
-              <AnimatedAvatar 
+              <HumanAvatar 
                 isSpeaking={isSpeaking} 
                 isLoading={isAvatarLoading || isLoading} 
               />
@@ -264,6 +265,12 @@ export const VideoCallInterface = ({
                   <span className="text-xs text-muted-foreground">Camera Off</span>
                 </div>
               )}
+
+              {/* Face Detection Feedback */}
+              <FaceDetectionFeedback 
+                videoRef={userVideoRef} 
+                isActive={isCameraOn} 
+              />
 
               {/* Recording/Listening Indicator */}
               <AnimatePresence>
