@@ -1,7 +1,7 @@
 project_id = "onzfhdrrnbkldwsaqecq"
 
 [functions.ai-interview]
-verify_jwt = false
+verify_jwt = true
 
 [functions.did-avatar]
-verify_jwt = false
+verify_jwt = true
