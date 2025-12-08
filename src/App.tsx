@@ -16,6 +16,7 @@ import Notifications from "./pages/Notifications";
 import Help from "./pages/Help";
 import CameraDemo from "./pages/CameraDemo";
 import NotFound from "./pages/NotFound";
+import Promo from "./pages/Promo";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/help" element={<Help />} />
           <Route path="/camera-demo" element={<CameraDemo />} />
+          <Route path="/promo" element={<Promo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
