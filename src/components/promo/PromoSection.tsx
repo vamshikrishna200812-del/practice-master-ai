@@ -295,6 +295,162 @@ const ProgressDashboard = () => {
   );
 };
 
+const testimonials = [
+  {
+    quote: "AITRAININGZONE completely transformed my interview skills. I went from nervous to confident in just 2 weeks!",
+    name: "Priya Sharma",
+    role: "Software Engineer at Google",
+    avatar: "PS",
+  },
+  {
+    quote: "The real-time feedback on my communication and body language was a game-changer. Landed my dream job!",
+    name: "Rahul Mehta",
+    role: "Product Manager at Microsoft",
+    avatar: "RM",
+  },
+  {
+    quote: "Best investment in my career. The AI interviewer feels incredibly realistic and the feedback is spot-on.",
+    name: "Ananya Patel",
+    role: "Data Scientist at Amazon",
+    avatar: "AP",
+  },
+  {
+    quote: "I practiced daily and saw my scores improve dramatically. The progress tracking kept me motivated!",
+    name: "Vikram Singh",
+    role: "Full Stack Developer at Flipkart",
+    avatar: "VS",
+  },
+];
+
+const TestimonialCard = ({ 
+  testimonial, 
+  index 
+}: { 
+  testimonial: typeof testimonials[0]; 
+  index: number;
+}) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50, rotateY: -15 }}
+      animate={isInView ? { opacity: 1, y: 0, rotateY: 0 } : {}}
+      transition={{ delay: index * 0.15, duration: 0.6, type: "spring" }}
+      whileHover={{ scale: 1.03, y: -8 }}
+      className="relative bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
+    >
+      {/* Quote icon */}
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={isInView ? { scale: 1, rotate: 0 } : {}}
+        transition={{ delay: index * 0.15 + 0.3, type: "spring" }}
+        className="absolute -top-4 -left-2 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg"
+      >
+        <span className="text-primary-foreground text-2xl font-serif">"</span>
+      </motion.div>
+
+      {/* Quote text with typing animation effect */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : {}}
+        transition={{ delay: index * 0.15 + 0.2, duration: 0.5 }}
+        className="text-foreground/90 text-sm leading-relaxed mb-6 mt-4 italic"
+      >
+        "{testimonial.quote}"
+      </motion.p>
+
+      {/* Rating stars */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : {}}
+        transition={{ delay: index * 0.15 + 0.4 }}
+        className="flex gap-1 mb-4"
+      >
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ scale: 0 }}
+            animate={isInView ? { scale: 1 } : {}}
+            transition={{ delay: index * 0.15 + 0.5 + i * 0.05, type: "spring" }}
+          >
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Author info */}
+      <div className="flex items-center gap-3">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={isInView ? { scale: 1 } : {}}
+          transition={{ delay: index * 0.15 + 0.35, type: "spring" }}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center text-primary-foreground font-semibold text-sm"
+        >
+          {testimonial.avatar}
+        </motion.div>
+        <div>
+          <motion.p
+            initial={{ opacity: 0, x: -10 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: index * 0.15 + 0.4 }}
+            className="font-semibold text-foreground text-sm"
+          >
+            {testimonial.name}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, x: -10 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: index * 0.15 + 0.45 }}
+            className="text-xs text-muted-foreground"
+          >
+            {testimonial.role}
+          </motion.p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const TestimonialsSection = () => {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true });
+
+  return (
+    <div ref={sectionRef} className="mb-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-12"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={isInView ? { scale: 1 } : {}}
+          transition={{ delay: 0.2, type: "spring" }}
+          className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-4"
+        >
+          <Users className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-primary">Trusted by Thousands</span>
+        </motion.div>
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+          What Our Users Say
+        </h2>
+        <p className="text-muted-foreground">
+          Join thousands of professionals who transformed their interview skills
+        </p>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {testimonials.map((testimonial, index) => (
+          <TestimonialCard key={testimonial.name} testimonial={testimonial} index={index} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const CallToAction = () => {
   return (
     <motion.div
@@ -403,9 +559,12 @@ export const PromoSection = () => {
           <FeedbackMetrics />
         </div>
 
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto mb-16">
           <ProgressDashboard />
         </div>
+
+        {/* Testimonials Section */}
+        <TestimonialsSection />
 
         {/* Call to Action */}
         <CallToAction />
