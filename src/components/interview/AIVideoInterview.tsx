@@ -7,6 +7,7 @@ import { VideoCallInterface } from "./VideoCallInterface";
 import { InterviewSetup } from "./InterviewSetup";
 import { InterviewReport } from "./InterviewReport";
 import { InterviewProcessing } from "./InterviewProcessing";
+import { ResumeJDSetup } from "./ResumeJDSetup";
 
 interface InterviewResponse {
   question: string;
@@ -30,6 +31,12 @@ interface FinalReport {
   recommendations: string[];
 }
 
+interface PersonalizationData {
+  resumeText?: string;
+  jobDescription?: string;
+  customQuestions?: string[];
+}
+
 interface AIVideoInterviewProps {
   interviewType?: "behavioral" | "technical" | "coding";
   totalQuestions?: number;
@@ -42,13 +49,18 @@ export const AIVideoInterview = ({
   onComplete,
 }: AIVideoInterviewProps) => {
   // Interview state
-  const [phase, setPhase] = useState<"setup" | "interview" | "processing" | "complete">("setup");
+  const [phase, setPhase] = useState<"personalization" | "setup" | "interview" | "processing" | "complete">("personalization");
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [questionNumber, setQuestionNumber] = useState(0);
   const [responses, setResponses] = useState<InterviewResponse[]>([]);
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState<InterviewResponse["feedback"] | null>(null);
+  
+  // Personalization state
+  const [personalization, setPersonalization] = useState<PersonalizationData>({});
+  const [customQuestions, setCustomQuestions] = useState<string[]>([]);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
 
   // Avatar state
   const [avatarVideoUrl, setAvatarVideoUrl] = useState<string | null>(null);
@@ -133,8 +145,13 @@ export const AIVideoInterview = ({
     return null;
   };
 
-  // Generate question with AI
+  // Generate question with AI (uses custom questions if available)
   const generateQuestion = async (): Promise<string> => {
+    // If we have pre-generated custom questions, use them
+    if (customQuestions.length > 0 && questionNumber <= customQuestions.length) {
+      return customQuestions[questionNumber - 1] || customQuestions[0];
+    }
+    
     const { data, error } = await supabase.functions.invoke("ai-interview", {
       body: {
         type: "generate_question",
@@ -143,6 +160,8 @@ export const AIVideoInterview = ({
           totalQuestions,
           previousQuestions: previousQuestionsRef.current,
           interviewType,
+          resumeText: personalization.resumeText,
+          jobDescription: personalization.jobDescription,
         },
       },
     });
@@ -152,6 +171,48 @@ export const AIVideoInterview = ({
     }
 
     return data.content;
+  };
+
+  // Handle personalization complete
+  const handlePersonalizationComplete = async (data: PersonalizationData) => {
+    setPersonalization(data);
+    
+    if (data.resumeText || data.jobDescription) {
+      setIsGeneratingQuestions(true);
+      toast.info("Generating personalized questions...");
+      
+      try {
+        const { data: questionsData, error } = await supabase.functions.invoke("parse-resume", {
+          body: {
+            type: "generate_questions",
+            resumeText: data.resumeText,
+            jobDescription: data.jobDescription,
+            interviewType,
+            questionCount: totalQuestions,
+          },
+        });
+
+        if (error || questionsData?.error) {
+          console.error("Questions generation error:", error || questionsData?.error);
+          toast.warning("Using default questions instead");
+        } else if (questionsData?.questions?.length > 0) {
+          setCustomQuestions(questionsData.questions);
+          toast.success(`Generated ${questionsData.questions.length} personalized questions!`);
+        }
+      } catch (error) {
+        console.error("Error generating questions:", error);
+        toast.warning("Using default questions instead");
+      } finally {
+        setIsGeneratingQuestions(false);
+      }
+    }
+    
+    setPhase("setup");
+  };
+
+  // Skip personalization
+  const handleSkipPersonalization = () => {
+    setPhase("setup");
   };
 
   // Analyze user response
@@ -370,7 +431,7 @@ export const AIVideoInterview = ({
 
   // Reset interview
   const resetInterview = () => {
-    setPhase("setup");
+    setPhase("personalization");
     setResponses([]);
     setQuestionNumber(0);
     setFinalReport(null);
@@ -378,6 +439,8 @@ export const AIVideoInterview = ({
     setCurrentQuestion("");
     setUserTranscript("");
     setAvatarVideoUrl(null);
+    setCustomQuestions([]);
+    setPersonalization({});
     previousQuestionsRef.current = [];
   };
 
@@ -391,6 +454,15 @@ export const AIVideoInterview = ({
   }, []);
 
   // Render based on phase
+  if (phase === "personalization") {
+    return (
+      <ResumeJDSetup
+        onComplete={handlePersonalizationComplete}
+        onSkip={handleSkipPersonalization}
+      />
+    );
+  }
+
   if (phase === "setup") {
     return (
       <InterviewSetup
@@ -398,7 +470,7 @@ export const AIVideoInterview = ({
         totalQuestions={totalQuestions}
         isCameraOn={isCameraOn}
         isSpeechSupported={isSpeechSupported}
-        isLoading={isLoading}
+        isLoading={isLoading || isGeneratingQuestions}
         userVideoRef={userVideoRef}
         onStartCamera={startCamera}
         onStopCamera={stopCamera}

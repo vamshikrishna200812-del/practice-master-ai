@@ -12,6 +12,8 @@ interface InterviewRequest {
     totalQuestions: number;
     previousQuestions?: string[];
     interviewType: "behavioral" | "technical" | "coding";
+    resumeText?: string;
+    jobDescription?: string;
   };
   userResponse?: string;
   question?: string;
@@ -36,16 +38,37 @@ serve(async (req) => {
     let userPrompt = "";
 
     if (type === "generate_question") {
-      systemPrompt = `You are an expert AI interviewer conducting a ${context?.interviewType || "behavioral"} interview. 
-Generate engaging, professional interview questions that assess the candidate's skills effectively.
-Be conversational but professional. Ask follow-up worthy questions.
-Respond with ONLY the question text, nothing else.`;
+      let systemPromptParts = [`You are an expert AI interviewer conducting a ${context?.interviewType || "behavioral"} interview.`];
+      
+      if (context?.resumeText) {
+        systemPromptParts.push("You have access to the candidate's resume. Ask specific questions about their listed skills, projects, and experience.");
+      }
+      if (context?.jobDescription) {
+        systemPromptParts.push("You are acting as the hiring manager for a specific role. Ask questions that assess if the candidate is a good fit for this position.");
+      }
+      
+      systemPromptParts.push("Generate engaging, professional interview questions that assess the candidate's skills effectively.");
+      systemPromptParts.push("Be conversational but professional. Ask follow-up worthy questions.");
+      systemPromptParts.push("Respond with ONLY the question text, nothing else.");
+
+      systemPrompt = systemPromptParts.join("\n");
+
+      let userPromptParts: string[] = [];
+      
+      if (context?.resumeText) {
+        userPromptParts.push(`CANDIDATE'S RESUME:\n${context.resumeText.substring(0, 3000)}`);
+      }
+      if (context?.jobDescription) {
+        userPromptParts.push(`JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
+      }
 
       const prevQuestions = context?.previousQuestions?.join("\n- ") || "None yet";
-      userPrompt = `Generate question ${context?.questionNumber || 1} of ${context?.totalQuestions || 5}.
+      userPromptParts.push(`Generate question ${context?.questionNumber || 1} of ${context?.totalQuestions || 5}.
 Previous questions asked: ${prevQuestions}
 Interview type: ${context?.interviewType || "behavioral"}
-Make this question unique and progressively more challenging.`;
+Make this question unique and progressively more challenging.`);
+      
+      userPrompt = userPromptParts.join("\n\n---\n\n");
 
     } else if (type === "analyze_response") {
       systemPrompt = `You are an expert interview coach analyzing candidate responses.
