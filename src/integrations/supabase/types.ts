@@ -413,6 +413,75 @@ export type Database = {
         }
         Relationships: []
       }
+      question_bank: {
+        Row: {
+          category: string
+          created_at: string
+          difficulty: string
+          id: string
+          industry: string
+          question: string
+          tips: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          industry: string
+          question: string
+          tips?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          industry?: string
+          question?: string
+          tips?: string | null
+        }
+        Relationships: []
+      }
+      star_stories: {
+        Row: {
+          action: string | null
+          created_at: string
+          id: string
+          result: string | null
+          situation: string | null
+          tags: string[] | null
+          task: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          result?: string | null
+          situation?: string | null
+          tags?: string[] | null
+          task?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          result?: string | null
+          situation?: string | null
+          tags?: string[] | null
+          task?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           body_language_score: number | null
