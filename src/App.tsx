@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -20,35 +21,49 @@ import Promo from "./pages/Promo";
 import QuestionBank from "./pages/QuestionBank";
 import CheatSheet from "./pages/CheatSheet";
 
-const queryClient = new QueryClient();
+// Create QueryClient outside component to prevent recreation on re-renders
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      retry: 1,
+    },
+  },
+});
 
+/**
+ * App Component - Root application with global error handling
+ * Implements Professional Architect resilience standards
+ */
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/interview-bot" element={<AIInterviewBot />} />
-          <Route path="/video-interview" element={<VideoInterview />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/practice" element={<Practice />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/camera-demo" element={<CameraDemo />} />
-          <Route path="/promo" element={<Promo />} />
-          <Route path="/question-bank" element={<QuestionBank />} />
-          <Route path="/cheat-sheet" element={<CheatSheet />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/interview-bot" element={<AIInterviewBot />} />
+            <Route path="/video-interview" element={<VideoInterview />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/practice" element={<Practice />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/camera-demo" element={<CameraDemo />} />
+            <Route path="/promo" element={<Promo />} />
+            <Route path="/question-bank" element={<QuestionBank />} />
+            <Route path="/cheat-sheet" element={<CheatSheet />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

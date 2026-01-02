@@ -54,9 +54,11 @@ All colors MUST be HSL.
     --shadow-xl: 0 12px 40px hsl(220 25% 10% / 0.15);
     --shadow-glow: 0 0 30px hsl(215 85% 55% / 0.3);
 
-    /* Animations */
+    /* Animations - Professional Architect standard: 0.2s ease-in-out */
+    --transition-default: all 0.2s ease-in-out;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-fast: all 0.15s ease-in-out;
 
     --sidebar-background: 220 15% 98%;
     --sidebar-foreground: 220 25% 10%;
@@ -132,7 +134,15 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Default transition for interactive elements */
+  button, a, input, select, textarea {
+    transition: var(--transition-default);
+  }
+
   /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
   }
