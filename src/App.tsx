@@ -17,6 +17,8 @@ import Help from "./pages/Help";
 import CameraDemo from "./pages/CameraDemo";
 import NotFound from "./pages/NotFound";
 import Promo from "./pages/Promo";
+import QuestionBank from "./pages/QuestionBank";
+import CheatSheet from "./pages/CheatSheet";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/help" element={<Help />} />
           <Route path="/camera-demo" element={<CameraDemo />} />
           <Route path="/promo" element={<Promo />} />
+          <Route path="/question-bank" element={<QuestionBank />} />
+          <Route path="/cheat-sheet" element={<CheatSheet />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

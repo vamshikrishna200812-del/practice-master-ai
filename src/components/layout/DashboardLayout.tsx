@@ -12,7 +12,9 @@ import {
   HelpCircle,
   LogOut,
   Brain,
-  Calendar
+  Calendar,
+  FileQuestion,
+  ClipboardList
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,6 +57,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/courses", icon: BookOpen, label: "Courses" },
     { path: "/practice", icon: Code, label: "Practice" },
+    { path: "/question-bank", icon: FileQuestion, label: "Questions" },
+    { path: "/cheat-sheet", icon: ClipboardList, label: "Cheat Sheet" },
     { path: "/schedule", icon: Calendar, label: "Schedule" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
     { path: "/settings", icon: Settings, label: "Settings" },
