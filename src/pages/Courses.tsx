@@ -10,6 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import CourseCertificate from "@/components/courses/CourseCertificate";
+import demoVideo from "@/assets/demo-video.mp4";
 import { 
   BookOpen, 
   Clock, 
@@ -30,7 +32,9 @@ import {
   FileText,
   RotateCcw,
   Play,
-  ChevronRight
+  ChevronRight,
+  Download,
+  Mail
 } from "lucide-react";
 
 interface Course {
@@ -48,6 +52,7 @@ interface Enrollment {
   course_id: string;
   progress: number;
   completed: boolean;
+  completed_at?: string | null;
 }
 
 interface VideoLesson {
@@ -959,6 +964,12 @@ const Courses = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<VideoLesson | null>(null);
   const [lessonProgress, setLessonProgress] = useState<Record<string, boolean>>({});
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateData, setCertificateData] = useState<{
+    courseName: string;
+    userName: string;
+    completionDate: string;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -1048,25 +1059,86 @@ const Courses = () => {
     });
 
     if (enrollment) {
+      const completionDate = progressPercent === 100 ? new Date().toISOString() : null;
+      
       await supabase
         .from("course_enrollments")
         .update({ 
           progress: progressPercent,
           completed: progressPercent === 100,
-          completed_at: progressPercent === 100 ? new Date().toISOString() : null
+          completed_at: completionDate
         })
         .eq("id", enrollment.id);
 
       const { data } = await supabase.from("course_enrollments").select("*");
       setEnrollments(data || []);
+
+      // If course completed, show certificate and send email
+      if (progressPercent === 100 && completionDate) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user?.id)
+          .single();
+        
+        const userName = profile?.full_name || user?.email?.split("@")[0] || "Student";
+        
+        setCertificateData({
+          courseName: courseTitle,
+          userName,
+          completionDate,
+        });
+        setShowCertificate(true);
+
+        // Send appreciation email
+        try {
+          await supabase.functions.invoke("send-course-completion-email", {
+            body: {
+              email: user?.email,
+              userName,
+              courseName: courseTitle,
+              completionDate,
+            },
+          });
+          toast({
+            title: "🎉 Course Completed!",
+            description: "Certificate ready! Check your email for appreciation.",
+          });
+        } catch (error) {
+          console.error("Error sending completion email:", error);
+          toast({
+            title: "🎉 Course Completed!",
+            description: "Your certificate is ready to download!",
+          });
+        }
+        return;
+      }
     }
 
     toast({
       title: "Lesson completed!",
-      description: progressPercent === 100 
-        ? "Congratulations! You've completed this course!" 
-        : `Course progress: ${progressPercent}%`,
+      description: `Course progress: ${progressPercent}%`,
     });
+  };
+
+  const handleViewCertificate = async (course: Course) => {
+    const enrollment = getEnrollment(course.id);
+    if (!enrollment?.completed || !enrollment.completed_at) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user?.id)
+      .single();
+    
+    setCertificateData({
+      courseName: course.title,
+      userName: profile?.full_name || user?.email?.split("@")[0] || "Student",
+      completionDate: enrollment.completed_at,
+    });
+    setShowCertificate(true);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -1176,6 +1248,15 @@ const Courses = () => {
                     </div>
                   </div>
                   <Progress value={enrollment.progress} className="h-2" />
+                  {enrollment.completed && (
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => handleViewCertificate(selectedCourse)}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Certificate
+                    </Button>
+                  )}
                 </Card>
               )}
 
@@ -1399,22 +1480,36 @@ const Courses = () => {
                             <span className="font-medium">{enrollment.progress}%</span>
                           </div>
                           <Progress value={enrollment.progress} className="h-2" />
-                          <Button 
-                            className="w-full mt-2 transition-all duration-200"
-                            onClick={() => setSelectedCourse(course)}
-                          >
-                            {enrollment.completed ? (
-                              <>
-                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Review Course
-                              </>
-                            ) : (
-                              <>
-                                <PlayCircle className="w-4 h-4 mr-2" />
-                                Continue Learning
-                              </>
+                          <div className="flex gap-2 mt-2">
+                            <Button 
+                              className="flex-1 transition-all duration-200"
+                              onClick={() => setSelectedCourse(course)}
+                            >
+                              {enrollment.completed ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                                  Review
+                                </>
+                              ) : (
+                                <>
+                                  <PlayCircle className="w-4 h-4 mr-2" />
+                                  Continue
+                                </>
+                              )}
+                            </Button>
+                            {enrollment.completed && (
+                              <Button 
+                                variant="outline"
+                                className="transition-all duration-200"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewCertificate(course);
+                                }}
+                              >
+                                <Download className="w-4 h-4" />
+                              </Button>
                             )}
-                          </Button>
+                          </div>
                         </div>
                       ) : (
                         <Button 
@@ -1433,6 +1528,38 @@ const Courses = () => {
             </BentoGrid>
           )}
         </div>
+
+        {/* Demo Video Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.35, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <Card className="p-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent overflow-hidden">
+            <div className="flex flex-col md:flex-row gap-6 items-center">
+              <div className="flex-1 space-y-3">
+                <Badge variant="secondary" className="mb-2">
+                  <Play className="w-3 h-3 mr-1" />
+                  Platform Demo
+                </Badge>
+                <h3 className="text-2xl font-bold">See How AITRAININGZONE Works</h3>
+                <p className="text-muted-foreground">
+                  Watch a quick demo to understand how our AI-powered platform can help you ace your interviews.
+                </p>
+              </div>
+              <div className="w-full md:w-1/2 aspect-video rounded-lg overflow-hidden shadow-xl">
+                <video
+                  src={demoVideo}
+                  controls
+                  className="w-full h-full object-cover"
+                  poster="/placeholder.svg"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Learning Tips */}
         <motion.div
@@ -1470,6 +1597,18 @@ const Courses = () => {
             </div>
           </Card>
         </motion.div>
+
+        {/* Certificate Modal */}
+        <AnimatePresence>
+          {showCertificate && certificateData && (
+            <CourseCertificate
+              courseName={certificateData.courseName}
+              userName={certificateData.userName}
+              completionDate={certificateData.completionDate}
+              onClose={() => setShowCertificate(false)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </DashboardLayout>
   );
