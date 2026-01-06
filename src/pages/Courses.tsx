@@ -967,6 +967,7 @@ const Courses = () => {
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateData, setCertificateData] = useState<{
     courseName: string;
+    courseId: string;
     userName: string;
     completionDate: string;
   } | null>(null);
@@ -1057,6 +1058,7 @@ const Courses = () => {
       const course = courses.find((c) => c.id === e.course_id);
       return course?.title === courseTitle;
     });
+    const courseData = courses.find((c) => c.title === courseTitle);
 
     if (enrollment) {
       const completionDate = progressPercent === 100 ? new Date().toISOString() : null;
@@ -1086,6 +1088,7 @@ const Courses = () => {
         
         setCertificateData({
           courseName: courseTitle,
+          courseId: courseData?.id || "",
           userName,
           completionDate,
         });
@@ -1135,6 +1138,7 @@ const Courses = () => {
     
     setCertificateData({
       courseName: course.title,
+      courseId: course.id,
       userName: profile?.full_name || user?.email?.split("@")[0] || "Student",
       completionDate: enrollment.completed_at,
     });
@@ -1603,6 +1607,7 @@ const Courses = () => {
           {showCertificate && certificateData && (
             <CourseCertificate
               courseName={certificateData.courseName}
+              courseId={certificateData.courseId}
               userName={certificateData.userName}
               completionDate={certificateData.completionDate}
               onClose={() => setShowCertificate(false)}

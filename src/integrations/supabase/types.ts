@@ -71,6 +71,47 @@ export type Database = {
           },
         ]
       }
+      certificates: {
+        Row: {
+          certificate_id: string
+          completion_date: string
+          course_id: string
+          course_title: string
+          created_at: string
+          id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          certificate_id: string
+          completion_date?: string
+          course_id: string
+          course_title: string
+          created_at?: string
+          id?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          certificate_id?: string
+          completion_date?: string
+          course_id?: string
+          course_title?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_schedules: {
         Row: {
           course_id: string | null
@@ -566,6 +607,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_active_interview: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
