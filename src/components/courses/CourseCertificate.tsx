@@ -1,12 +1,14 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, Award, Share2, X } from "lucide-react";
+import { Download, Award, Share2, X, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CourseCertificateProps {
   courseName: string;
+  courseId: string;
   userName: string;
   completionDate: string;
   onClose: () => void;
@@ -14,6 +16,7 @@ interface CourseCertificateProps {
 
 const CourseCertificate = ({
   courseName,
+  courseId,
   userName,
   completionDate,
   onClose,
@@ -21,6 +24,7 @@ const CourseCertificate = ({
   const certificateRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [certificateId, setCertificateId] = useState("");
 
   const formattedDate = new Date(completionDate).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -28,7 +32,52 @@ const CourseCertificate = ({
     day: 'numeric'
   });
 
-  const certificateId = `CERT-${Date.now().toString(36).toUpperCase()}`;
+  // Generate or fetch certificate ID on mount
+  useEffect(() => {
+    const initCertificate = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Check if certificate already exists
+        const { data: existingCert } = await supabase
+          .from("certificates")
+          .select("certificate_id")
+          .eq("user_id", user.id)
+          .eq("course_id", courseId)
+          .maybeSingle();
+
+        if (existingCert) {
+          setCertificateId(existingCert.certificate_id);
+        } else {
+          // Generate new certificate ID
+          const newCertId = `CERT-${Date.now().toString(36).toUpperCase()}`;
+          
+          // Save to database
+          const { error } = await supabase
+            .from("certificates")
+            .insert({
+              certificate_id: newCertId,
+              user_id: user.id,
+              course_id: courseId,
+              user_name: userName,
+              course_title: courseName,
+              completion_date: completionDate,
+            });
+
+          if (!error) {
+            setCertificateId(newCertId);
+          }
+        }
+      } catch (error) {
+        console.error("Error initializing certificate:", error);
+        // Fallback to local ID
+        setCertificateId(`CERT-${Date.now().toString(36).toUpperCase()}`);
+      }
+    };
+
+    initCertificate();
+  }, [courseId, userName, courseName, completionDate]);
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -176,11 +225,20 @@ const CourseCertificate = ({
               </div>
             </div>
 
-            {/* Certificate ID */}
-            <div className="pt-4">
+            {/* Certificate ID & Verify Link */}
+            <div className="pt-4 space-y-2">
               <p className="text-xs text-muted-foreground">
-                Certificate ID: {certificateId}
+                Certificate ID: {certificateId || "Generating..."}
               </p>
+              <a 
+                href={`/verify?id=${certificateId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Verify this certificate
+              </a>
             </div>
           </div>
         </div>

@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Promo from "./pages/Promo";
 import QuestionBank from "./pages/QuestionBank";
 import CheatSheet from "./pages/CheatSheet";
+import CertificateVerify from "./pages/CertificateVerify";
 
 // Create QueryClient outside component to prevent recreation on re-renders
 const queryClient = new QueryClient({
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/promo" element={<Promo />} />
             <Route path="/question-bank" element={<QuestionBank />} />
             <Route path="/cheat-sheet" element={<CheatSheet />} />
+            <Route path="/verify" element={<CertificateVerify />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
