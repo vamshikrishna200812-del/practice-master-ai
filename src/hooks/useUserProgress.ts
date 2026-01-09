@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type InterviewType = Database["public"]["Enums"]["interview_type"];
 
 interface UpdateProgressParams {
   communicationScore: number;
@@ -17,20 +19,48 @@ export const useUserProgress = () => {
         return;
       }
 
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+
+      // Calculate overall score using the formula:
+      // (0.3 × Communication) + (0.3 × Body Language) + (0.4 × Technical/Coding)
+      const sessionOverallScore = Math.round(
+        (0.3 * params.communicationScore) +
+        (0.3 * params.confidenceScore) +
+        (0.4 * params.technicalScore)
+      );
+
+      // Save individual interview session for historical tracking
+      const { error: sessionError } = await supabase
+        .from("interview_sessions")
+        .insert({
+          user_id: user.id,
+          interview_type: params.interviewType as InterviewType,
+          status: "completed" as const,
+          communication_score: params.communicationScore,
+          coding_score: params.technicalScore,
+          body_language_score: params.confidenceScore,
+          overall_score: sessionOverallScore,
+          completed_at: now.toISOString(),
+        });
+
+      if (sessionError) {
+        console.error("Error saving interview session:", sessionError);
+      } else {
+        console.log("Interview session saved for historical tracking");
+      }
+
       // Fetch current progress
       const { data: existingProgress, error: fetchError } = await supabase
         .from("user_progress")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== "PGRST116") {
+      if (fetchError) {
         console.error("Error fetching progress:", fetchError);
         return;
       }
-
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
       
       // Calculate new average scores (weighted with existing)
       const currentInterviews = existingProgress?.total_interviews || 0;
@@ -57,8 +87,7 @@ export const useUserProgress = () => {
         params.technicalScore // Technical score maps to coding
       );
 
-      // Calculate overall score using the formula:
-      // (0.3 × Communication) + (0.3 × Body Language) + (0.4 × Technical/Coding)
+      // Calculate overall score using the formula
       const overallScore = Math.round(
         (0.3 * newCommunicationScore) +
         (0.3 * newBodyLanguageScore) +

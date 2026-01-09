@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { ProgressTrendsChart } from "@/components/dashboard/ProgressTrendsChart";
 import { 
   TrendingUp, 
   Video, 
@@ -282,6 +283,15 @@ const Dashboard = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Progress Trends Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <ProgressTrendsChart />
+        </motion.div>
 
         {/* Quick Actions - Bento Grid */}
         {loading ? (
