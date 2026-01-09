@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useBrowserTTS } from "@/hooks/useBrowserTTS";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import { VideoCallInterface } from "./VideoCallInterface";
 import { InterviewSetup } from "./InterviewSetup";
 import { InterviewReport } from "./InterviewReport";
@@ -88,6 +89,9 @@ export const AIVideoInterview = ({
   } = useSpeechRecognition({
     onResult: (text) => setUserTranscript(text),
   });
+
+  // User progress tracking
+  const { updateProgress } = useUserProgress();
 
   // Text-to-speech (browser)
   const { 
@@ -252,6 +256,15 @@ export const AIVideoInterview = ({
 
       setFinalReport(data);
       setPhase("complete");
+      
+      // Update user progress with scores from the interview
+      await updateProgress({
+        communicationScore: data.communicationScore || 0,
+        confidenceScore: data.confidenceScore || 0,
+        technicalScore: data.technicalScore || 0,
+        interviewType,
+      });
+      
       onComplete?.(data);
       stopCamera();
     } catch (error) {
