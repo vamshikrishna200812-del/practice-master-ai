@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import heroBackground from "@/assets/hero-background.mp4";
 
 /**
  * Home Page - Professional Architect Implementation
@@ -86,13 +87,24 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-hero py-24 px-4">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary-glow)/0.2),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,hsl(var(--accent)/0.15),transparent_50%)]" />
+      {/* Hero Section with Video Background */}
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center py-24 px-4">
+        {/* Video Background */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src={heroBackground} type="video/mp4" />
+          </video>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+        </div>
         
-        <div className="container mx-auto relative z-10">
+        <div className="container mx-auto relative z-10 text-white">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,13 +123,13 @@ const Home = () => {
             </motion.div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-bold text-primary-foreground mb-6 tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight drop-shadow-lg">
               Masterpieces are made
               <br />
-              <span className="text-secondary">in practice mode</span>
+              <span className="bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">in practice mode</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-primary-foreground/90 mb-10 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
               Transform your interview skills with AI-powered real-time feedback.
               Master coding, communication, and confidence.
             </p>
@@ -139,13 +151,13 @@ const Home = () => {
                   <Target className="w-5 h-5" />
                 </LoadingButton>
               </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="h-14 px-10 text-lg bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary transition-all duration-200 ease-in-out"
-              >
-                Watch Demo
-                <Video className="w-5 h-5 ml-2" />
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-10 text-lg bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-black transition-all duration-200 ease-in-out"
+                >
+                  Watch Demo
+                  <Video className="w-5 h-5 ml-2" />
               </Button>
             </motion.div>
 
@@ -154,10 +166,10 @@ const Home = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-6 mt-12 text-primary-foreground/70"
+              className="flex flex-wrap items-center justify-center gap-6 mt-12 text-white/80"
             >
               {["No credit card required", "Cancel anytime", "Join 10,000+ users"].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
+                <div key={i} className="flex items-center gap-2 text-sm backdrop-blur-sm bg-white/5 rounded-full px-4 py-2">
                   <CheckCircle className="w-4 h-4" />
                   <span>{item}</span>
                 </div>
