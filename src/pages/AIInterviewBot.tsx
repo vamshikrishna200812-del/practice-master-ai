@@ -15,6 +15,7 @@ import {
   Target,
   Award
 } from "lucide-react";
+import aiRobotVideo from "@/assets/ai-robot.mp4";
 
 const AIInterviewBot = () => {
   const navigate = useNavigate();
@@ -60,6 +61,14 @@ const AIInterviewBot = () => {
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-gradient-hero text-white rounded-2xl p-8 md:p-12">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+          
+          {/* AI Robot Mascot Animation */}
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 w-40 h-40 opacity-90 hidden lg:block">
+            <video autoPlay loop muted playsInline className="w-full h-full object-contain rounded-2xl">
+              <source src={aiRobotVideo} type="video/mp4" />
+            </video>
+          </div>
+          
           <div className="relative z-10 max-w-3xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">

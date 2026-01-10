@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Clock, Video, User, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import scheduleBalloonsVideo from "@/assets/schedule-balloons.mp4";
 
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState("");
@@ -54,12 +55,19 @@ const Schedule = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-gradient-hero text-white rounded-xl p-6">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+        <div className="bg-gradient-hero text-white rounded-xl p-6 relative overflow-hidden">
+          {/* Hot Air Balloons Animation */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-28 h-28 opacity-90 hidden md:block">
+            <video autoPlay loop muted playsInline className="w-full h-full object-contain rounded-xl">
+              <source src={scheduleBalloonsVideo} type="video/mp4" />
+            </video>
+          </div>
+          
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3 relative z-10">
             <Calendar className="w-8 h-8" />
             Class Scheduling
           </h1>
-          <p className="text-white/90">
+          <p className="text-white/90 relative z-10">
             Book one-on-one sessions with expert instructors
           </p>
         </div>

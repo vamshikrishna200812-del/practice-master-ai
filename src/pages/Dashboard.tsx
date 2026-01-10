@@ -19,6 +19,7 @@ import {
   Flame
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import dashboardOwlVideo from "@/assets/dashboard-owl.mp4";
 
 interface UserProgress {
   total_interviews: number;
@@ -176,6 +177,14 @@ const Dashboard = () => {
           className="bg-gradient-hero text-white rounded-xl p-8 relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary-glow)/0.3),transparent_50%)]" />
+          
+          {/* Owl Mascot Animation */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-32 h-32 opacity-90 hidden md:block">
+            <video autoPlay loop muted playsInline className="w-full h-full object-contain rounded-xl">
+              <source src={dashboardOwlVideo} type="video/mp4" />
+            </video>
+          </div>
+          
           <div className="relative z-10">
             <h1 className="text-3xl font-bold mb-2">Welcome to Your Training Dashboard</h1>
             <p className="text-white/90 mb-6">
