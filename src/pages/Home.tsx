@@ -5,6 +5,7 @@ import { Brain, Code, MessageSquare, Video, Zap, Target, TrendingUp, Award, Chec
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import heroBackground from "@/assets/hero-background.mp4";
+import landingAirplane from "@/assets/landing-airplane.mp4";
 
 /**
  * Home Page - Professional Architect Implementation
@@ -68,6 +69,13 @@ const Home = () => {
           <video autoPlay loop muted playsInline className="w-full h-full object-cover">
             <source src={heroBackground} type="video/mp4" />
           </video>
+          
+          {/* Paper Airplane Animation - Top Right */}
+          <div className="absolute top-8 right-8 w-64 h-36 z-10 opacity-80 pointer-events-none">
+            <video autoPlay loop muted playsInline className="w-full h-full object-contain">
+              <source src={landingAirplane} type="video/mp4" />
+            </video>
+          </div>
           {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         </div>

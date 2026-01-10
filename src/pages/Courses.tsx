@@ -36,6 +36,7 @@ import {
   Download,
   Mail
 } from "lucide-react";
+import courseBookVideo from "@/assets/course-book.mp4";
 
 interface Course {
   id: string;
@@ -1340,6 +1341,14 @@ const Courses = () => {
           className="bg-gradient-hero text-white rounded-xl p-8 relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary-glow)/0.3),transparent_50%)]" />
+          
+          {/* Course Book Animation */}
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 w-28 h-28 opacity-90 hidden md:block">
+            <video autoPlay loop muted playsInline className="w-full h-full object-contain rounded-xl">
+              <source src={courseBookVideo} type="video/mp4" />
+            </video>
+          </div>
+          
           <div className="relative z-10">
             <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
               <BookOpen className="w-8 h-8" />

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Brain } from "lucide-react";
 import { z } from "zod";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
+import authKeyVideo from "@/assets/auth-key.mp4";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -90,8 +91,11 @@ const Auth = () => {
       
       <Card className="w-full max-w-md p-8 bg-card/95 backdrop-blur-sm shadow-2xl relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-full mb-4">
-            <Brain className="w-8 h-8 text-white" />
+          {/* Animated Key Mascot */}
+          <div className="w-24 h-24 mx-auto mb-4 rounded-2xl overflow-hidden">
+            <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+              <source src={authKeyVideo} type="video/mp4" />
+            </video>
           </div>
           <h1 className="text-3xl font-bold mb-2">AITRAININGZONE</h1>
           <p className="text-muted-foreground">
