@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -21,9 +22,48 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, userName, courseName, completionDate }: CourseCompletionRequest = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing authorization header" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    console.log(`Sending course completion email to ${email} for course: ${courseName}`);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Verify the user is authenticated
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
+    if (authError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Get the user's email from auth to prevent email spoofing
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user?.email) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Could not verify user email" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { userName, courseName, completionDate }: CourseCompletionRequest = await req.json();
+    
+    // Use the authenticated user's email, not the one provided in the request
+    const email = user.email;
+
+    console.log(`Sending course completion email to ${email} for course: ${courseName}, userId: ${userId}`);
 
     const formattedDate = new Date(completionDate).toLocaleDateString('en-US', {
       year: 'numeric',
