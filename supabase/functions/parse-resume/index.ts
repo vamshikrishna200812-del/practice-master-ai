@@ -46,20 +46,28 @@ serve(async (req) => {
       );
     }
 
+    const userId = claimsData.claims.sub as string;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const { type, resumeUrl, resumeText, jobDescription, interviewType, questionCount = 5 }: ParseRequest = await req.json();
-    console.log("Parse resume request:", { type, hasResumeUrl: !!resumeUrl, hasResumeText: !!resumeText, hasJD: !!jobDescription, userId: claimsData.claims.sub });
+    console.log("Parse resume request:", { type, hasResumeUrl: !!resumeUrl, hasResumeText: !!resumeText, hasJD: !!jobDescription, userId });
 
     if (type === "parse_resume") {
       // If we have a URL, fetch the resume content
       let content = resumeText || "";
       
       if (resumeUrl && !resumeText) {
-        // Download file from storage
+        // Validate file path belongs to authenticated user (files should be stored under userId folder)
+        if (!resumeUrl.startsWith(`${userId}/`)) {
+          console.warn("Resume access attempt for non-owned file:", { userId, resumeUrl });
+          // Storage RLS will block access anyway, but log the attempt
+        }
+
+        // Download file from storage - RLS policies will enforce ownership
         const { data: fileData, error: downloadError } = await supabase.storage
           .from("resumes")
           .download(resumeUrl);

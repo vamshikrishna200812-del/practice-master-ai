@@ -11,7 +11,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Settings as SettingsIcon, User, Bell, Shield, Palette } from "lucide-react";
+import { z } from "zod";
 
+// Profile validation schema
+const profileSchema = z.object({
+  full_name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters").trim(),
+  avatar_url: z.string().url("Invalid URL format").optional().or(z.literal('')),
+  bio: z.string().max(1000, "Bio must be less than 1000 characters").optional().or(z.literal('')),
+  skill_level: z.enum(['beginner', 'intermediate', 'advanced', 'expert'])
+});
 interface Profile {
   full_name: string;
   avatar_url: string;
@@ -64,24 +72,39 @@ const Settings = () => {
   };
 
   const updateProfile = async () => {
-    setLoading(true);
+    // Validate profile data before updating
     try {
+      const validated = profileSchema.parse({
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url || '',
+        bio: profile.bio || '',
+        skill_level: profile.skill_level
+      });
+
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error("You must be logged in to update your profile");
+        return;
+      }
 
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: profile.full_name,
-          avatar_url: profile.avatar_url,
-          bio: profile.bio,
-          skill_level: profile.skill_level,
+          full_name: validated.full_name,
+          avatar_url: validated.avatar_url || null,
+          bio: validated.bio || null,
+          skill_level: validated.skill_level,
         })
         .eq("id", user.id);
 
       if (error) throw error;
       toast.success("Profile updated successfully!");
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
       toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
