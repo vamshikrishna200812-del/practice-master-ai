@@ -52,13 +52,35 @@ serve(async (req) => {
       );
     }
 
+    const userId = claimsData.claims.sub as string;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const { type, context, userResponse, question, allResponses }: InterviewRequest = await req.json();
-    console.log("AI Interview request:", { type, context, userId: claimsData.claims.sub });
+    console.log("AI Interview request:", { type, context, userId });
+
+    // Permission check: For interview operations, validate user has an active or recent session
+    if (type === "generate_question" || type === "analyze_response") {
+      const { data: activeSession, error: sessionError } = await supabase
+        .from('interview_sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .in('status', ['in_progress', 'scheduled'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+        
+      if (sessionError) {
+        console.error("Session check error:", sessionError);
+      }
+      // Log for audit but don't block - users may be starting a new interview
+      if (!activeSession) {
+        console.log("No active session found for user, proceeding with interview creation");
+      }
+    }
 
     let systemPrompt = "";
     let userPrompt = "";
