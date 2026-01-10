@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,13 +24,38 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Verify the user is authenticated
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
+    if (authError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const DID_API_KEY = Deno.env.get("DID_API_KEY");
     if (!DID_API_KEY) {
       throw new Error("DID_API_KEY is not configured");
     }
 
     const { type, text, talkId }: AvatarRequest = await req.json();
-    console.log("D-ID Avatar request:", { type, textLength: text?.length, talkId });
+    console.log("D-ID Avatar request:", { type, textLength: text?.length, talkId, userId: claimsData.claims.sub });
 
     if (type === "create_talk") {
       if (!text) {

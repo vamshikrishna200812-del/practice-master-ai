@@ -20,12 +20,11 @@ import {
 } from "lucide-react";
 
 interface CertificateResult {
-  id: string;
   certificate_id: string;
   user_name: string;
   course_title: string;
   completion_date: string;
-  created_at: string;
+  is_valid: boolean;
 }
 
 const CertificateVerify = () => {
@@ -56,10 +55,11 @@ const CertificateVerify = () => {
     setHasSearched(true);
 
     try {
+      // Use secure RPC function instead of direct table query
       const { data, error } = await supabase
-        .from("certificates")
-        .select("*")
-        .eq("certificate_id", id.trim().toUpperCase())
+        .rpc('verify_certificate', { 
+          _certificate_id: id.trim().toUpperCase() 
+        })
         .maybeSingle();
 
       if (error) throw error;
