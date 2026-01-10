@@ -37,6 +37,7 @@ import {
   Mail
 } from "lucide-react";
 import courseBookVideo from "@/assets/course-book.mp4";
+import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
 
 interface Course {
   id: string;
@@ -966,6 +967,7 @@ const Courses = () => {
   const [selectedLesson, setSelectedLesson] = useState<VideoLesson | null>(null);
   const [lessonProgress, setLessonProgress] = useState<Record<string, boolean>>({});
   const [showCertificate, setShowCertificate] = useState(false);
+  const [showCourseCelebration, setShowCourseCelebration] = useState(false);
   const [certificateData, setCertificateData] = useState<{
     courseName: string;
     courseId: string;
@@ -1093,6 +1095,7 @@ const Courses = () => {
           userName,
           completionDate,
         });
+        setShowCourseCelebration(true);
         setShowCertificate(true);
 
         // Send appreciation email
@@ -1169,6 +1172,17 @@ const Courses = () => {
     
     return (
       <DashboardLayout>
+        <SuccessCelebration
+          isOpen={showCourseCelebration}
+          onClose={() => setShowCourseCelebration(false)}
+          title="🎓 Course Completed!"
+          message={`Congratulations! You've mastered "${selectedCourse.title}". Your certificate is ready!`}
+          actionLabel="View Certificate"
+          onAction={() => {
+            setShowCourseCelebration(false);
+          }}
+        />
+        
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -1332,6 +1346,15 @@ const Courses = () => {
 
   return (
     <DashboardLayout>
+      <SuccessCelebration
+        isOpen={showCourseCelebration}
+        onClose={() => setShowCourseCelebration(false)}
+        title="🎓 Course Completed!"
+        message={certificateData ? `Congratulations! You've mastered "${certificateData.courseName}". Your certificate is ready!` : "Congratulations on completing the course!"}
+        actionLabel="View Certificate"
+        onAction={() => setShowCourseCelebration(false)}
+      />
+      
       <div className="space-y-6">
         {/* Hero Header */}
         <motion.div

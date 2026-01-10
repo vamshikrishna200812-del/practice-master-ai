@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { generateReportHTML } from "@/utils/generateReportHTML";
+import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
 import {
   RadarChart,
   PolarGrid,
@@ -75,6 +77,7 @@ export const InterviewReport = ({
   onPracticeAgain,
 }: InterviewReportProps) => {
   const navigate = useNavigate();
+  const [showCelebration, setShowCelebration] = useState(true);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-500";
@@ -169,9 +172,19 @@ export const InterviewReport = ({
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
+    <>
+      <SuccessCelebration
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        title="🎉 Interview Complete!"
+        message={`Great job! You scored ${report.overallScore}/100. Keep practicing to improve your skills!`}
+        actionLabel="View Full Report"
+        onAction={() => setShowCelebration(false)}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -455,5 +468,6 @@ export const InterviewReport = ({
         </motion.div>
       </div>
     </div>
+    </>
   );
 };

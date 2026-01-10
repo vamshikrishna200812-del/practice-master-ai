@@ -9,11 +9,13 @@ import { Calendar, Clock, Video, User, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import scheduleBalloonsVideo from "@/assets/schedule-balloons.mp4";
+import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
 
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const upcomingClasses = [
     {
@@ -46,6 +48,7 @@ const Schedule = () => {
       return;
     }
     
+    setShowCelebration(true);
     toast.success("Class scheduled successfully!");
     setSelectedDate("");
     setSelectedTime("");
@@ -54,6 +57,13 @@ const Schedule = () => {
 
   return (
     <DashboardLayout>
+      <SuccessCelebration
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        title="🎉 Class Scheduled!"
+        message={`Your session with ${selectedInstructor || "your instructor"} has been booked. Get ready to level up your skills!`}
+      />
+      
       <div className="space-y-6">
         <div className="bg-gradient-hero text-white rounded-xl p-6 relative overflow-hidden">
           {/* Hot Air Balloons Animation */}
