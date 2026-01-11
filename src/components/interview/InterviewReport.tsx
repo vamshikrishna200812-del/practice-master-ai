@@ -23,6 +23,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { generateReportHTML } from "@/utils/generateReportHTML";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
+import { ConfettiRain } from "@/components/ui/ConfettiRain";
+import { useAchievements } from "@/hooks/useAchievements";
+import { useCelebrationSound } from "@/hooks/useCelebrationSound";
 import {
   RadarChart,
   PolarGrid,
@@ -78,6 +81,28 @@ export const InterviewReport = ({
 }: InterviewReportProps) => {
   const navigate = useNavigate();
   const [showCelebration, setShowCelebration] = useState(true);
+  const [showAchievementConfetti, setShowAchievementConfetti] = useState(false);
+  const { checkAndAwardAchievements } = useAchievements();
+  const { playSound } = useCelebrationSound();
+
+  // Check for achievements when report loads
+  useEffect(() => {
+    const checkAchievements = async () => {
+      const earned = await checkAndAwardAchievements({
+        highScore: report.overallScore,
+        perfectScore: report.overallScore === 100,
+        bodyLanguageScore: report.confidenceScore,
+        communicationScore: report.communicationScore,
+      });
+      
+      if (earned.length > 0) {
+        setShowAchievementConfetti(true);
+        playSound("achievement");
+      }
+    };
+    
+    checkAchievements();
+  }, [report, checkAndAwardAchievements, playSound]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-500";
@@ -173,6 +198,10 @@ export const InterviewReport = ({
 
   return (
     <>
+      <ConfettiRain 
+        isActive={showAchievementConfetti} 
+        onComplete={() => setShowAchievementConfetti(false)} 
+      />
       <SuccessCelebration
         isOpen={showCelebration}
         onClose={() => setShowCelebration(false)}
