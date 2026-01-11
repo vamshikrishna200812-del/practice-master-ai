@@ -10,8 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Settings as SettingsIcon, User, Bell, Shield, Palette } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Palette, Trophy } from "lucide-react";
 import { z } from "zod";
+import { AchievementsDisplay } from "@/components/achievements/AchievementsDisplay";
 
 // Profile validation schema
 const profileSchema = z.object({
@@ -125,10 +126,14 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">
               <User className="w-4 h-4 mr-2" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="achievements">
+              <Trophy className="w-4 h-4 mr-2" />
+              Badges
             </TabsTrigger>
             <TabsTrigger value="notifications">
               <Bell className="w-4 h-4 mr-2" />
@@ -200,6 +205,10 @@ const Settings = () => {
                 </Button>
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-4">
+            <AchievementsDisplay />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">

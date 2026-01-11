@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import celebrationVideo from "@/assets/celebration-trophy.mp4";
+import { useCelebrationSound } from "@/hooks/useCelebrationSound";
 
 interface SuccessCelebrationProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface SuccessCelebrationProps {
   actionLabel?: string;
   onAction?: () => void;
   autoCloseDelay?: number;
+  playSound?: boolean;
 }
 
 export const SuccessCelebration = ({
@@ -22,12 +24,19 @@ export const SuccessCelebration = ({
   actionLabel,
   onAction,
   autoCloseDelay = 8000,
+  playSound: shouldPlaySound = true,
 }: SuccessCelebrationProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
+  const { playSound } = useCelebrationSound();
 
   useEffect(() => {
     if (isOpen) {
       setShowConfetti(true);
+      
+      // Play celebration sound
+      if (shouldPlaySound) {
+        playSound("celebration");
+      }
       
       // Auto-close after delay if no action required
       if (!actionLabel) {
@@ -39,7 +48,7 @@ export const SuccessCelebration = ({
     } else {
       setShowConfetti(false);
     }
-  }, [isOpen, autoCloseDelay, onClose, actionLabel]);
+  }, [isOpen, autoCloseDelay, onClose, actionLabel, shouldPlaySound, playSound]);
 
   return (
     <AnimatePresence>

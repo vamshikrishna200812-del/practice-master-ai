@@ -10,13 +10,21 @@ interface UpdateProgressParams {
   interviewType: "behavioral" | "technical" | "coding";
 }
 
+interface ProgressResult {
+  totalInterviews: number;
+  practiceStreak: number;
+  overallScore: number;
+  bodyLanguageScore: number;
+  communicationScore: number;
+}
+
 export const useUserProgress = () => {
-  const updateProgress = async (params: UpdateProgressParams) => {
+  const updateProgress = async (params: UpdateProgressParams): Promise<ProgressResult | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log("No user logged in, skipping progress update");
-        return;
+        return null;
       }
 
       const now = new Date();
@@ -59,7 +67,7 @@ export const useUserProgress = () => {
 
       if (fetchError) {
         console.error("Error fetching progress:", fetchError);
-        return;
+        return null;
       }
       
       // Calculate new average scores (weighted with existing)
@@ -137,7 +145,7 @@ export const useUserProgress = () => {
 
         if (updateError) {
           console.error("Error updating progress:", updateError);
-          return;
+          return null;
         }
       } else {
         // Insert new record
@@ -150,13 +158,22 @@ export const useUserProgress = () => {
 
         if (insertError) {
           console.error("Error inserting progress:", insertError);
-          return;
+          return null;
         }
       }
 
       console.log("Progress updated successfully:", updateData);
+      
+      return {
+        totalInterviews: newInterviewCount,
+        practiceStreak: newStreak,
+        overallScore: overallScore,
+        bodyLanguageScore: newBodyLanguageScore,
+        communicationScore: newCommunicationScore,
+      };
     } catch (error) {
       console.error("Error in updateProgress:", error);
+      return null;
     }
   };
 
