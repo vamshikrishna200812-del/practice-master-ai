@@ -9,6 +9,7 @@ import { InterviewSetup } from "./InterviewSetup";
 import { InterviewReport } from "./InterviewReport";
 import { InterviewProcessing } from "./InterviewProcessing";
 import { ResumeJDSetup } from "./ResumeJDSetup";
+import { parseEmotionTags, AvatarEmotion } from "./AnimatedAvatar";
 
 interface InterviewResponse {
   question: string;
@@ -52,6 +53,8 @@ export const AIVideoInterview = ({
   // Interview state
   const [phase, setPhase] = useState<"personalization" | "setup" | "interview" | "processing" | "complete">("personalization");
   const [currentQuestion, setCurrentQuestion] = useState("");
+  const [displayQuestion, setDisplayQuestion] = useState(""); // Clean text without emotion tags
+  const [currentEmotion, setCurrentEmotion] = useState<AvatarEmotion>("neutral");
   const [questionNumber, setQuestionNumber] = useState(0);
   const [responses, setResponses] = useState<InterviewResponse[]>([]);
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
@@ -276,6 +279,15 @@ export const AIVideoInterview = ({
     }
   };
 
+  // Process question text and extract emotion
+  const processQuestionWithEmotion = (rawQuestion: string) => {
+    const { cleanText, emotion } = parseEmotionTags(rawQuestion);
+    setCurrentQuestion(rawQuestion);
+    setDisplayQuestion(cleanText);
+    setCurrentEmotion(emotion);
+    return cleanText;
+  };
+
   // Start interview
   const startInterview = async () => {
     if (!isCameraOn) {
@@ -284,26 +296,28 @@ export const AIVideoInterview = ({
     }
 
     setIsLoading(true);
+    setCurrentEmotion("thinking"); // Show thinking state while generating
     setPhase("interview");
     setQuestionNumber(1);
 
     try {
       const question = await generateQuestion();
-      setCurrentQuestion(question);
+      const cleanQuestion = processQuestionWithEmotion(question);
       previousQuestionsRef.current.push(question);
 
       // Try D-ID avatar first, fallback to browser TTS
-      const videoUrl = await generateAvatarVideo(question);
+      const videoUrl = await generateAvatarVideo(cleanQuestion);
       if (videoUrl) {
         setAvatarVideoUrl(videoUrl);
       } else {
-        // Fallback to browser TTS
-        speak(question);
+        // Fallback to browser TTS (use clean text for speech)
+        speak(cleanQuestion);
       }
     } catch (error) {
       console.error("Start error:", error);
       toast.error("Failed to start interview");
       setPhase("setup");
+      setCurrentEmotion("neutral");
     } finally {
       setIsLoading(false);
     }
@@ -360,8 +374,9 @@ export const AIVideoInterview = ({
       } else {
         // Generate next question
         setQuestionNumber(prev => prev + 1);
+        setCurrentEmotion("thinking"); // Show thinking while generating
         const nextQuestion = await generateQuestion();
-        setCurrentQuestion(nextQuestion);
+        const cleanQuestion = processQuestionWithEmotion(nextQuestion);
         previousQuestionsRef.current.push(nextQuestion);
 
         // Reset user transcript
@@ -369,16 +384,17 @@ export const AIVideoInterview = ({
         setUserTranscript("");
 
         // Generate avatar for next question
-        const videoUrl = await generateAvatarVideo(nextQuestion);
+        const videoUrl = await generateAvatarVideo(cleanQuestion);
         if (videoUrl) {
           setAvatarVideoUrl(videoUrl);
         } else {
-          speak(nextQuestion);
+          speak(cleanQuestion);
         }
       }
     } catch (error) {
       console.error("Process error:", error);
       toast.error("Failed to process response");
+      setCurrentEmotion("neutral");
     } finally {
       setIsLoading(false);
     }
@@ -390,7 +406,7 @@ export const AIVideoInterview = ({
     setIsRecording(false);
     
     const newResponse: InterviewResponse = {
-      question: currentQuestion,
+      question: displayQuestion, // Use clean question text
       answer: "[Skipped]",
     };
     setResponses(prev => [...prev, newResponse]);
@@ -400,24 +416,26 @@ export const AIVideoInterview = ({
     } else {
       setIsLoading(true);
       setQuestionNumber(prev => prev + 1);
+      setCurrentEmotion("thinking");
       
       try {
         const nextQuestion = await generateQuestion();
-        setCurrentQuestion(nextQuestion);
+        const cleanQuestion = processQuestionWithEmotion(nextQuestion);
         previousQuestionsRef.current.push(nextQuestion);
         
         resetTranscript();
         setUserTranscript("");
         
-        const videoUrl = await generateAvatarVideo(nextQuestion);
+        const videoUrl = await generateAvatarVideo(cleanQuestion);
         if (videoUrl) {
           setAvatarVideoUrl(videoUrl);
         } else {
-          speak(nextQuestion);
+          speak(cleanQuestion);
         }
       } catch (error) {
         console.error("Skip error:", error);
         toast.error("Failed to load next question");
+        setCurrentEmotion("neutral");
       } finally {
         setIsLoading(false);
       }
@@ -450,6 +468,8 @@ export const AIVideoInterview = ({
     setFinalReport(null);
     setCurrentFeedback(null);
     setCurrentQuestion("");
+    setDisplayQuestion("");
+    setCurrentEmotion("neutral");
     setUserTranscript("");
     setAvatarVideoUrl(null);
     setCustomQuestions([]);
@@ -500,7 +520,7 @@ export const AIVideoInterview = ({
         isSpeaking={isSpeaking}
         avatarError={avatarError}
         onAvatarVideoEnd={handleAvatarVideoEnd}
-        currentQuestion={currentQuestion}
+        currentQuestion={displayQuestion || currentQuestion}
         questionNumber={questionNumber}
         totalQuestions={totalQuestions}
         userTranscript={userTranscript || transcript}
@@ -515,6 +535,7 @@ export const AIVideoInterview = ({
         userVideoRef={userVideoRef}
         userStream={userStreamRef.current}
         isCameraOn={isCameraOn}
+        emotion={currentEmotion}
       />
     );
   }

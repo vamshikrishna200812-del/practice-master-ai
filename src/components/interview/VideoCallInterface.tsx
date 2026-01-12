@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { HumanAvatar } from "./HumanAvatar";
 import { FaceDetectionFeedback } from "./FaceDetectionFeedback";
+import { AvatarEmotion } from "./AnimatedAvatar";
 
 interface FeedbackData {
   score: number;
@@ -64,6 +65,9 @@ interface VideoCallInterfaceProps {
   userVideoRef: React.RefObject<HTMLVideoElement>;
   userStream: MediaStream | null;
   isCameraOn: boolean;
+  
+  // Avatar emotion
+  emotion?: AvatarEmotion;
 }
 
 export const VideoCallInterface = ({
@@ -87,6 +91,7 @@ export const VideoCallInterface = ({
   userVideoRef,
   userStream,
   isCameraOn,
+  emotion = "neutral",
 }: VideoCallInterfaceProps) => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const [isAvatarVideoReady, setIsAvatarVideoReady] = useState(false);
@@ -181,7 +186,8 @@ export const VideoCallInterface = ({
             ) : (
               <HumanAvatar 
                 isSpeaking={isSpeaking} 
-                isLoading={isAvatarLoading || isLoading} 
+                isLoading={isAvatarLoading || isLoading}
+                emotion={emotion}
               />
             )}
 
