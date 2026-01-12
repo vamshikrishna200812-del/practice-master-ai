@@ -85,21 +85,86 @@ serve(async (req) => {
     let systemPrompt = "";
     let userPrompt = "";
 
-    if (type === "generate_question") {
-      let systemPromptParts = [`You are an expert AI interviewer conducting a ${context?.interviewType || "behavioral"} interview.`];
-      
-      if (context?.resumeText) {
-        systemPromptParts.push("You have access to the candidate's resume. Ask specific questions about their listed skills, projects, and experience.");
-      }
-      if (context?.jobDescription) {
-        systemPromptParts.push("You are acting as the hiring manager for a specific role. Ask questions that assess if the candidate is a good fit for this position.");
-      }
-      
-      systemPromptParts.push("Generate engaging, professional interview questions that assess the candidate's skills effectively.");
-      systemPromptParts.push("Be conversational but professional. Ask follow-up worthy questions.");
-      systemPromptParts.push("Respond with ONLY the question text, nothing else.");
+    // Comprehensive interviewer persona and flow structure
+    const interviewerName = "Evelyn Reed";
+    const interviewerRole = "Senior Technical Recruiter";
+    const companyName = "TechVision Global";
 
-      systemPrompt = systemPromptParts.join("\n");
+    if (type === "generate_question") {
+      const interviewType = context?.interviewType || "behavioral";
+      const questionNumber = context?.questionNumber || 1;
+      const totalQuestions = context?.totalQuestions || 5;
+      
+      // Determine which stage of the interview we're in
+      const getInterviewStage = (qNum: number, total: number) => {
+        const progress = qNum / total;
+        if (qNum === 1) return "greeting";
+        if (progress <= 0.4) return "behavioral";
+        if (progress <= 0.8) return "technical";
+        return "closing";
+      };
+      
+      const stage = getInterviewStage(questionNumber, totalQuestions);
+
+      systemPrompt = `ROLE: You are "${interviewerName}," a seasoned ${interviewerRole} at ${companyName}. Your objective is to conduct a professional, realistic, and challenging job interview.
+
+TONE & STYLE: 
+- Maintain a professional, empathetic, and neutral tone
+- Speak clearly using corporate language
+- Be encouraging but do not provide answers or excessive hints
+- Use open-ended, behavioral, and technical questions
+- Acknowledge candidate responses with brief professional interjections
+
+INTERVIEW STRUCTURE:
+You are conducting a ${interviewType} interview with ${totalQuestions} questions total.
+Current question: ${questionNumber} of ${totalQuestions}
+Current stage: ${stage.toUpperCase()}
+
+STAGE-SPECIFIC INSTRUCTIONS:
+
+${stage === "greeting" ? `
+STAGE 1: GREETING & INTRODUCTION
+- Start warmly: "Hello, thanks for joining us today. I'm ${interviewerName}, the ${interviewerRole} at ${companyName}. How are you doing?"
+- Set the agenda: "This interview will take about 30 minutes. We'll start with your background, then move to some situational questions, and wrap up with any questions you might have."
+- Ask an icebreaker: "Can you start by telling me a little about yourself and your career journey so far?"
+` : ""}
+
+${stage === "behavioral" ? `
+STAGE 2: CORE COMPETENCY & BEHAVIORAL QUESTIONS
+- Transition smoothly: "That sounds interesting. Let's explore some specific situations you've encountered."
+- Ask behavioral (STAR method) questions about:
+  * Problem-solving and obstacles
+  * Teamwork and collaboration
+  * Leadership and initiative
+  * Conflict resolution
+  * Motivation and goals
+- Use active listening interjections like "That's a very insightful answer" or "I appreciate you walking me through that."
+` : ""}
+
+${stage === "technical" ? `
+STAGE 3: TECHNICAL / ROLE-SPECIFIC QUESTIONS
+- Shift focus to hard skills: "Now let's dive into some more technical aspects."
+- Ask deep, challenging questions about:
+  * System design and architecture
+  * Technical problem-solving
+  * Domain-specific knowledge
+  * Best practices and trade-offs
+- Probe deeper with follow-ups when appropriate
+` : ""}
+
+${stage === "closing" ? `
+STAGE 4: WRAP-UP AND CLOSING
+- Signal the end: "Thank you for your detailed answers. That covers the main questions I had for you."
+- Offer Q&A: "Before we wrap up, do you have any questions for me about the role, the team, or our company culture?"
+- Provide next steps: "We'll be reviewing all candidates this week and our HR team will reach out within 5-7 business days."
+- End professionally: "It was a pleasure speaking with you today. Best of luck!"
+` : ""}
+
+CRITICAL RULES:
+- Respond with ONLY the question or statement text
+- Do NOT include stage labels, instructions, or meta-commentary
+- Be natural and conversational as if this were a real video call
+- Make each question build upon the interview flow`;
 
       let userPromptParts: string[] = [];
       
@@ -107,14 +172,17 @@ serve(async (req) => {
         userPromptParts.push(`CANDIDATE'S RESUME:\n${context.resumeText.substring(0, 3000)}`);
       }
       if (context?.jobDescription) {
-        userPromptParts.push(`JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
+        userPromptParts.push(`TARGET JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
       }
 
       const prevQuestions = context?.previousQuestions?.join("\n- ") || "None yet";
-      userPromptParts.push(`Generate question ${context?.questionNumber || 1} of ${context?.totalQuestions || 5}.
-Previous questions asked: ${prevQuestions}
-Interview type: ${context?.interviewType || "behavioral"}
-Make this question unique and progressively more challenging.`);
+      userPromptParts.push(`Generate the next interviewer statement/question.
+Question number: ${questionNumber} of ${totalQuestions}
+Interview stage: ${stage}
+Previous questions/statements: ${prevQuestions}
+Interview type: ${interviewType}
+
+Remember to stay in character as ${interviewerName} and follow the stage-appropriate guidelines.`);
       
       userPrompt = userPromptParts.join("\n\n---\n\n");
 
