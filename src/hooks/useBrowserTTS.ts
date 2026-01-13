@@ -54,13 +54,22 @@ export const useBrowserTTS = (options: UseBrowserTTSOptions = {}): UseBrowserTTS
     const utterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = utterance;
 
-    // Find Indian English voice first, fallback to other English voices
+    // Find female English voice for the interviewer Alex Chen
+    const femaleVoicePatterns = ["samantha", "karen", "moira", "tessa", "fiona", "victoria", "susan", "zira", "hazel", "linda", "female", "woman"];
+    
     const selectedVoice = voices.find(v => 
-      voice ? v.name.includes(voice) : v.lang === "en-IN"
+      voice ? v.name.includes(voice) : false
     ) || voices.find(v => 
-      v.lang.startsWith("en-IN") || v.name.toLowerCase().includes("india")
+      // Prioritize US English female voices
+      v.lang.startsWith("en-US") && femaleVoicePatterns.some(p => v.name.toLowerCase().includes(p))
     ) || voices.find(v => 
-      v.lang.startsWith("en-GB")
+      // Then any English female voice
+      v.lang.startsWith("en") && femaleVoicePatterns.some(p => v.name.toLowerCase().includes(p))
+    ) || voices.find(v => 
+      // Google US English (usually female)
+      v.name.includes("Google US English") || v.name.includes("Microsoft Zira")
+    ) || voices.find(v => 
+      v.lang.startsWith("en-US")
     ) || voices.find(v => 
       v.lang.startsWith("en")
     ) || voices[0];
