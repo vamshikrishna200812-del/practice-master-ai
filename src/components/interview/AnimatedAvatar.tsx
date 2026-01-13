@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
-import professionalInterviewer from "@/assets/professional-interviewer.png";
+import femaleInterviewerAlex from "@/assets/female-interviewer-alex.png";
 
 // Emotion/behavior types that can be triggered by metadata tags
 export type AvatarEmotion = 
@@ -215,7 +215,7 @@ export const AnimatedAvatar = ({
               <>
                 {/* Professional interviewer photo */}
                 <motion.img
-                  src={professionalInterviewer}
+                  src={femaleInterviewerAlex}
                   alt="Alex Chen - Interviewer"
                   className="w-full h-full object-cover"
                   animate={{
