@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import courseBookVideo from "@/assets/course-book.mp4";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
+import CourseModule from "@/components/courses/CourseModule";
+import { courseModulesData } from "@/data/courseModules";
 
 interface Course {
   id: string;
@@ -689,11 +691,12 @@ const VideoLessonPlayer = ({
   };
 
   const correctCount = quiz.filter((q, i) => quizAnswers[i] === q.correct).length;
+  const moduleData = courseModulesData[courseTitle];
 
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50">
+        <TabsList className="grid w-full grid-cols-5 bg-muted/50">
           <TabsTrigger value="video" className="flex items-center gap-2">
             <Video className="w-4 h-4" />
             <span className="hidden sm:inline">Video</span>
@@ -712,6 +715,12 @@ const VideoLessonPlayer = ({
             <TabsTrigger value="exercise" className="flex items-center gap-2">
               <Code className="w-4 h-4" />
               <span className="hidden sm:inline">Exercise</span>
+            </TabsTrigger>
+          )}
+          {moduleData && (
+            <TabsTrigger value="assessment" className="flex items-center gap-2">
+              <Award className="w-4 h-4" />
+              <span className="hidden sm:inline">Assessment</span>
             </TabsTrigger>
           )}
         </TabsList>
