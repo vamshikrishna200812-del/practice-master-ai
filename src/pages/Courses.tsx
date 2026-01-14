@@ -59,6 +59,14 @@ interface Enrollment {
   completed_at?: string | null;
 }
 
+interface AssessmentCompletion {
+  id: string;
+  course_id: string;
+  score: number;
+  passed: boolean;
+  completed_at: string;
+}
+
 interface VideoLesson {
   id: string;
   title: string;
@@ -670,13 +678,19 @@ const ProgressSkeleton = () => (
 const VideoLessonPlayer = ({
   lesson,
   courseTitle,
+  courseId,
   onComplete,
-  isCompleted
+  isCompleted,
+  onAssessmentComplete,
+  assessmentCompletion
 }: {
   lesson: VideoLesson;
   courseTitle: string;
+  courseId: string;
   onComplete: () => void;
   isCompleted: boolean;
+  onAssessmentComplete: (passed: boolean, score: number) => void;
+  assessmentCompletion: AssessmentCompletion | null;
 }) => {
   const [activeTab, setActiveTab] = useState("video");
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
@@ -963,6 +977,41 @@ const VideoLessonPlayer = ({
             </Card>
           </TabsContent>
         )}
+
+        {/* Assessment Tab - Full Course Assessment */}
+        {moduleData && (
+          <TabsContent value="assessment" className="mt-4">
+            <CourseModule
+              moduleData={moduleData}
+              onComplete={(passed, score) => onAssessmentComplete(passed, score)}
+              isCompleted={assessmentCompletion?.passed || false}
+            />
+            {assessmentCompletion && (
+              <Card className="mt-4 border-border/50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {assessmentCompletion.passed ? (
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <Target className="w-6 h-6 text-amber-500" />
+                      )}
+                      <div>
+                        <h4 className="font-semibold">Previous Attempt</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Score: {assessmentCompletion.score}% • {assessmentCompletion.passed ? "Passed" : "Not Passed"}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={assessmentCompletion.passed ? "default" : "secondary"}>
+                      {new Date(assessmentCompletion.completed_at).toLocaleDateString()}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -971,6 +1020,7 @@ const VideoLessonPlayer = ({
 const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [assessmentCompletions, setAssessmentCompletions] = useState<AssessmentCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<VideoLesson | null>(null);
@@ -991,14 +1041,16 @@ const Courses = () => {
 
   const fetchData = async () => {
     try {
-      const [coursesRes, enrollmentsRes] = await Promise.all([
+      const [coursesRes, enrollmentsRes, assessmentsRes] = await Promise.all([
         supabase.from("courses").select("*").eq("is_published", true),
         supabase.from("course_enrollments").select("*"),
+        supabase.from("course_assessment_completions").select("*"),
       ]);
 
       if (coursesRes.error) throw coursesRes.error;
       setCourses(coursesRes.data || []);
       setEnrollments(enrollmentsRes.data || []);
+      setAssessmentCompletions(assessmentsRes.data || []);
     } catch (error) {
       console.error("Error fetching courses:", error);
       toast({
@@ -1055,6 +1107,69 @@ const Courses = () => {
 
   const getEnrollment = (courseId: string) => {
     return enrollments.find((e) => e.course_id === courseId);
+  };
+
+  const getAssessmentCompletion = (courseId: string) => {
+    return assessmentCompletions.find((a) => a.course_id === courseId) || null;
+  };
+
+  const handleAssessmentComplete = async (courseId: string, passed: boolean, score: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Please sign in",
+          description: "You need to be logged in to save your assessment progress.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if there's already an assessment completion for this course
+      const existing = assessmentCompletions.find(a => a.course_id === courseId);
+      
+      if (existing) {
+        // Update existing record only if new score is better
+        if (score > existing.score) {
+          const { error } = await supabase
+            .from("course_assessment_completions")
+            .update({ score, passed, completed_at: new Date().toISOString() })
+            .eq("id", existing.id);
+          
+          if (error) throw error;
+        }
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from("course_assessment_completions")
+          .insert({
+            user_id: user.id,
+            course_id: courseId,
+            score,
+            passed,
+          });
+        
+        if (error) throw error;
+      }
+
+      // Refresh assessment completions
+      const { data } = await supabase.from("course_assessment_completions").select("*");
+      setAssessmentCompletions(data || []);
+
+      if (passed) {
+        toast({
+          title: "🎉 Assessment Passed!",
+          description: `You scored ${score}% on the course assessment!`,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving assessment completion:", error);
+      toast({
+        title: "Failed to save progress",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLessonComplete = async (lessonId: string, courseTitle: string) => {
@@ -1245,8 +1360,11 @@ const Courses = () => {
             <VideoLessonPlayer
               lesson={selectedLesson}
               courseTitle={selectedCourse.title}
+              courseId={selectedCourse.id}
               onComplete={() => handleLessonComplete(selectedLesson.id, selectedCourse.title)}
               isCompleted={!!lessonProgress[`${selectedCourse.title}-${selectedLesson.id}`]}
+              onAssessmentComplete={(passed, score) => handleAssessmentComplete(selectedCourse.id, passed, score)}
+              assessmentCompletion={getAssessmentCompletion(selectedCourse.id)}
             />
           ) : (
             <>
