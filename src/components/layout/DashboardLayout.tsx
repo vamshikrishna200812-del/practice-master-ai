@@ -3,6 +3,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -14,9 +16,14 @@ import {
   Brain,
   Calendar,
   FileQuestion,
-  ClipboardList
+  ClipboardList,
+  Menu,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,6 +33,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,68 +76,178 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   if (!user) return null;
 
+  const SidebarContent = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <ScrollArea className="flex-1 py-4">
+      <nav className="flex flex-col gap-1 px-3">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link 
+              key={item.path} 
+              to={item.path}
+              onClick={onItemClick}
+            >
+              <Button 
+                variant={isActive ? "secondary" : "ghost"}
+                size="sm"
+                className={cn(
+                  "w-full justify-start gap-3 h-11 transition-all duration-200",
+                  sidebarCollapsed && "justify-center px-2",
+                  isActive && "bg-primary/10 text-primary border-l-2 border-primary rounded-l-none"
+                )}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                {!sidebarCollapsed && <span>{item.label}</span>}
+              </Button>
+            </Link>
+          );
+        })}
+      </nav>
+    </ScrollArea>
+  );
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container flex h-16 items-center justify-between px-4">
+    <div className="min-h-screen bg-background flex w-full">
+      {/* Desktop Sidebar */}
+      <aside 
+        className={cn(
+          "hidden md:flex flex-col border-r bg-card/50 backdrop-blur transition-all duration-300 sticky top-0 h-screen",
+          sidebarCollapsed ? "w-16" : "w-60"
+        )}
+      >
+        {/* Sidebar Header */}
+        <div className={cn(
+          "flex items-center h-16 border-b px-4",
+          sidebarCollapsed ? "justify-center" : "justify-between"
+        )}>
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shrink-0">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl">AITRAININGZONE</span>
+            {!sidebarCollapsed && (
+              <span className="font-bold text-lg whitespace-nowrap">AITRAININGZONE</span>
+            )}
           </Link>
+        </div>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link key={item.path} to={item.path}>
-                  <Button 
-                    variant={isActive ? "secondary" : "ghost"}
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Scrollable Navigation */}
+        <SidebarContent />
 
-          <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Sign Out</span>
+        {/* Sign Out & Collapse Button */}
+        <div className="border-t p-3 space-y-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleSignOut} 
+            className={cn(
+              "w-full justify-start gap-3 h-11 text-destructive hover:text-destructive hover:bg-destructive/10",
+              sidebarCollapsed && "justify-center px-2"
+            )}
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!sidebarCollapsed && <span>Sign Out</span>}
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className={cn(
+              "w-full justify-start gap-3 h-9 text-muted-foreground",
+              sidebarCollapsed && "justify-center px-2"
+            )}
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <>
+                <ChevronLeft className="w-4 h-4" />
+                <span>Collapse</span>
+              </>
+            )}
           </Button>
         </div>
-      </header>
+      </aside>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          {navItems.slice(0, 4).map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button 
-                  variant={isActive ? "secondary" : "ghost"}
-                  size="sm"
-                  className="w-full flex flex-col gap-1 h-auto py-2"
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span className="text-xs">{item.label}</span>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Mobile Header */}
+        <header className="md:hidden sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+          <div className="flex h-14 items-center justify-between px-4">
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-lg">AITRAININGZONE</span>
+            </Link>
+
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-5 h-5" />
                 </Button>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 p-0">
+                <div className="flex flex-col h-full">
+                  {/* Mobile Menu Header */}
+                  <div className="flex items-center justify-between h-14 border-b px-4">
+                    <span className="font-bold">Menu</span>
+                  </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 pb-20 md:pb-8">
-        {children}
-      </main>
+                  {/* Scrollable Navigation */}
+                  <ScrollArea className="flex-1 py-4">
+                    <nav className="flex flex-col gap-1 px-3">
+                      {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                          <Link 
+                            key={item.path} 
+                            to={item.path}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Button 
+                              variant={isActive ? "secondary" : "ghost"}
+                              size="sm"
+                              className={cn(
+                                "w-full justify-start gap-3 h-12",
+                                isActive && "bg-primary/10 text-primary border-l-2 border-primary rounded-l-none"
+                              )}
+                            >
+                              <item.icon className="w-5 h-5" />
+                              <span>{item.label}</span>
+                            </Button>
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </ScrollArea>
+
+                  {/* Sign Out */}
+                  <div className="border-t p-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }} 
+                      className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Sign Out</span>
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 container mx-auto px-4 py-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };
