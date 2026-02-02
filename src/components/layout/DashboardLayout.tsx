@@ -123,7 +123,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     </ScrollArea>
   );
 
-  const UserProfileSection = ({ collapsed = false }: { collapsed?: boolean }) => {
+  const UserProfileSection = ({ collapsed = false, onClick }: { collapsed?: boolean; onClick?: () => void }) => {
     const initials = profile?.full_name
       ?.split(' ')
       .map(n => n[0])
@@ -132,10 +132,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       .slice(0, 2) || 'U';
 
     return (
-      <div className={cn(
-        "flex items-center gap-3 p-3 border-b",
-        collapsed && "justify-center"
-      )}>
+      <Link 
+        to="/settings" 
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-3 p-3 border-b hover:bg-muted/50 transition-colors cursor-pointer",
+          collapsed && "justify-center"
+        )}
+      >
         <Avatar className="h-10 w-10 shrink-0">
           <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
           <AvatarFallback className="bg-primary/10 text-primary font-medium">
@@ -152,7 +156,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </span>
           </div>
         )}
-      </div>
+      </Link>
     );
   };
 
@@ -248,7 +252,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   </div>
 
                   {/* User Profile Section */}
-                  <UserProfileSection />
+                  <UserProfileSection onClick={() => setMobileMenuOpen(false)} />
 
                   {/* Scrollable Navigation */}
                   <ScrollArea className="flex-1 py-4">
