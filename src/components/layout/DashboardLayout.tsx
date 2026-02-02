@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -18,12 +19,16 @@ import {
   FileQuestion,
   ClipboardList,
   Menu,
-  X,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface UserProfile {
+  full_name: string;
+  avatar_url: string | null;
+}
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -33,15 +38,26 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    const fetchProfile = async (userId: string) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', userId)
+        .single();
+      if (data) setProfile(data);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchProfile(session.user.id);
       }
     });
 
@@ -50,6 +66,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchProfile(session.user.id);
       }
     });
 
@@ -106,6 +123,39 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     </ScrollArea>
   );
 
+  const UserProfileSection = ({ collapsed = false }: { collapsed?: boolean }) => {
+    const initials = profile?.full_name
+      ?.split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U';
+
+    return (
+      <div className={cn(
+        "flex items-center gap-3 p-3 border-b",
+        collapsed && "justify-center"
+      )}>
+        <Avatar className="h-10 w-10 shrink-0">
+          <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        {!collapsed && (
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-sm truncate">
+              {profile?.full_name || 'User'}
+            </span>
+            <span className="text-xs text-muted-foreground truncate">
+              {user?.email || ''}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background flex w-full">
       {/* Desktop Sidebar */}
@@ -129,6 +179,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             )}
           </Link>
         </div>
+
+        {/* User Profile Section */}
+        <UserProfileSection collapsed={sidebarCollapsed} />
 
         {/* Scrollable Navigation */}
         <SidebarContent />
@@ -193,6 +246,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <div className="flex items-center justify-between h-14 border-b px-4">
                     <span className="font-bold">Menu</span>
                   </div>
+
+                  {/* User Profile Section */}
+                  <UserProfileSection />
 
                   {/* Scrollable Navigation */}
                   <ScrollArea className="flex-1 py-4">
