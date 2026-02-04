@@ -230,11 +230,10 @@ export const CourseModule = ({ moduleData, onComplete, isCompleted }: CourseModu
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <div 
-                    className="text-muted-foreground leading-relaxed whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: moduleData.topicExplanation.replace(/\n/g, '<br/>') }}
-                  />
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {moduleData.topicExplanation}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">

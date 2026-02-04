@@ -50,7 +50,11 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { type, resumeUrl, resumeText, jobDescription, interviewType, questionCount = 5 }: ParseRequest = await req.json();
@@ -74,7 +78,10 @@ serve(async (req) => {
           
         if (downloadError) {
           console.error("Download error:", downloadError);
-          throw new Error("Failed to download resume file");
+          return new Response(
+            JSON.stringify({ error: "Failed to access resume file" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
         // For now, we'll extract text from the file
@@ -114,7 +121,6 @@ serve(async (req) => {
 
         if (!extractResponse.ok) {
           console.error("Failed to extract text from resume");
-          // Fallback: return base64 and let frontend handle it
           return new Response(JSON.stringify({ 
             error: "Could not extract text from document. Please try pasting the resume text directly." 
           }), {
@@ -178,7 +184,11 @@ Return JSON in this exact format:
       });
 
       if (!parseResponse.ok) {
-        throw new Error("Failed to parse resume");
+        console.error("Failed to parse resume");
+        return new Response(
+          JSON.stringify({ error: "Failed to parse resume" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const parseData = await parseResponse.json();
@@ -247,7 +257,11 @@ Return JSON array: ["question1", "question2", ...]`;
       });
 
       if (!questionsResponse.ok) {
-        throw new Error("Failed to generate questions");
+        console.error("Failed to generate questions");
+        return new Response(
+          JSON.stringify({ error: "Failed to generate questions" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const questionsData = await questionsResponse.json();
@@ -273,12 +287,15 @@ Return JSON array: ["question1", "question2", ...]`;
       });
     }
 
-    throw new Error("Invalid request type");
+    return new Response(
+      JSON.stringify({ error: "Invalid request type" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
 
   } catch (error) {
     console.error("Parse resume error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "An error occurred processing your request" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

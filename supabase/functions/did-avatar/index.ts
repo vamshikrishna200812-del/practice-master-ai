@@ -51,7 +51,11 @@ serve(async (req) => {
 
     const DID_API_KEY = Deno.env.get("DID_API_KEY");
     if (!DID_API_KEY) {
-      throw new Error("DID_API_KEY is not configured");
+      console.error("DID_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { type, text, talkId }: AvatarRequest = await req.json();
@@ -59,7 +63,10 @@ serve(async (req) => {
 
     if (type === "create_talk") {
       if (!text) {
-        throw new Error("Text is required for creating talk");
+        return new Response(
+          JSON.stringify({ error: "Text is required for creating talk" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       // Create a talk video with the avatar
@@ -90,7 +97,10 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("D-ID create talk error:", response.status, errorText);
-        throw new Error(`D-ID API error: ${response.status} - ${errorText}`);
+        return new Response(
+          JSON.stringify({ error: "Failed to create avatar video" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const data = await response.json();
@@ -105,7 +115,10 @@ serve(async (req) => {
 
     } else if (type === "get_talk_status") {
       if (!talkId) {
-        throw new Error("Talk ID is required");
+        return new Response(
+          JSON.stringify({ error: "Talk ID is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       // Get talk status and result URL
@@ -119,7 +132,10 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("D-ID get talk error:", response.status, errorText);
-        throw new Error(`D-ID API error: ${response.status}`);
+        return new Response(
+          JSON.stringify({ error: "Failed to get avatar status" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const data = await response.json();
@@ -134,12 +150,15 @@ serve(async (req) => {
       });
     }
 
-    throw new Error("Invalid request type");
+    return new Response(
+      JSON.stringify({ error: "Invalid request type" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
 
   } catch (error) {
     console.error("D-ID Avatar error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "An error occurred processing your request" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
