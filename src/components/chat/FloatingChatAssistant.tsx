@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -21,6 +23,7 @@ const FloatingChatAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -31,6 +34,23 @@ const FloatingChatAssistant = () => {
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -40,16 +60,25 @@ const FloatingChatAssistant = () => {
   }, [messages]);
 
   const streamChat = async (userMessages: { role: string; content: string }[]) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
+      throw new Error("Please sign in to use the Training Assistant");
+    }
+
     const response = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({ messages: userMessages }),
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Please sign in to use the Training Assistant");
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
@@ -63,6 +92,15 @@ const FloatingChatAssistant = () => {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use the Training Assistant.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -192,6 +230,11 @@ const FloatingChatAssistant = () => {
     }
   };
 
+  const handleSignIn = () => {
+    setIsOpen(false);
+    navigate("/auth");
+  };
+
   return (
     <>
       {/* Floating Chat Button */}
@@ -257,72 +300,90 @@ const FloatingChatAssistant = () => {
               </Button>
             </div>
 
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={cn(
-                      "flex gap-3",
-                      message.sender === "user" && "flex-row-reverse"
-                    )}
-                  >
-                    {message.sender === "assistant" && (
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          AI
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
-                        message.sender === "assistant"
-                          ? "bg-muted text-foreground rounded-tl-sm"
-                          : "bg-gradient-primary text-white rounded-tr-sm"
-                      )}
-                    >
-                      {message.content || (
-                        <span className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Thinking...
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            {/* Input */}
-            <div className="p-4 border-t border-border/50 bg-background/50">
-              <div className="flex gap-2">
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Type your message..."
-                  disabled={isLoading}
-                  className="flex-1 rounded-full border-border/50 bg-background focus-visible:ring-primary/50"
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  size="icon"
-                  disabled={!inputValue.trim() || isLoading}
-                  className="h-10 w-10 rounded-full bg-gradient-primary hover:opacity-90 transition-opacity"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
+            {/* Messages or Login Prompt */}
+            {isAuthenticated === false ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <LogIn className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground mb-2">Sign in Required</h4>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Please sign in to chat with your Training Assistant and get personalized interview preparation help.
+                </p>
+                <Button onClick={handleSignIn} className="bg-gradient-primary">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
                 </Button>
               </div>
-            </div>
+            ) : (
+              <>
+                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "flex gap-3",
+                          message.sender === "user" && "flex-row-reverse"
+                        )}
+                      >
+                        {message.sender === "assistant" && (
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                              AI
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div
+                          className={cn(
+                            "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
+                            message.sender === "assistant"
+                              ? "bg-muted text-foreground rounded-tl-sm"
+                              : "bg-gradient-primary text-white rounded-tr-sm"
+                          )}
+                        >
+                          {message.content || (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Thinking...
+                            </span>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                {/* Input */}
+                <div className="p-4 border-t border-border/50 bg-background/50">
+                  <div className="flex gap-2">
+                    <Input
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type your message..."
+                      disabled={isLoading}
+                      className="flex-1 rounded-full border-border/50 bg-background focus-visible:ring-primary/50"
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      size="icon"
+                      disabled={!inputValue.trim() || isLoading}
+                      className="h-10 w-10 rounded-full bg-gradient-primary hover:opacity-90 transition-opacity"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
