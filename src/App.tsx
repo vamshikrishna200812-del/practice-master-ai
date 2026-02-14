@@ -21,6 +21,7 @@ import Promo from "./pages/Promo";
 import QuestionBank from "./pages/QuestionBank";
 import CheatSheet from "./pages/CheatSheet";
 import CertificateVerify from "./pages/CertificateVerify";
+import RecruiterMode from "./pages/RecruiterMode";
 import FloatingChatAssistant from "./components/chat/FloatingChatAssistant";
 
 // Create QueryClient outside component to prevent recreation on re-renders
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/question-bank" element={<QuestionBank />} />
             <Route path="/cheat-sheet" element={<CheatSheet />} />
             <Route path="/verify" element={<CertificateVerify />} />
+            <Route path="/recruiter-mode" element={<RecruiterMode />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <FloatingChatAssistant />
