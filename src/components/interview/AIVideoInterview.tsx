@@ -42,12 +42,18 @@ interface PersonalizationData {
 interface AIVideoInterviewProps {
   interviewType?: "behavioral" | "technical" | "coding";
   totalQuestions?: number;
+  recruiterMode?: boolean;
+  company?: string;
+  personality?: string;
   onComplete?: (report: FinalReport) => void;
 }
 
 export const AIVideoInterview = ({
   interviewType = "behavioral",
   totalQuestions = 5,
+  recruiterMode = false,
+  company,
+  personality,
   onComplete,
 }: AIVideoInterviewProps) => {
   // Interview state
@@ -169,6 +175,9 @@ export const AIVideoInterview = ({
           interviewType,
           resumeText: personalization.resumeText,
           jobDescription: personalization.jobDescription,
+          recruiterMode,
+          company,
+          personality,
         },
       },
     });
