@@ -70,15 +70,9 @@ const Home = () => {
             loop
             muted
             playsInline
+            preload="auto"
             className="w-full h-full object-cover"
-            onTimeUpdate={(e) => {
-              const video = e.currentTarget;
-              // Pre-buffer the start to eliminate loop stutter
-              if (video.duration && video.currentTime > video.duration - 0.3) {
-                video.currentTime = 0;
-                video.play();
-              }
-            }}
+            style={{ objectFit: 'cover' }}
           >
             <source src={heroBackground} type="video/mp4" />
           </video>
