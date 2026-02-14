@@ -65,7 +65,21 @@ const Home = () => {
       <section className="relative overflow-hidden min-h-[90vh] flex items-center py-24 px-4">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
-          <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            onTimeUpdate={(e) => {
+              const video = e.currentTarget;
+              // Pre-buffer the start to eliminate loop stutter
+              if (video.duration && video.currentTime > video.duration - 0.3) {
+                video.currentTime = 0;
+                video.play();
+              }
+            }}
+          >
             <source src={heroBackground} type="video/mp4" />
           </video>
           {/* Dark overlay for text readability */}
