@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -9,11 +10,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface CourseCompletionRequest {
-  email: string;
-  userName: string;
-  courseName: string;
-  completionDate: string;
+// Input validation schema
+const CourseCompletionSchema = z.object({
+  email: z.string().email().max(255).optional(), // ignored, we use auth email
+  userName: z.string().max(200),
+  courseName: z.string().max(500),
+  completionDate: z.string().max(100),
+});
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 3;
+const RATE_WINDOW_MS = 60_000;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -37,7 +56,6 @@ const handler = async (req: Request): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the user is authenticated
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
     if (authError || !claimsData?.claims) {
@@ -49,6 +67,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     const userId = claimsData.claims.sub;
 
+    // Rate limiting
+    if (!checkRateLimit(userId as string)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Rate limit exceeded. Please try again in a moment." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Get the user's email from auth to prevent email spoofing
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user?.email) {
@@ -58,7 +84,26 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { userName, courseName, completionDate }: CourseCompletionRequest = await req.json();
+    // Validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const parseResult = CourseCompletionSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid input" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { userName, courseName, completionDate } = parseResult.data;
     
     // Use the authenticated user's email, not the one provided in the request
     const email = user.email;
@@ -171,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-course-completion-email function:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: "An error occurred sending the email" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

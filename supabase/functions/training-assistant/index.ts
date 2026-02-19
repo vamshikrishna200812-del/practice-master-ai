@@ -1,10 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const MessageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().max(10000),
+});
+
+const TrainingRequestSchema = z.object({
+  messages: z.array(MessageSchema).min(1).max(50),
+});
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60_000;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,7 +55,6 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the user is authenticated
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
     if (authError || !claimsData?.claims) {
@@ -38,11 +65,18 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub as string;
+
+    // Rate limiting
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log("Training assistant request from user:", userId);
 
-    const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
       return new Response(
@@ -50,6 +84,27 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parseResult = TrainingRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages } = parseResult.data;
 
     const systemPrompt = `You are an **Elite AI Training Assistant and Subject Matter Expert** for AITRAININGZONE - an AI-powered interview preparation platform. Maintain a candid, professional, and rigorous tone throughout all interactions.
 
