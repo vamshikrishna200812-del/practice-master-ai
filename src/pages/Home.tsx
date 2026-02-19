@@ -5,6 +5,7 @@ import { Brain, Code, MessageSquare, Video, Zap, Target, TrendingUp, Award, Chec
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import heroBackground from "@/assets/hero-background.mp4";
+import { ChatWidget } from "@/components/chat-widget";
 
 /**
  * Home Page - Professional Architect Implementation
@@ -269,6 +270,11 @@ const Home = () => {
           </div>
         </div>
       </footer>
+      {/* AI Chat Widget */}
+      <ChatWidget
+        title="AI Assistant"
+        greeting="👋 Hi there! I'm your AI assistant. Ask me anything about interview prep, coding, or career advice!"
+      />
     </div>;
 };
 export default Home;
