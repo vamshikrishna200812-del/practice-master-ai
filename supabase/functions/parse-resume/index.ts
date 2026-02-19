@@ -1,18 +1,37 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ParseRequest {
-  type: "parse_resume" | "generate_questions";
-  resumeUrl?: string;
-  resumeText?: string;
-  jobDescription?: string;
-  interviewType?: "behavioral" | "technical" | "coding";
-  questionCount?: number;
+// Input validation schema
+const ParseRequestSchema = z.object({
+  type: z.enum(["parse_resume", "generate_questions"]),
+  resumeUrl: z.string().max(500).optional(),
+  resumeText: z.string().max(50000).optional(),
+  jobDescription: z.string().max(20000).optional(),
+  interviewType: z.enum(["behavioral", "technical", "coding"]).optional(),
+  questionCount: z.number().int().min(1).max(20).optional(),
+});
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
 }
 
 serve(async (req) => {
@@ -36,7 +55,6 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the user is authenticated
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
     if (authError || !claimsData?.claims) {
@@ -48,6 +66,14 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub as string;
 
+    // Rate limiting
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
@@ -57,21 +83,36 @@ serve(async (req) => {
       );
     }
 
-    const { type, resumeUrl, resumeText, jobDescription, interviewType, questionCount = 5 }: ParseRequest = await req.json();
+    // Validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parseResult = ParseRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { type, resumeUrl, resumeText, jobDescription, interviewType, questionCount = 5 } = parseResult.data;
     console.log("Parse resume request:", { type, hasResumeUrl: !!resumeUrl, hasResumeText: !!resumeText, hasJD: !!jobDescription, userId });
 
     if (type === "parse_resume") {
-      // If we have a URL, fetch the resume content
       let content = resumeText || "";
       
       if (resumeUrl && !resumeText) {
-        // Validate file path belongs to authenticated user (files should be stored under userId folder)
         if (!resumeUrl.startsWith(`${userId}/`)) {
           console.warn("Resume access attempt for non-owned file:", { userId, resumeUrl });
-          // Storage RLS will block access anyway, but log the attempt
         }
 
-        // Download file from storage - RLS policies will enforce ownership
         const { data: fileData, error: downloadError } = await supabase.storage
           .from("resumes")
           .download(resumeUrl);
@@ -84,12 +125,9 @@ serve(async (req) => {
           );
         }
 
-        // For now, we'll extract text from the file
-        // For PDFs and DOCXs, we'll use AI to extract text from base64
         const arrayBuffer = await fileData.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
         
-        // Use AI to extract text from the document
         const extractResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -107,12 +145,7 @@ serve(async (req) => {
                 role: "user", 
                 content: [
                   { type: "text", text: "Extract all text from this resume document:" },
-                  { 
-                    type: "image_url", 
-                    image_url: { 
-                      url: `data:application/pdf;base64,${base64}` 
-                    } 
-                  }
+                  { type: "image_url", image_url: { url: `data:application/pdf;base64,${base64}` } }
                 ]
               },
             ],
@@ -133,7 +166,6 @@ serve(async (req) => {
         content = extractData.choices?.[0]?.message?.content || "";
       }
 
-      // Parse the resume content with AI
       const parseResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -194,7 +226,6 @@ Return JSON in this exact format:
       const parseData = await parseResponse.json();
       const parsedContent = parseData.choices?.[0]?.message?.content || "";
       
-      // Extract JSON from response
       let parsedResume;
       try {
         const jsonMatch = parsedContent.match(/```json\n?([\s\S]*?)\n?```/) || parsedContent.match(/\{[\s\S]*\}/);
@@ -276,7 +307,6 @@ Return JSON array: ["question1", "question2", ...]`;
         }
       } catch (e) {
         console.error("JSON parse error:", e);
-        // Fallback: split by newlines if JSON parsing fails
         questions = questionsContent.split("\n").filter((q: string) => q.trim().length > 10);
       }
 

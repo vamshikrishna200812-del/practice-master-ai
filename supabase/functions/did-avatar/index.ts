@@ -1,21 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface AvatarRequest {
-  type: "create_talk" | "get_talk_status";
-  text?: string;
-  talkId?: string;
+// Input validation schema
+const AvatarRequestSchema = z.object({
+  type: z.enum(["create_talk", "get_talk_status"]),
+  text: z.string().max(5000).optional(),
+  talkId: z.string().max(200).optional(),
+});
+
+// In-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60_000;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
 }
 
 // D-ID API configuration
 const DID_API_URL = "https://api.d-id.com";
-
-// Professional AI interviewer avatar (D-ID's presenter)
 const AVATAR_SOURCE_URL = "https://create-images-results.d-id.com/google-oauth2%7C107577529499234497077/upl_dFGsOFCu1aR8Pf3OOLAkd/image.png";
 
 serve(async (req) => {
@@ -39,13 +56,22 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the user is authenticated
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: authError } = await supabase.auth.getClaims(token);
     if (authError || !claimsData?.claims) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub as string;
+
+    // Rate limiting
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -58,8 +84,27 @@ serve(async (req) => {
       );
     }
 
-    const { type, text, talkId }: AvatarRequest = await req.json();
-    console.log("D-ID Avatar request:", { type, textLength: text?.length, talkId, userId: claimsData.claims.sub });
+    // Validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parseResult = AvatarRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { type, text, talkId } = parseResult.data;
+    console.log("D-ID Avatar request:", { type, textLength: text?.length, talkId, userId });
 
     if (type === "create_talk") {
       if (!text) {
@@ -69,7 +114,6 @@ serve(async (req) => {
         );
       }
 
-      // Create a talk video with the avatar
       const response = await fetch(`${DID_API_URL}/talks`, {
         method: "POST",
         headers: {
@@ -81,16 +125,9 @@ serve(async (req) => {
           script: {
             type: "text",
             input: text,
-            provider: {
-              type: "microsoft",
-              voice_id: "en-US-JennyNeural", // Professional female voice
-            },
+            provider: { type: "microsoft", voice_id: "en-US-JennyNeural" },
           },
-          config: {
-            fluent: true,
-            pad_audio: 0.5,
-            stitch: true,
-          },
+          config: { fluent: true, pad_audio: 0.5, stitch: true },
         }),
       });
 
@@ -106,10 +143,7 @@ serve(async (req) => {
       const data = await response.json();
       console.log("D-ID talk created:", data.id);
 
-      return new Response(JSON.stringify({ 
-        talkId: data.id,
-        status: data.status,
-      }), {
+      return new Response(JSON.stringify({ talkId: data.id, status: data.status }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
@@ -121,12 +155,9 @@ serve(async (req) => {
         );
       }
 
-      // Get talk status and result URL
       const response = await fetch(`${DID_API_URL}/talks/${talkId}`, {
         method: "GET",
-        headers: {
-          "Authorization": `Basic ${DID_API_KEY}`,
-        },
+        headers: { "Authorization": `Basic ${DID_API_KEY}` },
       });
 
       if (!response.ok) {

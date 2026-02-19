@@ -1,27 +1,50 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface InterviewRequest {
-  type: "generate_question" | "analyze_response" | "generate_feedback";
-  context?: {
-    questionNumber: number;
-    totalQuestions: number;
-    previousQuestions?: string[];
-    interviewType: "behavioral" | "technical" | "coding";
-    resumeText?: string;
-    jobDescription?: string;
-    recruiterMode?: boolean;
-    company?: string;
-    personality?: string;
-  };
-  userResponse?: string;
-  question?: string;
-  allResponses?: Array<{ question: string; answer: string; feedback?: string }>;
+// Input validation schema
+const InterviewRequestSchema = z.object({
+  type: z.enum(["generate_question", "analyze_response", "generate_feedback"]),
+  context: z.object({
+    questionNumber: z.number().int().min(1).max(20),
+    totalQuestions: z.number().int().min(1).max(20),
+    previousQuestions: z.array(z.string().max(1000)).max(20).optional(),
+    interviewType: z.enum(["behavioral", "technical", "coding"]),
+    resumeText: z.string().max(50000).optional(),
+    jobDescription: z.string().max(20000).optional(),
+    recruiterMode: z.boolean().optional(),
+    company: z.string().max(50).optional(),
+    personality: z.string().max(50).optional(),
+  }).optional(),
+  userResponse: z.string().max(10000).optional(),
+  question: z.string().max(5000).optional(),
+  allResponses: z.array(z.object({
+    question: z.string().max(5000),
+    answer: z.string().max(10000),
+    feedback: z.string().max(5000).optional(),
+  })).max(20).optional(),
+});
+
+// In-memory rate limiting (per isolate instance)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 20; // requests per window
+const RATE_WINDOW_MS = 60_000; // 1 minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
 }
 
 serve(async (req) => {
@@ -57,6 +80,14 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub as string;
 
+    // Rate limiting
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
@@ -66,8 +97,27 @@ serve(async (req) => {
       );
     }
 
-    const { type, context, userResponse, question, allResponses }: InterviewRequest = await req.json();
-    console.log("AI Interview request:", { type, context, userId });
+    // Validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parseResult = InterviewRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { type, context, userResponse, question, allResponses } = parseResult.data;
+    console.log("AI Interview request:", { type, userId });
 
     // Permission check: For interview operations, validate user has an active or recent session
     if (type === "generate_question" || type === "analyze_response") {
@@ -83,7 +133,6 @@ serve(async (req) => {
       if (sessionError) {
         console.error("Session check error:", sessionError);
       }
-      // Log for audit but don't block - users may be starting a new interview
       if (!activeSession) {
         console.log("No active session found for user, proceeding with interview creation");
       }
@@ -105,7 +154,6 @@ serve(async (req) => {
       const companyStyle = context?.company || "google";
       const personalityType = context?.personality || "friendly";
       
-      // Determine which stage of the interview we're in
       const getInterviewStage = (qNum: number, total: number) => {
         const progress = qNum / total;
         if (qNum === 1) return "greeting";
@@ -116,7 +164,6 @@ serve(async (req) => {
       
       const stage = getInterviewStage(questionNumber, totalQuestions);
 
-      // Company-specific interview culture prompts
       const companyPrompts: Record<string, string> = {
         google: `COMPANY CULTURE: Google
 - Focus on "Googleyness": intellectual humility, bias to action, collaborative
@@ -166,7 +213,6 @@ serve(async (req) => {
 - Test for long-term strategic thinking vs short-term execution`,
       };
 
-      // Personality-specific interviewer behavior prompts
       const personalityPrompts: Record<string, string> = {
         analytical: `INTERVIEWER PERSONALITY: The Analyst
 - You are methodical, precise, and data-obsessed
@@ -403,7 +449,6 @@ Respond in JSON format: {
     let result: any = { content };
     if (type === "analyze_response" || type === "generate_feedback") {
       try {
-        // Extract JSON from response (handle markdown code blocks)
         const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const jsonStr = jsonMatch[1] || jsonMatch[0];
