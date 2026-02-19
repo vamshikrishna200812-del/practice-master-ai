@@ -274,6 +274,24 @@ const Home = () => {
       <ChatWidget
         title="AI Assistant"
         greeting="👋 Hi there! I'm your AI assistant. Ask me anything about interview prep, coding, or career advice!"
+        onSendMessage={async (messages, settings) => {
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-widget`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              },
+              body: JSON.stringify({
+                messages: messages.map(m => ({ role: m.role, content: m.content })),
+                settings,
+              }),
+            }
+          );
+          if (!res.ok) throw new Error('Failed to get response');
+          return res.body!;
+        }}
       />
     </div>;
 };

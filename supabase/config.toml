@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.send-course-completion-email]
 verify_jwt = true
+
+[functions.chat-widget]
+verify_jwt = false
