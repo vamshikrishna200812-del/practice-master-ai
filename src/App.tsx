@@ -22,7 +22,8 @@ import QuestionBank from "./pages/QuestionBank";
 import CheatSheet from "./pages/CheatSheet";
 import CertificateVerify from "./pages/CertificateVerify";
 import RecruiterMode from "./pages/RecruiterMode";
-import FloatingChatAssistant from "./components/chat/FloatingChatAssistant";
+import { ChatWidget } from "./components/chat-widget";
+import AIAssistant from "./pages/AIAssistant";
 
 // Create QueryClient outside component to prevent recreation on re-renders
 const queryClient = new QueryClient({
@@ -63,9 +64,31 @@ const App = () => (
             <Route path="/cheat-sheet" element={<CheatSheet />} />
             <Route path="/verify" element={<CertificateVerify />} />
             <Route path="/recruiter-mode" element={<RecruiterMode />} />
+            <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <FloatingChatAssistant />
+          <ChatWidget
+            title="AI Assistant"
+            greeting="👋 Hi there! I'm your AI assistant. Ask me anything about interview prep, coding, or career advice!"
+            onSendMessage={async (messages, settings) => {
+              const res = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-widget`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  },
+                  body: JSON.stringify({
+                    messages: messages.map(m => ({ role: m.role, content: m.content })),
+                    settings,
+                  }),
+                }
+              );
+              if (!res.ok) throw new Error('Failed to get response');
+              return res.body!;
+            }}
+          />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
