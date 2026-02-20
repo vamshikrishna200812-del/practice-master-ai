@@ -20,7 +20,8 @@ import {
   ClipboardList,
   Menu,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const navItems = [
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { path: "/ai-assistant", icon: Sparkles, label: "AI Assistant" },
     { path: "/courses", icon: BookOpen, label: "Courses" },
     { path: "/practice", icon: Code, label: "Practice" },
     { path: "/question-bank", icon: FileQuestion, label: "Questions" },
