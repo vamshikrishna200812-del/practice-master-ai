@@ -110,7 +110,11 @@ serve(async (req) => {
       
       if (resumeUrl && !resumeText) {
         if (!resumeUrl.startsWith(`${userId}/`)) {
-          console.warn("Resume access attempt for non-owned file:", { userId, resumeUrl });
+          console.warn("Blocked resume access attempt for non-owned file:", { userId, resumeUrl });
+          return new Response(
+            JSON.stringify({ error: "Unauthorized file access" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
         const { data: fileData, error: downloadError } = await supabase.storage
