@@ -93,36 +93,36 @@ const ChatWidget: React.FC<ChatWidgetConfig> = ({
           const reader = result.getReader();
           const decoder = new TextDecoder();
           let fullContent = "";
+          let sseBuffer = "";
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            // Parse SSE format
-            const lines = chunk.split("\n");
+            sseBuffer += decoder.decode(value, { stream: true });
+            const lines = sseBuffer.split("\n");
+            // Keep the last incomplete line in the buffer
+            sseBuffer = lines.pop() || "";
+
             for (const line of lines) {
-              if (line.startsWith("data: ")) {
-                const data = line.slice(6);
-                if (data === "[DONE]") continue;
-                try {
-                  const parsed = JSON.parse(data);
-                  const delta = parsed.choices?.[0]?.delta?.content || "";
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith("data: ")) continue;
+              const data = trimmed.slice(6).trim();
+              if (data === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (typeof delta === "string" && delta.length > 0) {
                   fullContent += delta;
                   setMessages((prev) =>
                     prev.map((m) =>
                       m.id === assistantId ? { ...m, content: fullContent, isStreaming: true } : m
                     )
                   );
-                } catch {
-                  // Not JSON, treat as plain text
-                  fullContent += data;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId ? { ...m, content: fullContent, isStreaming: true } : m
-                    )
-                  );
                 }
+                // Silently ignore chunks without content (role-only, metadata, finish_reason, etc.)
+              } catch {
+                // Not valid JSON — skip entirely to avoid leaking raw data
               }
             }
           }
