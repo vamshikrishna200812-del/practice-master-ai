@@ -6,15 +6,28 @@ import TypingIndicator from "@/components/chat-widget/TypingIndicator";
 import SettingsPanel from "@/components/chat-widget/SettingsPanel";
 import { ChatMessage, ChatWidgetSettings } from "@/components/chat-widget/types";
 
-const AIAssistant = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+const STORAGE_KEY = "ai-assistant-chat-history";
+
+const loadPersistedMessages = (): ChatMessage[] => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+    }
+  } catch {}
+  return [
     {
       id: "greeting",
       role: "assistant",
       content: "👋 Hi! I'm your AI Training Assistant. Ask me anything about interview prep, coding challenges, career advice, or get help with your learning journey!",
       timestamp: new Date(),
     },
-  ]);
+  ];
+};
+
+const AIAssistant = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>(loadPersistedMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -26,6 +39,12 @@ const AIAssistant = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    const toSave = messages.filter((m) => !m.isStreaming);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }, [messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,30 +95,31 @@ const AIAssistant = () => {
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let fullContent = "";
+      let sseBuffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop() || "";
         for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content || "";
+          const trimmedLine = line.trim();
+          if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
+          const data = trimmedLine.slice(6).trim();
+          if (data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (typeof delta === "string" && delta.length > 0) {
               fullContent += delta;
               setMessages((prev) =>
                 prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, isStreaming: true } : m))
               );
-            } catch {
-              fullContent += data;
-              setMessages((prev) =>
-                prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent, isStreaming: true } : m))
-              );
             }
+          } catch {
+            // Skip non-JSON chunks entirely to prevent metadata leaking
           }
         }
       }
@@ -144,9 +164,11 @@ const AIAssistant = () => {
   };
 
   const clearChat = () => {
-    setMessages([
+    const greeting: ChatMessage[] = [
       { id: "greeting", role: "assistant", content: "👋 Hi! I'm your AI Training Assistant. Ask me anything!", timestamp: new Date() },
-    ]);
+    ];
+    setMessages(greeting);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
