@@ -5,6 +5,8 @@ import TypingIndicator from "./TypingIndicator";
 import SettingsPanel from "./SettingsPanel";
 import { ChatMessage, ChatWidgetConfig, ChatWidgetSettings } from "./types";
 
+const WIDGET_STORAGE_KEY = "chat-widget-history";
+
 const DEFAULT_GREETING = "Hi! I'm your AI assistant. How can I help you today?";
 
 const ChatWidget: React.FC<ChatWidgetConfig> = ({
@@ -14,7 +16,16 @@ const ChatWidget: React.FC<ChatWidgetConfig> = ({
   position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem(WIDGET_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+      }
+    } catch {}
+    return [];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -27,7 +38,7 @@ const ChatWidget: React.FC<ChatWidgetConfig> = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize with greeting
+  // Initialize with greeting if empty
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([
@@ -40,6 +51,14 @@ const ChatWidget: React.FC<ChatWidgetConfig> = ({
       ]);
     }
   }, [greeting]);
+
+  // Persist messages
+  useEffect(() => {
+    const toSave = messages.filter((m) => !m.isStreaming);
+    if (toSave.length > 0) {
+      localStorage.setItem(WIDGET_STORAGE_KEY, JSON.stringify(toSave));
+    }
+  }, [messages]);
 
   // Auto-scroll
   useEffect(() => {
@@ -196,6 +215,7 @@ const ChatWidget: React.FC<ChatWidgetConfig> = ({
     setMessages([
       { id: "greeting", role: "assistant", content: greeting, timestamp: new Date() },
     ]);
+    localStorage.removeItem(WIDGET_STORAGE_KEY);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
