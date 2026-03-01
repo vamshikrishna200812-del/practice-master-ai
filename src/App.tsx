@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
+import EmailVerification from "./pages/EmailVerification";
 import Dashboard from "./pages/Dashboard";
 import AIInterviewBot from "./pages/AIInterviewBot";
 import VideoInterview from "./pages/VideoInterview";
@@ -50,6 +51,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview-bot" element={<AIInterviewBot />} />
             <Route path="/video-interview" element={<VideoInterview />} />

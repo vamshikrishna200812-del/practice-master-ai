@@ -70,8 +70,8 @@ const Auth = () => {
         });
 
         if (error) throw error;
-        toast.success("Account created! Welcome aboard!");
-        navigate("/dashboard");
+        toast.success("Verification code sent! Check your email.");
+        navigate(`/verify-email?email=${encodeURIComponent(validated.email)}`);
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
