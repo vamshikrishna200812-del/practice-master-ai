@@ -5,6 +5,7 @@ import MessageBubble from "@/components/chat-widget/MessageBubble";
 import TypingIndicator from "@/components/chat-widget/TypingIndicator";
 import SettingsPanel from "@/components/chat-widget/SettingsPanel";
 import { ChatMessage, ChatWidgetSettings } from "@/components/chat-widget/types";
+import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "ai-assistant-chat-history";
 
@@ -69,6 +70,7 @@ const AIAssistant = () => {
     if (inputRef.current) inputRef.current.style.height = "auto";
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-widget`,
         {
@@ -76,6 +78,7 @@ const AIAssistant = () => {
           headers: {
             "Content-Type": "application/json",
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session?.access_token ?? ''}`,
           },
           body: JSON.stringify({
             messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
@@ -81,6 +82,7 @@ const App = () => (
             title="AI Assistant"
             greeting="👋 Hi there! I'm your AI assistant. Ask me anything about interview prep, coding, or career advice!"
             onSendMessage={async (messages, settings) => {
+              const { data: { session } } = await supabase.auth.getSession();
               const res = await fetch(
                 `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-widget`,
                 {
@@ -88,6 +90,7 @@ const App = () => (
                   headers: {
                     'Content-Type': 'application/json',
                     'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    'Authorization': `Bearer ${session?.access_token ?? ''}`,
                   },
                   body: JSON.stringify({
                     messages: messages.map(m => ({ role: m.role, content: m.content })),
