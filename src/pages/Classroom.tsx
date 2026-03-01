@@ -123,13 +123,21 @@ const Classroom = () => {
     });
   }, [isMuted]);
 
-  // Try D-ID avatar (fallback to TTS)
+  // Try D-ID avatar (fallback to TTS quickly)
+  const didFailedRef = useRef(false);
   const tryDIDAvatarOrTTS = useCallback(async (text: string) => {
+    // Skip D-ID entirely if it already failed once this session
+    if (didFailedRef.current) {
+      await speakText(text);
+      return;
+    }
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { await speakText(text); return; }
 
       setIsAvatarLoading(true);
+      const controller = new AbortController();
+      const _timeout = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/did-avatar`, {
         method: "POST",
         headers: {
@@ -138,6 +146,7 @@ const Classroom = () => {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ type: "create_talk", text: text.slice(0, 500) }),
+        signal: controller.signal,
       });
 
       if (!res.ok) throw new Error("D-ID unavailable");
@@ -173,6 +182,7 @@ const Classroom = () => {
         throw new Error("D-ID timeout");
       }
     } catch {
+      didFailedRef.current = true; // Don't try D-ID again this session
       setIsAvatarLoading(false);
       setAvatarVideoUrl(null);
       await speakText(text);
