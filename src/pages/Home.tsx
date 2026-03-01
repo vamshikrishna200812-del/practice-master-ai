@@ -67,7 +67,7 @@ const Home = () => {
       {/* Hero Section with Video Background */}
       <section className="relative overflow-hidden min-h-[90vh] flex items-center py-24 px-4">
         {/* Video Background */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0" style={{ willChange: 'transform', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}>
           <video
             autoPlay
             loop
@@ -75,12 +75,20 @@ const Home = () => {
             playsInline
             preload="auto"
             className="w-full h-full object-cover"
-            style={{ objectFit: 'cover' }}
+            style={{
+              willChange: 'transform',
+              transform: 'translate3d(0,0,0)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
           >
             <source src={heroBackground} type="video/mp4" />
           </video>
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+          {/* Dark overlay — GPU-composited layer */}
+          <div
+            className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50"
+            style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+          />
         </div>
         
         <div className="container mx-auto relative z-10 text-white">
