@@ -20,6 +20,9 @@ const InterviewRequestSchema = z.object({
     recruiterMode: z.boolean().optional(),
     company: z.string().max(50).optional(),
     personality: z.string().max(50).optional(),
+    isFollowUp: z.boolean().optional(),
+    previousAnswer: z.string().max(10000).optional(),
+    previousQuestion: z.string().max(5000).optional(),
   }).optional(),
   userResponse: z.string().max(10000).optional(),
   question: z.string().max(5000).optional(),
@@ -368,14 +371,38 @@ OUTPUT FORMAT:
         userPromptParts.push(`TARGET JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
       }
 
+      const isFollowUp = context?.isFollowUp || false;
+      const previousAnswer = context?.previousAnswer || "";
+      const previousQuestionText = context?.previousQuestion || "";
+
       const prevQuestions = context?.previousQuestions?.join("\n- ") || "None yet";
-      userPromptParts.push(`Generate the next interviewer statement/question.
+
+      if (isFollowUp && previousAnswer && previousQuestionText) {
+        userPromptParts.push(`ADAPTIVE FOLLOW-UP REQUIRED:
+The candidate gave a SHORT or VAGUE answer to your previous question.
+
+Your previous question was: "${previousQuestionText}"
+Their answer was: "${previousAnswer}"
+
+This answer was too brief or vague. You MUST now:
+1. Acknowledge what they said briefly (e.g., "Got it," or "I see.")
+2. Ask a specific, probing follow-up to get more detail. Examples:
+   - "Could you walk me through a specific example of when you handled that?"
+   - "What was the measurable outcome of that approach?"
+   - "Can you tell me more about your specific role in that situation?"
+3. Use [thoughtful pause] or [lean forward] tags to show genuine interest.
+4. Keep the tone encouraging—don't make them feel judged.
+
+Stay in character as ${interviewerName}.`);
+      } else {
+        userPromptParts.push(`Generate the next interviewer statement/question.
 Question number: ${questionNumber} of ${totalQuestions}
 Interview stage: ${stage}
 Previous questions/statements: ${prevQuestions}
 Interview type: ${interviewType}
 
 Remember to stay in character as ${interviewerName} and follow the stage-appropriate guidelines.`);
+      }
       
       userPrompt = userPromptParts.join("\n\n---\n\n");
 
