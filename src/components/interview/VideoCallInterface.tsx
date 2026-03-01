@@ -169,7 +169,7 @@ export const VideoCallInterface = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row select-none" style={{ background: "#F3F4F6" }}>
+    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row select-none overflow-y-auto" style={{ background: "#F3F4F6" }}>
       {/* ═══════════════════════ LEFT: INTERVIEW STAGE (75%) ═══════════════════════ */}
       <div className="flex-1 lg:w-3/4 flex flex-col min-h-0 p-3 lg:p-4">
         {/* Top bar */}
