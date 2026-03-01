@@ -26,7 +26,15 @@ const InterviewRequestSchema = z.object({
   allResponses: z.array(z.object({
     question: z.string().max(5000),
     answer: z.string().max(10000),
-    feedback: z.string().max(5000).optional(),
+    feedback: z.union([
+      z.string().max(5000),
+      z.object({
+        score: z.number().optional(),
+        feedback: z.string().max(5000).optional(),
+        strengths: z.array(z.string().max(1000)).optional(),
+        improvements: z.array(z.string().max(1000)).optional(),
+      }),
+    ]).optional(),
   })).max(20).optional(),
 });
 
