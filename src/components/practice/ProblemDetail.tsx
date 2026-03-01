@@ -51,10 +51,13 @@ interface TestResult {
 
 const monacoLang: Record<string, string> = {
   javascript: "javascript",
+  typescript: "typescript",
   python: "python",
   java: "java",
   cpp: "cpp",
   c: "c",
+  go: "go",
+  rust: "rust",
 };
 
 const diffColor: Record<string, string> = {
@@ -490,10 +493,13 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="javascript">JavaScript</SelectItem>
+                <SelectItem value="typescript">TypeScript</SelectItem>
                 <SelectItem value="python">Python</SelectItem>
                 <SelectItem value="java">Java</SelectItem>
                 <SelectItem value="cpp">C++</SelectItem>
                 <SelectItem value="c">C</SelectItem>
+                <SelectItem value="go">Go</SelectItem>
+                <SelectItem value="rust">Rust</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex-1" />

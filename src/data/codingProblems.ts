@@ -31,19 +31,25 @@ export interface CodingCourse {
   problemIds: string[];
 }
 
-// Helper to generate minimal starter code for all 5 languages
+// Helper to generate minimal starter code for all 8 languages
 const makeStarter = (opts: {
   jsSetup: string;
   pySetup: string;
   javaSetup: string;
   cppSetup: string;
   cSetup: string;
+  tsSetup?: string;
+  goSetup?: string;
+  rustSetup?: string;
 }): Record<string, string> => ({
   javascript: opts.jsSetup,
+  typescript: opts.tsSetup ?? opts.jsSetup.replace('const ', 'const ').replace('// Write', '// TypeScript: Write'),
   python: opts.pySetup,
   java: opts.javaSetup,
   cpp: opts.cppSetup,
   c: opts.cSetup,
+  go: opts.goSetup ?? `package main\n\nimport "fmt"\n\nfunc main() {\n    // Write your solution here\n    fmt.Println()\n}`,
+  rust: opts.rustSetup ?? `use std::io;\n\nfn main() {\n    let mut input = String::new();\n    io::stdin().read_line(&mut input).unwrap();\n    // Write your solution here\n}`,
 });
 
 const simpleStarter = (name: string) => makeStarter({
@@ -627,6 +633,161 @@ export const codingProblems: CodingProblem[] = [
     testCases: [{ input: "6\n1 2\n3 4\n0 6\n5 7\n8 9\n5 9", expectedOutput: "4" }, { input: "1\n0 1", expectedOutput: "1" }, { input: "3\n1 3\n2 4\n3 5", expectedOutput: "2", hidden: true }],
     starterCode: twoLineStarter("Activity Selection"), hints: ["Sort by end time, greedily pick."], editorial: "Sort by end time. Pick activity if start >= last end. O(n log n).",
   },
+  // ===== NEW EASY PROBLEMS =====
+  {
+    id: "sum-of-digits", title: "Sum of Digits", slug: "sum-of-digits", difficulty: "Easy", category: "Math",
+    tags: ["math", "loops"], points: 10,
+    description: "Given a non-negative integer, find the sum of its digits.",
+    inputFormat: "A single non-negative integer.", outputFormat: "Sum of digits.",
+    constraints: ["0 ≤ n ≤ 10⁹"],
+    sampleCases: [{ input: "123", output: "6" }, { input: "0", output: "0" }],
+    testCases: [{ input: "123", expectedOutput: "6" }, { input: "0", expectedOutput: "0" }, { input: "999", expectedOutput: "27" }, { input: "10001", expectedOutput: "2", hidden: true }],
+    starterCode: simpleStarter("Sum of Digits"), hints: ["Use modulo 10 to get last digit."], editorial: "Repeatedly take n%10 and add, then n/=10. O(d) where d = number of digits.",
+  },
+  {
+    id: "power-of-two", title: "Power of Two", slug: "power-of-two", difficulty: "Easy", category: "Bit Manipulation",
+    tags: ["bit-manipulation", "math"], points: 10,
+    description: "Given an integer, determine if it is a power of two. Print `true` or `false`.",
+    inputFormat: "A single integer.", outputFormat: "`true` or `false`",
+    constraints: ["-2³¹ ≤ n ≤ 2³¹ - 1"],
+    sampleCases: [{ input: "1", output: "true" }, { input: "16", output: "true" }, { input: "3", output: "false" }],
+    testCases: [{ input: "1", expectedOutput: "true" }, { input: "16", expectedOutput: "true" }, { input: "3", expectedOutput: "false" }, { input: "0", expectedOutput: "false", hidden: true }, { input: "1024", expectedOutput: "true", hidden: true }],
+    starterCode: simpleStarter("Power of Two"), hints: ["A power of two in binary has exactly one '1' bit.", "n & (n-1) == 0 for powers of two."], editorial: "Check n > 0 && (n & (n-1)) == 0. O(1).",
+  },
+  {
+    id: "missing-number", title: "Missing Number", slug: "missing-number", difficulty: "Easy", category: "Arrays",
+    tags: ["arrays", "math", "bit-manipulation"], points: 10,
+    description: "Given an array of n distinct numbers in range [0, n], find the one missing number.",
+    inputFormat: "Space-separated integers.", outputFormat: "The missing number.",
+    constraints: ["1 ≤ n ≤ 10⁴"],
+    sampleCases: [{ input: "3 0 1", output: "2" }, { input: "0 1", output: "2" }],
+    testCases: [{ input: "3 0 1", expectedOutput: "2" }, { input: "0 1", expectedOutput: "2" }, { input: "9 6 4 2 3 5 7 0 1", expectedOutput: "8" }, { input: "0", expectedOutput: "1", hidden: true }],
+    starterCode: arrayStarter("Missing Number"), hints: ["Use sum formula: n*(n+1)/2 minus array sum.", "Or XOR all indices and values."], editorial: "Sum formula or XOR approach. O(n).",
+  },
+  {
+    id: "roman-to-integer", title: "Roman to Integer", slug: "roman-to-integer", difficulty: "Easy", category: "Strings",
+    tags: ["strings", "hash-map", "math"], points: 10,
+    description: "Given a Roman numeral string, convert it to an integer.",
+    inputFormat: "A Roman numeral string (e.g., III, IV, IX, LVIII, MCMXCIV).", outputFormat: "The integer value.",
+    constraints: ["1 ≤ s.length ≤ 15", "s contains only I, V, X, L, C, D, M"],
+    sampleCases: [{ input: "III", output: "3" }, { input: "LVIII", output: "58" }, { input: "MCMXCIV", output: "1994" }],
+    testCases: [{ input: "III", expectedOutput: "3" }, { input: "LVIII", expectedOutput: "58" }, { input: "MCMXCIV", expectedOutput: "1994" }, { input: "IV", expectedOutput: "4", hidden: true }, { input: "IX", expectedOutput: "9", hidden: true }],
+    starterCode: stringStarter("Roman to Integer"), hints: ["Map each char to value. If current < next, subtract instead of add."], editorial: "Traverse right to left or compare adjacent values. O(n).",
+  },
+  {
+    id: "majority-element", title: "Majority Element", slug: "majority-element", difficulty: "Easy", category: "Arrays",
+    tags: ["arrays", "hash-map", "sorting"], points: 10,
+    description: "Given an array of size n, find the majority element (appears more than n/2 times). The majority element always exists.",
+    inputFormat: "Space-separated integers.", outputFormat: "The majority element.",
+    constraints: ["1 ≤ n ≤ 5 × 10⁴"],
+    sampleCases: [{ input: "3 2 3", output: "3" }, { input: "2 2 1 1 1 2 2", output: "2" }],
+    testCases: [{ input: "3 2 3", expectedOutput: "3" }, { input: "2 2 1 1 1 2 2", expectedOutput: "2" }, { input: "1", expectedOutput: "1", hidden: true }],
+    starterCode: arrayStarter("Majority Element"), hints: ["Boyer-Moore Voting Algorithm.", "Or use a hash map to count."], editorial: "Boyer-Moore: track candidate and count. O(n) time, O(1) space.",
+  },
+
+  // ===== NEW MEDIUM PROBLEMS =====
+  {
+    id: "product-except-self", title: "Product of Array Except Self", slug: "product-except-self", difficulty: "Medium", category: "Arrays",
+    tags: ["arrays", "prefix-sum"], points: 20,
+    description: "Given an integer array nums, return an array where answer[i] is the product of all elements except nums[i]. Do not use division.",
+    inputFormat: "Space-separated integers.", outputFormat: "Space-separated products.",
+    constraints: ["2 ≤ nums.length ≤ 10⁵", "-30 ≤ nums[i] ≤ 30"],
+    sampleCases: [{ input: "1 2 3 4", output: "24 12 8 6" }, { input: "-1 1 0 -3 3", output: "0 0 9 0 0" }],
+    testCases: [{ input: "1 2 3 4", expectedOutput: "24 12 8 6" }, { input: "-1 1 0 -3 3", expectedOutput: "0 0 9 0 0" }, { input: "2 3", expectedOutput: "3 2", hidden: true }],
+    starterCode: arrayStarter("Product Except Self"), hints: ["Use prefix and suffix products.", "First pass: left products. Second pass: multiply by right products."], editorial: "Two passes: prefix product from left, suffix product from right. O(n).",
+  },
+  {
+    id: "group-anagrams", title: "Group Anagrams", slug: "group-anagrams", difficulty: "Medium", category: "Strings",
+    tags: ["strings", "hash-map", "sorting"], points: 20,
+    description: "Given an array of strings, group the anagrams together. Print groups one per line, words space-separated, groups sorted alphabetically by first word.",
+    inputFormat: "Space-separated strings.", outputFormat: "One group per line.",
+    constraints: ["1 ≤ strs.length ≤ 10⁴"],
+    sampleCases: [{ input: "eat tea tan ate nat bat", output: "ate eat tea\nbat\nnat tan" }],
+    testCases: [{ input: "eat tea tan ate nat bat", expectedOutput: "ate eat tea\nbat\nnat tan" }, { input: "a", expectedOutput: "a" }, { input: "abc bca cab xyz", expectedOutput: "abc bca cab\nxyz", hidden: true }],
+    starterCode: arrayStarter("Group Anagrams"), hints: ["Sort each string as a key.", "Use a hash map with sorted string as key."], editorial: "Hash map with sorted chars as key. O(n × k log k).",
+  },
+  {
+    id: "min-stack", title: "Min Stack", slug: "min-stack", difficulty: "Medium", category: "Stacks",
+    tags: ["stacks", "design"], points: 20,
+    description: "Design a stack that supports push, pop, top, and getMin in O(1). Process operations and print results of top and getMin queries.",
+    inputFormat: "Operations one per line: PUSH x, POP, TOP, GETMIN.", outputFormat: "Result of each TOP/GETMIN query.",
+    constraints: ["1 ≤ operations ≤ 3 × 10⁴"],
+    sampleCases: [{ input: "PUSH -2\nPUSH 0\nPUSH -3\nGETMIN\nPOP\nTOP\nGETMIN", output: "-3\n0\n-2" }],
+    testCases: [{ input: "PUSH -2\nPUSH 0\nPUSH -3\nGETMIN\nPOP\nTOP\nGETMIN", expectedOutput: "-3\n0\n-2" }, { input: "PUSH 1\nPUSH 2\nTOP\nGETMIN", expectedOutput: "2\n1", hidden: true }],
+    starterCode: twoLineStarter("Min Stack"), hints: ["Use two stacks: one for values, one for minimums."], editorial: "Auxiliary stack tracks current minimum. All operations O(1).",
+  },
+  {
+    id: "three-sum", title: "3Sum", slug: "three-sum", difficulty: "Medium", category: "Arrays",
+    tags: ["arrays", "two-pointers", "sorting"], points: 20,
+    description: "Given an array, find all unique triplets that sum to zero. Print each triplet sorted, one per line.",
+    inputFormat: "Space-separated integers.", outputFormat: "One triplet per line, sorted.",
+    constraints: ["3 ≤ nums.length ≤ 3000"],
+    sampleCases: [{ input: "-1 0 1 2 -1 -4", output: "-1 -1 2\n-1 0 1" }],
+    testCases: [{ input: "-1 0 1 2 -1 -4", expectedOutput: "-1 -1 2\n-1 0 1" }, { input: "0 0 0", expectedOutput: "0 0 0" }, { input: "1 2 -3 0", expectedOutput: "-3 1 2", hidden: true }],
+    starterCode: arrayStarter("3Sum"), hints: ["Sort the array first.", "Fix one element, use two pointers for the rest."], editorial: "Sort, fix i, two-pointer j/k. Skip duplicates. O(n²).",
+  },
+  {
+    id: "spiral-matrix", title: "Spiral Matrix", slug: "spiral-matrix", difficulty: "Medium", category: "Arrays",
+    tags: ["arrays", "matrix"], points: 20,
+    description: "Given an m×n matrix, return all elements in spiral order.",
+    inputFormat: "First line: m n. Next m lines: matrix rows.", outputFormat: "Space-separated spiral order.",
+    constraints: ["1 ≤ m, n ≤ 10"],
+    sampleCases: [{ input: "3 3\n1 2 3\n4 5 6\n7 8 9", output: "1 2 3 6 9 8 7 4 5" }],
+    testCases: [{ input: "3 3\n1 2 3\n4 5 6\n7 8 9", expectedOutput: "1 2 3 6 9 8 7 4 5" }, { input: "1 4\n1 2 3 4", expectedOutput: "1 2 3 4" }, { input: "3 4\n1 2 3 4\n5 6 7 8\n9 10 11 12", expectedOutput: "1 2 3 4 8 12 11 10 9 5 6 7", hidden: true }],
+    starterCode: twoLineStarter("Spiral Matrix"), hints: ["Use four boundaries: top, bottom, left, right."], editorial: "Shrink boundaries after traversing each direction. O(m×n).",
+  },
+
+  // ===== NEW HARD PROBLEMS =====
+  {
+    id: "regular-expression-match", title: "Regular Expression Matching", slug: "regular-expression-matching", difficulty: "Hard", category: "Dynamic Programming",
+    tags: ["dynamic-programming", "strings", "recursion"], points: 40,
+    description: "Given a string and a pattern with '.' (any char) and '*' (zero or more of preceding), determine if the pattern matches the entire string.",
+    inputFormat: "First line: string s. Second line: pattern p.", outputFormat: "`true` or `false`",
+    constraints: ["1 ≤ s.length ≤ 20", "1 ≤ p.length ≤ 20"],
+    sampleCases: [{ input: "aa\na", output: "false" }, { input: "aa\na*", output: "true" }, { input: "ab\n.*", output: "true" }],
+    testCases: [{ input: "aa\na", expectedOutput: "false" }, { input: "aa\na*", expectedOutput: "true" }, { input: "ab\n.*", expectedOutput: "true" }, { input: "aab\nc*a*b", expectedOutput: "true", hidden: true }],
+    starterCode: twoLineStarter("Regex Matching"), hints: ["Use 2D DP. Handle '*' by considering zero or more matches."], editorial: "dp[i][j] = does s[0..i-1] match p[0..j-1]. Handle '.' and '*' cases. O(m×n).",
+  },
+  {
+    id: "max-profit-cooldown", title: "Buy and Sell Stock with Cooldown", slug: "max-profit-cooldown", difficulty: "Hard", category: "Dynamic Programming",
+    tags: ["dynamic-programming", "arrays"], points: 40,
+    description: "Given prices array, find max profit with unlimited transactions but a 1-day cooldown after selling.",
+    inputFormat: "Space-separated integers (prices).", outputFormat: "Max profit.",
+    constraints: ["1 ≤ prices.length ≤ 5000"],
+    sampleCases: [{ input: "1 2 3 0 2", output: "3", explanation: "buy@1, sell@3, cooldown, buy@0, sell@2" }],
+    testCases: [{ input: "1 2 3 0 2", expectedOutput: "3" }, { input: "1", expectedOutput: "0" }, { input: "1 2 4", expectedOutput: "3", hidden: true }],
+    starterCode: arrayStarter("Stock with Cooldown"), hints: ["Track 3 states: hold, sold, rest.", "State machine DP."], editorial: "State machine: hold[i], sold[i], rest[i]. Transition between states. O(n).",
+  },
+  {
+    id: "alien-dictionary", title: "Alien Dictionary", slug: "alien-dictionary", difficulty: "Hard", category: "Graphs",
+    tags: ["graphs", "topological-sort", "strings"], points: 40,
+    description: "Given a sorted list of words in an alien language, derive the character order. Print the order or 'INVALID' if impossible.",
+    inputFormat: "One word per line.", outputFormat: "Characters in order, or INVALID.",
+    constraints: ["1 ≤ words ≤ 100", "1 ≤ word.length ≤ 100"],
+    sampleCases: [{ input: "wrt\nwrf\ner\nett\nrftt", output: "wertf" }],
+    testCases: [{ input: "wrt\nwrf\ner\nett\nrftt", expectedOutput: "wertf" }, { input: "z\nx", expectedOutput: "zx" }, { input: "z\nz", expectedOutput: "z", hidden: true }],
+    starterCode: twoLineStarter("Alien Dictionary"), hints: ["Build a graph from adjacent word comparisons.", "Topological sort the graph."], editorial: "Compare adjacent words to build edges, then topological sort. O(C) where C = total chars.",
+  },
+  {
+    id: "sliding-window-max", title: "Sliding Window Maximum", slug: "sliding-window-maximum", difficulty: "Hard", category: "Arrays",
+    tags: ["arrays", "sliding-window", "deque"], points: 40,
+    description: "Given an array and window size k, find the max in each sliding window of size k.",
+    inputFormat: "First line: space-separated integers. Second line: k.", outputFormat: "Space-separated maximums.",
+    constraints: ["1 ≤ nums.length ≤ 10⁵", "1 ≤ k ≤ nums.length"],
+    sampleCases: [{ input: "1 3 -1 -3 5 3 6 7\n3", output: "3 3 5 5 6 7" }],
+    testCases: [{ input: "1 3 -1 -3 5 3 6 7\n3", expectedOutput: "3 3 5 5 6 7" }, { input: "1\n1", expectedOutput: "1" }, { input: "1 -1\n1", expectedOutput: "1 -1", hidden: true }],
+    starterCode: twoLineStarter("Sliding Window Max"), hints: ["Use a monotonic deque.", "Keep indices in deque, remove smaller elements."], editorial: "Monotonic decreasing deque. O(n).",
+  },
+  {
+    id: "trie-implementation", title: "Trie (Prefix Tree)", slug: "trie-implementation", difficulty: "Hard", category: "Design",
+    tags: ["design", "strings", "trees"], points: 40,
+    description: "Implement a Trie with INSERT, SEARCH, and STARTSWITH operations.",
+    inputFormat: "Operations one per line: INSERT word, SEARCH word, STARTSWITH prefix.", outputFormat: "Result of SEARCH/STARTSWITH queries (true/false).",
+    constraints: ["1 ≤ operations ≤ 3 × 10⁴"],
+    sampleCases: [{ input: "INSERT apple\nSEARCH apple\nSEARCH app\nSTARTSWITH app\nINSERT app\nSEARCH app", output: "true\nfalse\ntrue\ntrue" }],
+    testCases: [{ input: "INSERT apple\nSEARCH apple\nSEARCH app\nSTARTSWITH app\nINSERT app\nSEARCH app", expectedOutput: "true\nfalse\ntrue\ntrue" }, { input: "INSERT hello\nSTARTSWITH hell\nSEARCH hell", expectedOutput: "true\nfalse", hidden: true }],
+    starterCode: twoLineStarter("Trie Implementation"), hints: ["Each node has a map of children and an end-of-word flag."], editorial: "Trie node with children map. Insert/search/startsWith all O(L) where L = word length.",
+  },
 ];
 
 // Derive tags and categories
@@ -634,13 +795,13 @@ export const allTags = Array.from(new Set(codingProblems.flatMap((p) => p.tags))
 export const allCategories = Array.from(new Set(codingProblems.map((p) => p.category))).sort();
 
 export const codingCourses: CodingCourse[] = [
-  { id: "c-basics", title: "C Programming", description: "Master fundamentals of C", icon: "🔧", problemIds: ["fizzbuzz", "reverse-string", "counting-sort", "binary-search", "merge-sorted-arrays", "move-zeroes"] },
-  { id: "dsa-fundamentals", title: "Data Structures", description: "Arrays, stacks, linked lists, trees", icon: "🏗️", problemIds: ["two-sum", "valid-parentheses", "linked-list-reverse", "linked-list-cycle", "max-depth-bt", "invert-binary-tree", "symmetric-tree", "lru-cache"] },
-  { id: "java-problems", title: "Java Challenges", description: "Practice Java with classic problems", icon: "☕", problemIds: ["palindrome-check", "valid-anagram", "contains-duplicate", "sort-array", "rotate-image", "binary-tree-level-order"] },
-  { id: "python-dsa", title: "Python DSA", description: "Solve DSA problems in Python", icon: "🐍", problemIds: ["climbing-stairs", "max-subarray", "house-robber", "coin-change", "longest-common-subseq", "longest-increasing-subseq", "knapsack-01"] },
-  { id: "graphs-advanced", title: "Graphs & Advanced", description: "Graph algorithms and advanced topics", icon: "🌐", problemIds: ["number-of-islands", "course-schedule", "bfs-graph", "topological-sort", "dijkstra", "word-ladder", "kruskal-mst", "longest-path-dag"] },
+  { id: "c-basics", title: "C Programming", description: "Master fundamentals of C", icon: "🔧", problemIds: ["fizzbuzz", "reverse-string", "counting-sort", "binary-search", "merge-sorted-arrays", "move-zeroes", "sum-of-digits"] },
+  { id: "dsa-fundamentals", title: "Data Structures", description: "Arrays, stacks, linked lists, trees", icon: "🏗️", problemIds: ["two-sum", "valid-parentheses", "linked-list-reverse", "linked-list-cycle", "max-depth-bt", "invert-binary-tree", "symmetric-tree", "lru-cache", "min-stack", "trie-implementation"] },
+  { id: "java-problems", title: "Java Challenges", description: "Practice Java with classic problems", icon: "☕", problemIds: ["palindrome-check", "valid-anagram", "contains-duplicate", "sort-array", "rotate-image", "binary-tree-level-order", "roman-to-integer", "group-anagrams"] },
+  { id: "python-dsa", title: "Python DSA", description: "Solve DSA problems in Python", icon: "🐍", problemIds: ["climbing-stairs", "max-subarray", "house-robber", "coin-change", "longest-common-subseq", "longest-increasing-subseq", "knapsack-01", "product-except-self"] },
+  { id: "graphs-advanced", title: "Graphs & Advanced", description: "Graph algorithms and advanced topics", icon: "🌐", problemIds: ["number-of-islands", "course-schedule", "bfs-graph", "topological-sort", "dijkstra", "word-ladder", "kruskal-mst", "longest-path-dag", "alien-dictionary"] },
   { id: "backtracking-mastery", title: "Backtracking Mastery", description: "Master recursive backtracking", icon: "🔄", problemIds: ["subsets", "permutations", "combination-sum", "word-search", "n-queens", "sudoku-solver", "graph-coloring"] },
-  { id: "dp-track", title: "Dynamic Programming", description: "From basics to advanced DP", icon: "📊", problemIds: ["climbing-stairs", "house-robber", "coin-change", "longest-common-subseq", "longest-increasing-subseq", "knapsack-01", "edit-distance", "matrix-chain-mult"] },
+  { id: "dp-track", title: "Dynamic Programming", description: "From basics to advanced DP", icon: "📊", problemIds: ["climbing-stairs", "house-robber", "coin-change", "longest-common-subseq", "longest-increasing-subseq", "knapsack-01", "edit-distance", "matrix-chain-mult", "regular-expression-match", "max-profit-cooldown"] },
   { id: "greedy-track", title: "Greedy Algorithms", description: "Greedy strategy problems", icon: "💰", problemIds: ["best-time-buy-sell", "activity-selection", "max-subarray"] },
 ];
 
