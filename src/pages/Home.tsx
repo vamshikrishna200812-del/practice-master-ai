@@ -5,6 +5,7 @@ import { Brain, Code, MessageSquare, Video, Zap, Target, TrendingUp, Award, Chec
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import heroBackground from "@/assets/hero-background.mp4";
+import logo from "@/assets/logo.jpeg";
 
 
 /**
@@ -261,7 +262,7 @@ const Home = () => {
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Brain className="w-6 h-6 text-primary" />
+              <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover" />
               <span className="font-bold">AITRAININGZONE</span>
             </div>
             <p className="text-sm text-muted-foreground">

@@ -1,7 +1,8 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
+import logo from "@/assets/logo.jpeg";
 import { 
-  Brain, 
+  Brain,
   Video, 
   BarChart3, 
   MessageSquare, 
@@ -37,9 +38,9 @@ const AnimatedLogo = () => {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
-        className="relative z-10 bg-gradient-to-br from-primary to-primary/70 w-24 h-24 rounded-2xl flex items-center justify-center shadow-2xl"
+        className="relative z-10 w-24 h-24 rounded-2xl overflow-hidden shadow-2xl"
       >
-        <Brain className="w-12 h-12 text-primary-foreground" />
+        <img src={logo} alt="AITRAININGZONE" className="w-full h-full object-cover" />
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
