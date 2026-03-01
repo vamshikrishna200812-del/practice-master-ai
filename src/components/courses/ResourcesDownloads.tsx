@@ -15,13 +15,23 @@ import {
   Check,
   Layers,
   BarChart3,
-  GitBranch,
   Network,
   Workflow,
   Brain,
   BookOpen,
   Sparkles,
   Eye,
+  Target,
+  Lightbulb,
+  Zap,
+  Shield,
+  Database,
+  Globe,
+  MessageSquare,
+  Users,
+  Timer,
+  Code,
+  ArrowRight,
 } from "lucide-react";
 import { downloadAsMarkdown, generateLessonNotes } from "@/utils/downloadNotes";
 import { courseNoteContent } from "@/data/courseNotes";
@@ -31,159 +41,45 @@ import { courseNoteContent } from "@/data/courseNotes";
 interface SlideData {
   id: number;
   title: string;
-  type: "title" | "diagram" | "chart" | "flowchart" | "mindmap" | "checklist" | "architecture";
+  type: string;
   accent: string;
   content: React.ReactNode;
 }
 
-const generateSlides = (courseTitle: string, lessonTitle: string): SlideData[] => [
-  {
-    id: 1,
-    title: lessonTitle,
-    type: "title",
-    accent: "from-primary to-primary/60",
-    content: (
-      <div className="flex flex-col items-center justify-center h-full gap-4 p-8">
-        <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-          <Presentation className="w-8 h-8 text-primary" />
-        </div>
-        <h3 className="text-lg font-bold text-foreground text-center leading-tight">{lessonTitle}</h3>
-        <p className="text-xs text-muted-foreground">{courseTitle}</p>
-        <div className="flex gap-2 mt-2">
-          <Badge variant="secondary" className="text-[10px]">Infographic-Rich</Badge>
-          <Badge variant="secondary" className="text-[10px]">Visual Guide</Badge>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 2,
-    title: "Key Concepts Overview",
-    type: "mindmap",
-    accent: "from-blue-500/20 to-cyan-500/20",
-    content: (
-      <div className="p-6 h-full flex flex-col">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <Brain className="w-3.5 h-3.5 text-blue-500" /> Mind Map
-        </h4>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-primary/15 border-2 border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary">Core</div>
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="absolute" style={{
-                top: `${50 + 52 * Math.sin((i * Math.PI * 2) / 4 - Math.PI / 4)}%`,
-                left: `${50 + 52 * Math.cos((i * Math.PI * 2) / 4 - Math.PI / 4)}%`,
-                transform: "translate(-50%, -50%)",
-              }}>
-                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-primary/60" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 3,
-    title: "System Architecture",
-    type: "architecture",
-    accent: "from-violet-500/20 to-purple-500/20",
-    content: (
-      <div className="p-6 h-full flex flex-col">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <Network className="w-3.5 h-3.5 text-violet-500" /> Architecture
-        </h4>
-        <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          {["Client Layer", "API Gateway", "Service Layer", "Data Store"].map((layer, i) => (
-            <div key={i} className="w-full max-w-[160px]">
-              <div className={`h-8 rounded-md border border-border flex items-center justify-center text-[10px] font-medium ${
-                i === 0 ? "bg-blue-500/10 text-blue-600" :
-                i === 1 ? "bg-green-500/10 text-green-600" :
-                i === 2 ? "bg-amber-500/10 text-amber-600" :
-                "bg-violet-500/10 text-violet-600"
-              }`}>{layer}</div>
-              {i < 3 && <div className="flex justify-center"><div className="w-px h-2 bg-border" /></div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 4,
-    title: "Process Flowchart",
-    type: "flowchart",
-    accent: "from-emerald-500/20 to-green-500/20",
-    content: (
-      <div className="p-6 h-full flex flex-col">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <Workflow className="w-3.5 h-3.5 text-emerald-500" /> Flowchart
-        </h4>
-        <div className="flex-1 flex flex-col items-center justify-center gap-1">
-          {["Start", "Analyze", "Design", "Implement", "Review"].map((step, i) => (
-            <div key={i} className="flex flex-col items-center">
-              <div className={`px-4 py-1.5 text-[10px] font-medium border border-border ${
-                i === 0 || i === 4 ? "rounded-full bg-primary/10 text-primary" : "rounded-md bg-muted"
-              }`}>{step}</div>
-              {i < 4 && <div className="w-px h-2 bg-border" />}
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 5,
-    title: "Performance Metrics",
-    type: "chart",
-    accent: "from-orange-500/20 to-amber-500/20",
-    content: (
-      <div className="p-6 h-full flex flex-col">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <BarChart3 className="w-3.5 h-3.5 text-orange-500" /> Metrics
-        </h4>
-        <div className="flex-1 flex items-end justify-center gap-3 pb-4">
-          {[65, 82, 45, 90, 73].map((h, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div
-                className="w-6 rounded-t-sm bg-gradient-to-t from-primary/80 to-primary/40"
-                style={{ height: `${h * 0.8}px` }}
-              />
-              <span className="text-[8px] text-muted-foreground">Q{i + 1}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 6,
-    title: "Quick Reference",
-    type: "checklist",
-    accent: "from-rose-500/20 to-pink-500/20",
-    content: (
-      <div className="p-6 h-full flex flex-col">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <BookOpen className="w-3.5 h-3.5 text-rose-500" /> Cheat Sheet
-        </h4>
-        <div className="flex-1 space-y-2">
-          {["Key Pattern #1", "Key Pattern #2", "Key Pattern #3", "Key Pattern #4"].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 text-[10px]">
-              <div className="w-3 h-3 rounded-sm border border-primary/40 bg-primary/10 flex items-center justify-center">
-                <Check className="w-2 h-2 text-primary" />
-              </div>
-              <span className="text-muted-foreground">{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-  },
-];
+// --- Course-specific diagram metadata ---
 
-// --- Resource metadata ---
+interface DiagramInfo {
+  icon: typeof FileText;
+  label: string;
+  color: string;
+  bg: string;
+  description: string;
+}
+
+const courseDiagrams: Record<string, DiagramInfo[]> = {
+  "Mastering Technical Interviews": [
+    { icon: Workflow, label: "Algorithm Flowcharts", color: "text-emerald-500", bg: "bg-emerald-500/10", description: "Step-by-step algorithm walkthroughs" },
+    { icon: BarChart3, label: "Complexity Comparisons", color: "text-orange-500", bg: "bg-orange-500/10", description: "Big O visual comparisons" },
+    { icon: Code, label: "Code Pattern Diagrams", color: "text-blue-500", bg: "bg-blue-500/10", description: "Common coding pattern visuals" },
+  ],
+  "Behavioral Interview Excellence": [
+    { icon: Target, label: "STAR Framework Maps", color: "text-violet-500", bg: "bg-violet-500/10", description: "Situation → Task → Action → Result" },
+    { icon: Users, label: "Competency Matrices", color: "text-blue-500", bg: "bg-blue-500/10", description: "Skills & traits assessment grids" },
+    { icon: MessageSquare, label: "Response Templates", color: "text-emerald-500", bg: "bg-emerald-500/10", description: "Structured answer blueprints" },
+  ],
+  "System Design Fundamentals": [
+    { icon: Network, label: "System Architecture", color: "text-violet-500", bg: "bg-violet-500/10", description: "Full system topology diagrams" },
+    { icon: Database, label: "Data Flow Diagrams", color: "text-blue-500", bg: "bg-blue-500/10", description: "Request lifecycle & data paths" },
+    { icon: Globe, label: "Infrastructure Maps", color: "text-emerald-500", bg: "bg-emerald-500/10", description: "CDN, LB & server layouts" },
+  ],
+  "Communication Skills for Developers": [
+    { icon: Brain, label: "Concept Mind Maps", color: "text-blue-500", bg: "bg-blue-500/10", description: "Visual idea organization" },
+    { icon: Users, label: "Interaction Models", color: "text-violet-500", bg: "bg-violet-500/10", description: "Communication flow patterns" },
+    { icon: Lightbulb, label: "Strategy Frameworks", color: "text-amber-500", bg: "bg-amber-500/10", description: "Technique decision trees" },
+  ],
+};
+
+// --- Resource metadata per course ---
 
 interface ResourceMeta {
   fileName: string;
@@ -193,14 +89,26 @@ interface ResourceMeta {
   tags: string[];
 }
 
-const getResourceMeta = (courseTitle: string, lessonTitle: string): ResourceMeta => {
-  const safeName = `${lessonTitle}`.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+const courseMetaConfig: Record<string, { fileType: "pdf" | "ppt" | "doc"; basePages: number; baseSize: string; tags: string[] }> = {
+  "Mastering Technical Interviews": { fileType: "pdf", basePages: 28, baseSize: "5.2", tags: ["Code Diagrams", "Cheat Sheet", "Algorithm Visuals"] },
+  "Behavioral Interview Excellence": { fileType: "ppt", basePages: 18, baseSize: "3.8", tags: ["STAR Templates", "Story Framework", "Infographic-Rich"] },
+  "System Design Fundamentals": { fileType: "pdf", basePages: 32, baseSize: "6.1", tags: ["Architecture Diagrams", "Scale Patterns", "Summary Deck"] },
+  "Communication Skills for Developers": { fileType: "doc", basePages: 14, baseSize: "2.4", tags: ["Practice Exercises", "Quick Reference", "Tip Sheets"] },
+};
+
+const getResourceMeta = (courseTitle: string, lessonTitle: string, lessonId: string): ResourceMeta => {
+  const config = courseMetaConfig[courseTitle] || { fileType: "pdf" as const, basePages: 20, baseSize: "4.0", tags: ["Summary Deck"] };
+  const safeName = lessonTitle.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+  const idNum = parseInt(lessonId, 10) || 1;
+  const pageVariation = Math.round(config.basePages * (0.7 + (idNum * 0.12)));
+  const sizeVariation = (parseFloat(config.baseSize) * (0.6 + idNum * 0.15)).toFixed(1);
+
   return {
-    fileName: `${safeName}_Deck.pdf`,
-    fileSize: "4.5 MB",
-    pages: 24,
-    fileType: "pdf",
-    tags: ["Infographic-Rich", "Cheat Sheet", "Summary Deck"],
+    fileName: `${safeName}_Deck.${config.fileType}`,
+    fileSize: `${sizeVariation} MB`,
+    pages: pageVariation,
+    fileType: config.fileType,
+    tags: config.tags,
   };
 };
 
@@ -208,6 +116,294 @@ const fileTypeIcon: Record<string, { icon: typeof FileText; color: string }> = {
   pdf: { icon: FileText, color: "text-red-500" },
   ppt: { icon: Presentation, color: "text-orange-500" },
   doc: { icon: File, color: "text-blue-500" },
+};
+
+// --- Dynamic slide generation ---
+
+const generateSlides = (
+  courseTitle: string,
+  lessonTitle: string,
+  lessonDescription: string,
+  keyTakeaways: string[],
+): SlideData[] => {
+  const slides: SlideData[] = [];
+
+  // Slide 1: Title
+  slides.push({
+    id: 1,
+    title: lessonTitle,
+    type: "title",
+    accent: "from-primary to-primary/60",
+    content: (
+      <div className="flex flex-col items-center justify-center h-full gap-3 p-8">
+        <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center">
+          <Presentation className="w-7 h-7 text-primary" />
+        </div>
+        <h3 className="text-base font-bold text-foreground text-center leading-tight max-w-[260px]">{lessonTitle}</h3>
+        <p className="text-[10px] text-muted-foreground">{courseTitle}</p>
+        <p className="text-[9px] text-muted-foreground text-center max-w-[220px] leading-relaxed mt-1">{lessonDescription.slice(0, 100)}…</p>
+      </div>
+    ),
+  });
+
+  // Slide 2: Key Takeaways
+  slides.push({
+    id: 2,
+    title: "Key Takeaways",
+    type: "takeaways",
+    accent: "from-emerald-500/20 to-green-500/20",
+    content: (
+      <div className="p-5 h-full flex flex-col">
+        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+          <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Key Takeaways
+        </h4>
+        <div className="flex-1 space-y-2">
+          {keyTakeaways.map((t, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-[9px] font-bold text-primary">{i + 1}</span>
+              </div>
+              <p className="text-[10px] text-foreground/80 leading-relaxed">{t}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  });
+
+  // Slide 3: Course-specific visual
+  if (courseTitle === "Mastering Technical Interviews") {
+    // Complexity chart slide
+    const complexities = [
+      { label: "O(1)", h: 10, color: "from-green-500 to-green-400" },
+      { label: "O(log n)", h: 25, color: "from-emerald-500 to-emerald-400" },
+      { label: "O(n)", h: 45, color: "from-amber-500 to-amber-400" },
+      { label: "O(n log n)", h: 60, color: "from-orange-500 to-orange-400" },
+      { label: "O(n²)", h: 85, color: "from-red-500 to-red-400" },
+    ];
+    slides.push({
+      id: 3,
+      title: "Algorithm Complexity",
+      type: "chart",
+      accent: "from-orange-500/20 to-amber-500/20",
+      content: (
+        <div className="p-5 h-full flex flex-col">
+          <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5 text-orange-500" /> Complexity Comparison
+          </h4>
+          <div className="flex-1 flex items-end justify-center gap-2 pb-2">
+            {complexities.map((c, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div className={`w-7 rounded-t-sm bg-gradient-to-t ${c.color}`} style={{ height: `${c.h}px` }} />
+                <span className="text-[7px] text-muted-foreground font-mono">{c.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    });
+  } else if (courseTitle === "Behavioral Interview Excellence") {
+    // STAR framework visual
+    const starSteps = [
+      { letter: "S", label: "Situation", desc: "Set the scene", color: "bg-blue-500/15 text-blue-600 border-blue-500/30" },
+      { letter: "T", label: "Task", desc: "Your responsibility", color: "bg-violet-500/15 text-violet-600 border-violet-500/30" },
+      { letter: "A", label: "Action", desc: "What you did", color: "bg-amber-500/15 text-amber-600 border-amber-500/30" },
+      { letter: "R", label: "Result", desc: "The outcome", color: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" },
+    ];
+    slides.push({
+      id: 3,
+      title: "STAR Framework",
+      type: "framework",
+      accent: "from-violet-500/20 to-purple-500/20",
+      content: (
+        <div className="p-5 h-full flex flex-col">
+          <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <Target className="w-3.5 h-3.5 text-violet-500" /> STAR Method
+          </h4>
+          <div className="flex-1 flex flex-col justify-center gap-1.5">
+            {starSteps.map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg border ${s.color} flex items-center justify-center text-xs font-bold shrink-0`}>{s.letter}</div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold text-foreground">{s.label}</p>
+                  <p className="text-[8px] text-muted-foreground">{s.desc}</p>
+                </div>
+                {i < 3 && <ArrowRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    });
+  } else if (courseTitle === "System Design Fundamentals") {
+    // Architecture layers
+    const layers = [
+      { label: "Client / CDN", icon: Globe, color: "bg-blue-500/10 text-blue-600" },
+      { label: "Load Balancer", icon: Shield, color: "bg-green-500/10 text-green-600" },
+      { label: "App Servers", icon: Zap, color: "bg-amber-500/10 text-amber-600" },
+      { label: "Cache Layer", icon: Timer, color: "bg-orange-500/10 text-orange-600" },
+      { label: "Database", icon: Database, color: "bg-violet-500/10 text-violet-600" },
+    ];
+    slides.push({
+      id: 3,
+      title: "System Architecture",
+      type: "architecture",
+      accent: "from-violet-500/20 to-purple-500/20",
+      content: (
+        <div className="p-5 h-full flex flex-col">
+          <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <Network className="w-3.5 h-3.5 text-violet-500" /> Architecture Layers
+          </h4>
+          <div className="flex-1 flex flex-col items-center justify-center gap-1">
+            {layers.map((l, i) => (
+              <div key={i} className="flex flex-col items-center">
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border ${l.color} text-[9px] font-medium`}>
+                  <l.icon className="w-3 h-3" />{l.label}
+                </div>
+                {i < layers.length - 1 && <div className="w-px h-1.5 bg-border" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    });
+  } else {
+    // Communication: Interaction model
+    slides.push({
+      id: 3,
+      title: "Communication Flow",
+      type: "flow",
+      accent: "from-blue-500/20 to-cyan-500/20",
+      content: (
+        <div className="p-5 h-full flex flex-col">
+          <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <MessageSquare className="w-3.5 h-3.5 text-blue-500" /> Communication Model
+          </h4>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative w-36 h-36">
+              {["Listen", "Process", "Clarify", "Respond"].map((step, i) => {
+                const angle = (i * Math.PI * 2) / 4 - Math.PI / 2;
+                return (
+                  <div key={i} className="absolute" style={{
+                    top: `${50 + 40 * Math.sin(angle)}%`,
+                    left: `${50 + 40 * Math.cos(angle)}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}>
+                    <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-[8px] font-semibold text-primary">{step}</div>
+                  </div>
+                );
+              })}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    });
+  }
+
+  // Slide 4: Flowchart specific to takeaways
+  const flowSteps = keyTakeaways.map((t) => {
+    const words = t.split(" ");
+    return words.slice(0, 3).join(" ");
+  });
+  slides.push({
+    id: 4,
+    title: "Learning Path",
+    type: "flowchart",
+    accent: "from-emerald-500/20 to-green-500/20",
+    content: (
+      <div className="p-5 h-full flex flex-col">
+        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+          <Workflow className="w-3.5 h-3.5 text-emerald-500" /> Learning Path
+        </h4>
+        <div className="flex-1 flex flex-col items-center justify-center gap-1">
+          <div className="flex flex-col items-center">
+            <div className="px-4 py-1.5 text-[9px] font-medium rounded-full bg-primary/10 text-primary border border-primary/30">Begin</div>
+            <div className="w-px h-2 bg-border" />
+          </div>
+          {flowSteps.map((step, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <div className="px-3 py-1.5 text-[9px] font-medium rounded-md bg-muted border border-border max-w-[160px] text-center truncate">{step}</div>
+              {i < flowSteps.length - 1 && <div className="w-px h-2 bg-border" />}
+            </div>
+          ))}
+          <div className="w-px h-2 bg-border" />
+          <div className="px-4 py-1.5 text-[9px] font-medium rounded-full bg-primary/10 text-primary border border-primary/30">Mastered ✓</div>
+        </div>
+      </div>
+    ),
+  });
+
+  // Slide 5: Mind Map with actual takeaways
+  slides.push({
+    id: 5,
+    title: "Concept Map",
+    type: "mindmap",
+    accent: "from-blue-500/20 to-cyan-500/20",
+    content: (
+      <div className="p-5 h-full flex flex-col">
+        <h4 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+          <Brain className="w-3.5 h-3.5 text-blue-500" /> Concept Map
+        </h4>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="relative" style={{ width: 200, height: 160 }}>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-primary/15 border-2 border-primary/30 flex items-center justify-center text-[8px] font-bold text-primary text-center px-1 leading-tight">
+              {lessonTitle.split(" ").slice(0, 2).join(" ")}
+            </div>
+            {keyTakeaways.map((t, i) => {
+              const angle = (i * Math.PI * 2) / keyTakeaways.length - Math.PI / 2;
+              const short = t.split(" ").slice(0, 3).join(" ");
+              return (
+                <div key={i} className="absolute" style={{
+                  top: `${50 + 42 * Math.sin(angle)}%`,
+                  left: `${50 + 42 * Math.cos(angle)}%`,
+                  transform: "translate(-50%, -50%)",
+                }}>
+                  <div className="w-14 h-14 rounded-full bg-muted border border-border flex items-center justify-center text-[7px] text-center px-1 leading-tight text-foreground/70 font-medium">
+                    {short}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    ),
+  });
+
+  // Slide 6: Quick Reference Checklist from takeaways
+  slides.push({
+    id: 6,
+    title: "Quick Reference",
+    type: "checklist",
+    accent: "from-rose-500/20 to-pink-500/20",
+    content: (
+      <div className="p-5 h-full flex flex-col">
+        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
+          <BookOpen className="w-3.5 h-3.5 text-rose-500" /> Quick Reference
+        </h4>
+        <div className="flex-1 space-y-2">
+          {keyTakeaways.map((t, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <div className="w-4 h-4 rounded-sm border border-primary/40 bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-2.5 h-2.5 text-primary" />
+              </div>
+              <span className="text-[9px] text-foreground/80 leading-relaxed">{t}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 pt-2 border-t border-border/50">
+          <p className="text-[8px] text-muted-foreground italic">From: {courseTitle} — {lessonTitle}</p>
+        </div>
+      </div>
+    ),
+  });
+
+  return slides;
 };
 
 // --- Component ---
@@ -231,25 +427,22 @@ const ResourcesDownloads = ({
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "done">("idle");
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const slides = generateSlides(courseTitle, lessonTitle);
-  const meta = getResourceMeta(courseTitle, lessonTitle);
+  const slides = generateSlides(courseTitle, lessonTitle, lessonDescription, keyTakeaways);
+  const meta = getResourceMeta(courseTitle, lessonTitle, lessonId);
   const FIcon = fileTypeIcon[meta.fileType]?.icon || FileText;
   const fColor = fileTypeIcon[meta.fileType]?.color || "text-muted-foreground";
   const noteKey = `${courseTitle}-${lessonId}`;
   const hasNotes = !!courseNoteContent[noteKey];
+  const diagrams = courseDiagrams[courseTitle] || courseDiagrams["Mastering Technical Interviews"];
 
   const handleDownload = useCallback(() => {
     if (!hasNotes || downloadState !== "idle") return;
     setDownloadState("loading");
     setDownloadProgress(0);
 
-    // Simulate brief progress animation
     const interval = setInterval(() => {
       setDownloadProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
+        if (p >= 100) { clearInterval(interval); return 100; }
         return p + 20;
       });
     }, 120);
@@ -261,12 +454,9 @@ const ResourcesDownloads = ({
       const safeName = `${courseTitle}-${lessonTitle}`.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
       downloadAsMarkdown(notes, `${safeName}-deck.md`);
       setDownloadState("done");
-      setTimeout(() => {
-        setDownloadState("idle");
-        setDownloadProgress(0);
-      }, 2000);
+      setTimeout(() => { setDownloadState("idle"); setDownloadProgress(0); }, 2000);
     }, 700);
-  }, [hasNotes, downloadState, courseTitle, lessonTitle, keyTakeaways, lessonDescription, noteKey, lessonId]);
+  }, [hasNotes, downloadState, courseTitle, lessonTitle, keyTakeaways, lessonDescription, noteKey]);
 
   const navigateSlide = (dir: 1 | -1) => {
     setActiveSlide((p) => Math.max(0, Math.min(slides.length - 1, p + dir)));
@@ -286,7 +476,7 @@ const ResourcesDownloads = ({
         </div>
         <div>
           <h3 className="text-lg font-bold text-foreground">Resources & Downloads</h3>
-          <p className="text-xs text-muted-foreground">Visual slide deck & downloadable materials</p>
+          <p className="text-xs text-muted-foreground">Visual slide deck & downloadable materials for this lesson</p>
         </div>
       </div>
 
@@ -308,7 +498,6 @@ const ResourcesDownloads = ({
               </motion.div>
             </AnimatePresence>
 
-            {/* Slide nav overlay */}
             <button
               onClick={() => navigateSlide(-1)}
               disabled={activeSlide === 0}
@@ -324,7 +513,6 @@ const ResourcesDownloads = ({
               <ChevronRight className="w-4 h-4" />
             </button>
 
-            {/* Slide counter */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-background/80 backdrop-blur border border-border/60 text-[11px] font-medium text-muted-foreground">
               {activeSlide + 1} / {slides.length}
             </div>
@@ -370,9 +558,8 @@ const ResourcesDownloads = ({
         <div className="space-y-4">
           <Card className="border-border/50 shadow-md">
             <CardContent className="pt-5 space-y-4">
-              {/* File info */}
               <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0`}>
+                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                   <FIcon className={`w-5 h-5 ${fColor}`} />
                 </div>
                 <div className="min-w-0">
@@ -383,7 +570,6 @@ const ResourcesDownloads = ({
                 </div>
               </div>
 
-              {/* Tags */}
               <div className="flex flex-wrap gap-1.5">
                 {meta.tags.map((tag) => (
                   <Badge key={tag} variant="secondary" className="text-[10px] gap-1">
@@ -393,7 +579,6 @@ const ResourcesDownloads = ({
                 ))}
               </div>
 
-              {/* Download button */}
               <div className="pt-1">
                 {downloadState === "loading" ? (
                   <div className="space-y-2">
@@ -413,27 +598,19 @@ const ResourcesDownloads = ({
                     Downloaded!
                   </motion.div>
                 ) : (
-                  <Button
-                    className="w-full gap-2"
-                    onClick={handleDownload}
-                    disabled={!hasNotes}
-                  >
+                  <Button className="w-full gap-2" onClick={handleDownload} disabled={!hasNotes}>
                     <FileDown className="w-4 h-4" />
-                    {hasNotes ? "Download PDF" : "Coming Soon"}
+                    {hasNotes ? `Download ${meta.fileType.toUpperCase()}` : "Coming Soon"}
                   </Button>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Diagram preview cards */}
+          {/* Diagram preview cards — course-specific */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Included Diagrams</p>
-            {[
-              { icon: GitBranch, label: "Decision Flowcharts", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-              { icon: Network, label: "System Architecture", color: "text-violet-500", bg: "bg-violet-500/10" },
-              { icon: Brain, label: "Concept Mind Maps", color: "text-blue-500", bg: "bg-blue-500/10" },
-            ].map((diag) => (
+            {diagrams.map((diag) => (
               <motion.div
                 key={diag.label}
                 whileHover={{ x: 3 }}
@@ -444,7 +621,7 @@ const ResourcesDownloads = ({
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-foreground">{diag.label}</p>
-                  <p className="text-[10px] text-muted-foreground">Visual breakdown included</p>
+                  <p className="text-[10px] text-muted-foreground">{diag.description}</p>
                 </div>
                 <Eye className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
               </motion.div>
