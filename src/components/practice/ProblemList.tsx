@@ -1,12 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Code, BookOpen, Circle, ChevronRight } from "lucide-react";
+import { Search, Code, BookOpen, CheckCircle2, ChevronRight, Trophy } from "lucide-react";
 import { codingProblems, codingCourses, allTags, allCategories } from "@/data/codingProblems";
 import { motion } from "framer-motion";
+import { useCodingSubmissions } from "@/hooks/useCodingSubmissions";
+import { useNavigate } from "react-router-dom";
 
 interface ProblemListProps {
   onSelectProblem: (slug: string) => void;
@@ -24,6 +26,13 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [view, setView] = useState<"problems" | "courses">("problems");
+  const [solvedSet, setSolvedSet] = useState<Set<string>>(new Set());
+  const { getSolvedProblems } = useCodingSubmissions();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getSolvedProblems().then(setSolvedSet);
+  }, []);
 
   const filtered = useMemo(() => {
     return codingProblems.filter((p) => {
@@ -44,8 +53,17 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
           Coding Challenges
         </h1>
         <p className="text-white/80 max-w-xl">
-          Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories — just like LeetCode &amp; HackerRank.
+          Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories.
+          <span className="ml-2 text-white/60">{solvedSet.size} solved</span>
         </p>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-3 gap-2"
+          onClick={() => navigate("/leaderboard")}
+        >
+          <Trophy className="w-4 h-4" /> Leaderboard
+        </Button>
       </div>
 
       {/* View Toggle */}
@@ -174,7 +192,11 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                   className="flex items-center gap-4 px-4 py-3 hover:bg-accent/50 cursor-pointer transition-colors group"
                   onClick={() => onSelectProblem(problem.slug)}
                 >
-                  <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+                  {solvedSet.has(problem.id) ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border border-muted-foreground/40 shrink-0" />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{problem.title}</div>
                     <div className="flex gap-1.5 mt-1 flex-wrap">

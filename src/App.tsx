@@ -22,6 +22,7 @@ import QuestionBank from "./pages/QuestionBank";
 import CheatSheet from "./pages/CheatSheet";
 import CertificateVerify from "./pages/CertificateVerify";
 import RecruiterMode from "./pages/RecruiterMode";
+import Leaderboard from "./pages/Leaderboard";
 import { ChatWidget } from "./components/chat-widget";
 import AIAssistant from "./pages/AIAssistant";
 
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/cheat-sheet" element={<CheatSheet />} />
             <Route path="/verify" element={<CertificateVerify />} />
             <Route path="/recruiter-mode" element={<RecruiterMode />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

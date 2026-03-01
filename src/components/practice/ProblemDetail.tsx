@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import Editor from "@monaco-editor/react";
 import { codingProblems } from "@/data/codingProblems";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCodingSubmissions, CodingSubmission } from "@/hooks/useCodingSubmissions";
 
 interface ProblemDetailProps {
   slug: string;
@@ -74,6 +75,14 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
   const [showHints, setShowHints] = useState<number[]>([]);
   const [showEditorial, setShowEditorial] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [submissions, setSubmissions] = useState<CodingSubmission[]>([]);
+  const { submitSolution, getSubmissions } = useCodingSubmissions();
+
+  useEffect(() => {
+    if (problem) {
+      getSubmissions(problem.id).then(setSubmissions);
+    }
+  }, [problem?.id]);
 
   if (!problem) {
     return (
@@ -148,15 +157,33 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
     setActiveTab("results");
     const start = Date.now();
     const res = await simulateRun(true);
-    setElapsed(Date.now() - start);
+    const ms = Date.now() - start;
+    setElapsed(ms);
     setResults(res);
     setSubmitting(false);
     const passed = res.filter((r) => r.verdict === "Passed").length;
+
+    // Save to database
+    const result = await submitSolution({
+      problemId: problem.id,
+      problemTitle: problem.title,
+      difficulty: problem.difficulty,
+      language,
+      code,
+      passedTests: passed,
+      totalTests: res.length,
+      executionTimeMs: ms,
+    });
+
     if (passed === res.length) {
-      toast.success("🏆 All test cases passed! Problem solved!");
+      const pointsMsg = result?.alreadySolved ? " (already solved)" : ` +${result?.points || 0} points!`;
+      toast.success(`🏆 All test cases passed!${pointsMsg}`);
     } else {
       toast.error(`${passed}/${res.length} test cases passed.`);
     }
+
+    // Refresh submissions
+    getSubmissions(problem.id).then(setSubmissions);
   };
 
   const toggleHint = (i: number) => {
@@ -204,6 +231,9 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
               <TabsTrigger value="description" className="text-xs">Description</TabsTrigger>
               <TabsTrigger value="results" className="text-xs">
                 Results {results.length > 0 && `(${results.filter(r => r.verdict === "Passed").length}/${results.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="text-xs">
+                History {submissions.length > 0 && `(${submissions.length})`}
               </TabsTrigger>
               <TabsTrigger value="hints" className="text-xs">Hints</TabsTrigger>
               <TabsTrigger value="editorial" className="text-xs">Editorial</TabsTrigger>
@@ -318,6 +348,50 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                       </motion.div>
                     ))}
                   </AnimatePresence>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="submissions" className="flex-1 overflow-auto p-5 m-0">
+              {submissions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                  <Clock className="w-8 h-8 mb-2 opacity-40" />
+                  <p className="text-sm">No submissions yet. Submit your code!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {submissions.map((sub) => (
+                    <div
+                      key={sub.id}
+                      className={`rounded-lg border p-3 text-sm ${
+                        sub.verdict === "Accepted"
+                          ? "bg-emerald-500/10 border-emerald-500/20"
+                          : "bg-red-500/10 border-red-500/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          {sub.verdict === "Accepted" ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-400" />
+                          )}
+                          <span className="font-medium">{sub.verdict}</span>
+                          {sub.points_earned > 0 && (
+                            <Badge variant="secondary" className="text-[10px]">+{sub.points_earned} pts</Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(sub.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex gap-3 text-xs text-muted-foreground">
+                        <span>{sub.language}</span>
+                        <span>{sub.passed_tests}/{sub.total_tests} passed</span>
+                        <span>{sub.execution_time_ms}ms</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </TabsContent>
