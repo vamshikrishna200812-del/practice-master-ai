@@ -76,6 +76,10 @@ const Auth = () => {
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
+      } else if (error.message?.toLowerCase().includes("rate limit") || error.status === 429) {
+        toast.error("Too many attempts. Please wait a few minutes before trying again.", { duration: 8000 });
+      } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
+        toast.error("Incorrect email or password. Please try again or create a new account.");
       } else {
         toast.error(error.message || "Authentication failed");
       }
