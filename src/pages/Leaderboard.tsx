@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -51,11 +52,31 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const { getLeaderboard } = useCodingSubmissions();
 
-  useEffect(() => {
+  const fetchLeaderboard = () => {
     getLeaderboard().then((data) => {
       setEntries(data as LeaderboardEntry[]);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+
+    // Subscribe to real-time changes on coding_points
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'coding_points' },
+        () => {
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
