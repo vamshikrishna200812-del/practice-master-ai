@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { BentoGrid, BentoCard, BentoFeature } from "@/components/ui/bento-grid";
-import { Brain, Code, MessageSquare, Video, Zap, Target, TrendingUp, Award, CheckCircle, ArrowRight, Sparkles } from "lucide-react";
+import { Brain, Code, MessageSquare, Video, Target, TrendingUp, Award, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import heroBackground from "@/assets/hero-background.mp4";
+import demoVideo from "@/assets/demo-promo.mp4";
 import logo from "@/assets/logo.jpeg";
 
 
@@ -137,26 +138,30 @@ const Home = () => {
                   <Target className="w-5 h-5" />
                 </LoadingButton>
               </Link>
-                <Button size="lg" variant="outline" className="h-14 px-10 text-lg bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-black transition-all duration-200 ease-in-out">
-                  Watch Demo
-                  <Video className="w-5 h-5 ml-2" />
-              </Button>
+                <a href="#demo-section">
+                  <Button size="lg" variant="outline" className="h-14 px-10 text-lg bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-black transition-all duration-200 ease-in-out">
+                    Watch Demo
+                    <Video className="w-5 h-5 ml-2" />
+                  </Button>
+                </a>
             </motion.div>
 
-            {/* Trust indicators */}
-            <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} transition={{
-            duration: 0.3,
-            delay: 0.4
-          }} className="flex flex-wrap items-center justify-center gap-6 mt-12 text-white/80">
-              {["No credit card required", "Cancel anytime", "Join 10,000+ users"].map((item, i) => <div key={i} className="flex items-center gap-2 text-sm backdrop-blur-sm bg-white/5 rounded-full px-4 py-2">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{item}</span>
-                </div>)}
-            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Demo Video Section */}
+      <section id="demo-section" className="py-20 px-4 bg-muted/20">
+        <div className="container mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }} className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">See It in Action</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Watch how AITRAININGZONE transforms your interview preparation</p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }} className="max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-border/30">
+            <video controls className="w-full aspect-video" poster="">
+              <source src={demoVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </motion.div>
         </div>
       </section>
