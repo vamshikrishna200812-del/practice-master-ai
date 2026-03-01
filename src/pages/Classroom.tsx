@@ -123,70 +123,9 @@ const Classroom = () => {
     });
   }, [isMuted]);
 
-  // Try D-ID avatar (fallback to TTS quickly)
-  const didFailedRef = useRef(false);
+  // Use browser TTS directly (D-ID API key is invalid)
   const tryDIDAvatarOrTTS = useCallback(async (text: string) => {
-    // Skip D-ID entirely if it already failed once this session
-    if (didFailedRef.current) {
-      await speakText(text);
-      return;
-    }
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { await speakText(text); return; }
-
-      setIsAvatarLoading(true);
-      const controller = new AbortController();
-      const _timeout = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/did-avatar`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ type: "create_talk", text: text.slice(0, 500) }),
-        signal: controller.signal,
-      });
-
-      if (!res.ok) throw new Error("D-ID unavailable");
-      const { talkId } = await res.json();
-
-      // Poll for result
-      let attempts = 0;
-      const poll = async (): Promise<string | null> => {
-        if (attempts++ > 30) return null;
-        await new Promise(r => setTimeout(r, 2000));
-        const statusRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/did-avatar`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ type: "get_talk_status", talkId }),
-        });
-        if (!statusRes.ok) return null;
-        const data = await statusRes.json();
-        if (data.resultUrl) return data.resultUrl;
-        if (data.status === "error") return null;
-        return poll();
-      };
-
-      const url = await poll();
-      if (url) {
-        setAvatarVideoUrl(url);
-        setIsAvatarLoading(false);
-        setIsSpeaking(true);
-      } else {
-        throw new Error("D-ID timeout");
-      }
-    } catch {
-      didFailedRef.current = true; // Don't try D-ID again this session
-      setIsAvatarLoading(false);
-      setAvatarVideoUrl(null);
-      await speakText(text);
-    }
+    await speakText(text);
   }, [speakText]);
 
   // Typewriter effect for displayed text
