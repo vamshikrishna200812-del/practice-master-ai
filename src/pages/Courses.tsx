@@ -39,8 +39,7 @@ import courseBookVideo from "@/assets/course-book.mp4";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
 import CourseModule from "@/components/courses/CourseModule";
 import { courseModulesData } from "@/data/courseModules";
-import { courseNoteContent } from "@/data/courseNotes";
-import { downloadAsMarkdown, generateLessonNotes } from "@/utils/downloadNotes";
+import ResourcesDownloads from "@/components/courses/ResourcesDownloads";
 
 interface Course {
   id: string;
@@ -711,10 +710,14 @@ const VideoLessonPlayer = ({
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-muted/50">
+        <TabsList className="grid w-full grid-cols-6 bg-muted/50">
           <TabsTrigger value="video" className="flex items-center gap-2">
             <Video className="w-4 h-4" />
             <span className="hidden sm:inline">Video</span>
+          </TabsTrigger>
+          <TabsTrigger value="resources" className="flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            <span className="hidden sm:inline">Resources</span>
           </TabsTrigger>
           <TabsTrigger value="notes" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
@@ -758,89 +761,16 @@ const VideoLessonPlayer = ({
             </CardContent>
           </Card>
 
-          {lesson.resources.length > 0 && (
-            <div>
-              <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Resources & Downloads
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {lesson.resources.map((resource, i) => {
-                  const noteKey = `${courseTitle}-${lesson.id}`;
-                  const hasNotes = !!courseNoteContent[noteKey];
+        </TabsContent>
 
-                  return (
-                    <motion.button
-                      key={i}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        if (hasNotes) {
-                          const notes = generateLessonNotes(
-                            courseTitle,
-                            lesson.title,
-                            lesson.keyTakeaways,
-                            lesson.description,
-                            courseNoteContent[noteKey]
-                          );
-                          const safeName = `${courseTitle}-${lesson.title}`.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-                          downloadAsMarkdown(notes, `${safeName}-notes.md`);
-                        }
-                      }}
-                      className="p-4 bg-muted/50 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-muted transition-all duration-200 text-left group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <FileText className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-sm font-medium truncate">{resource.title}</span>
-                        </div>
-                        {hasNotes && (
-                          <Download className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {resource.type.toUpperCase()}
-                        </Badge>
-                        {hasNotes && (
-                          <span className="text-xs text-muted-foreground">Click to download</span>
-                        )}
-                      </div>
-                    </motion.button>
-                  );
-                })}
-
-                {/* Always show a "Download All Notes" button */}
-                {courseNoteContent[`${courseTitle}-${lesson.id}`] && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      const noteKey = `${courseTitle}-${lesson.id}`;
-                      const notes = generateLessonNotes(
-                        courseTitle,
-                        lesson.title,
-                        lesson.keyTakeaways,
-                        lesson.description,
-                        courseNoteContent[noteKey]
-                      );
-                      const safeName = `${courseTitle}-${lesson.title}`.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-                      downloadAsMarkdown(notes, `${safeName}-complete-notes.md`);
-                    }}
-                    className="p-4 bg-primary/10 rounded-lg border border-primary/30 hover:border-primary/60 hover:bg-primary/20 transition-all duration-200 text-left group col-span-full sm:col-span-1"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Download className="w-5 h-5 text-primary" />
-                      <div>
-                        <span className="text-sm font-semibold text-primary block">Download Lesson Notes</span>
-                        <span className="text-xs text-muted-foreground">Complete notes & key takeaways</span>
-                      </div>
-                    </div>
-                  </motion.button>
-                )}
-              </div>
-            </div>
-          )}
+        <TabsContent value="resources" className="mt-4">
+          <ResourcesDownloads
+            courseTitle={courseTitle}
+            lessonId={lesson.id}
+            lessonTitle={lesson.title}
+            lessonDescription={lesson.description}
+            keyTakeaways={lesson.keyTakeaways}
+          />
         </TabsContent>
 
         <TabsContent value="notes" className="mt-4">
