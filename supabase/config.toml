@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.resume-ai]
 verify_jwt = false
+
+[functions.classroom-ai]
+verify_jwt = false
+
+[functions.class-notifications]
+verify_jwt = false

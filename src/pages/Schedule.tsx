@@ -1,21 +1,24 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Video, User, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar, Clock, Video, User, Plus, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import scheduleBalloonsVideo from "@/assets/schedule-balloons.mp4";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
+import { supabase } from "@/integrations/supabase/client";
 
 const Schedule = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("");
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   const upcomingClasses = [
     {
@@ -42,17 +45,65 @@ const Schedule = () => {
     { name: "Dr. Emily Rodriguez", specialty: "Behavioral Interviews", rating: 5.0 },
   ];
 
-  const scheduleClass = () => {
+  const scheduleClass = async () => {
     if (!selectedDate || !selectedTime || !selectedInstructor) {
       toast.error("Please fill in all fields");
       return;
     }
-    
-    setShowCelebration(true);
-    toast.success("Class scheduled successfully!");
-    setSelectedDate("");
-    setSelectedTime("");
-    setSelectedInstructor("");
+    setIsBooking(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Please sign in"); return; }
+
+      const scheduledAt = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+      const title = `Session with ${selectedInstructor}`;
+
+      // Save to database
+      const { data: schedule, error } = await supabase.from("class_schedules").insert({
+        user_id: session.user.id,
+        title,
+        scheduled_at: scheduledAt,
+        duration_minutes: 60,
+        status: "scheduled" as const,
+      }).select().single();
+
+      if (error) throw error;
+
+      // Create in-app notification
+      await supabase.from("notifications").insert({
+        user_id: session.user.id,
+        title: "📅 Class Scheduled!",
+        message: `"${title}" on ${selectedDate} at ${selectedTime}`,
+        type: "class_booked",
+        link: `/classroom?id=${schedule.id}`,
+      });
+
+      // Send booking confirmation email
+      try {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/class-notifications`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          body: JSON.stringify({
+            action: "booking_confirmation",
+            email: session.user.email,
+            classTitle: title,
+            scheduledAt,
+            classId: schedule.id,
+          }),
+        });
+      } catch { /* email is best-effort */ }
+
+      setShowCelebration(true);
+      toast.success("Class scheduled! Check your email for confirmation.");
+      setSelectedDate("");
+      setSelectedTime("");
+      setSelectedInstructor("");
+    } catch (err) {
+      toast.error("Failed to schedule class");
+      console.error(err);
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (
@@ -137,7 +188,9 @@ const Schedule = () => {
             </div>
           </div>
 
-          <Button onClick={scheduleClass} className="w-full">Schedule Class</Button>
+          <Button onClick={scheduleClass} className="w-full" disabled={isBooking}>
+            {isBooking ? "Scheduling..." : "Schedule Class"}
+          </Button>
         </Card>
 
         {/* Available Instructors */}
@@ -197,9 +250,9 @@ const Schedule = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Button className="gap-2">
-                      <Video className="w-4 h-4" />
-                      Join Class
+                    <Button className="gap-2" onClick={() => navigate(`/classroom?id=${index}`)}>
+                      <GraduationCap className="w-4 h-4" />
+                      Join Classroom
                     </Button>
                     <Button variant="outline">Reschedule</Button>
                   </div>
