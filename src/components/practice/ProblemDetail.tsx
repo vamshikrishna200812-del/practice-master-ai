@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,9 @@ import { codingProblems } from "@/data/codingProblems";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCodingSubmissions, CodingSubmission } from "@/hooks/useCodingSubmissions";
+import { getTier } from "@/utils/levelTiers";
+import { supabase } from "@/integrations/supabase/client";
+import LevelUpCelebration from "./LevelUpCelebration";
 
 interface ProblemDetailProps {
   slug: string;
@@ -76,7 +79,19 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
   const [showEditorial, setShowEditorial] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [submissions, setSubmissions] = useState<CodingSubmission[]>([]);
+  const [levelUp, setLevelUp] = useState<{ oldTier: any; newTier: any } | null>(null);
+  const prevPointsRef = useRef<number | null>(null);
   const { submitSolution, getSubmissions } = useCodingSubmissions();
+
+  // Fetch current points on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("coding_points").select("total_points").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+        prevPointsRef.current = data?.total_points ?? 0;
+      });
+    });
+  }, []);
 
   useEffect(() => {
     if (problem) {
@@ -178,6 +193,18 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
     if (passed === res.length) {
       const pointsMsg = result?.alreadySolved ? " (already solved)" : ` +${result?.points || 0} points!`;
       toast.success(`🏆 All test cases passed!${pointsMsg}`);
+
+      // Check for level-up
+      if (result && result.points > 0 && prevPointsRef.current !== null) {
+        const oldPts = prevPointsRef.current;
+        const newPts = oldPts + result.points;
+        const oldTier = getTier(oldPts);
+        const newTier = getTier(newPts);
+        if (newTier.name !== oldTier.name) {
+          setLevelUp({ oldTier, newTier });
+        }
+        prevPointsRef.current = newPts;
+      }
     } else {
       toast.error(`${passed}/${res.length} test cases passed.`);
     }
@@ -212,6 +239,15 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Level Up Celebration */}
+      {levelUp && (
+        <LevelUpCelebration
+          isVisible={!!levelUp}
+          oldTier={levelUp.oldTier}
+          newTier={levelUp.newTier}
+          onClose={() => setLevelUp(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
