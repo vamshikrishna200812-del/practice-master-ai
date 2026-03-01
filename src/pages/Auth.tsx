@@ -1,128 +1,42 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
-import { z } from "zod";
+import { Eye, EyeOff, AlertTriangle, RefreshCw } from "lucide-react";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
+import { useAuthStateMachine } from "@/hooks/useAuthStateMachine";
 import authKeyVideo from "@/assets/auth-key.mp4";
 import logo from "@/assets/logo.jpeg";
 
-const signupSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
-  email: z.string().email("Invalid email address").max(255),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100)
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-});
-
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
 const Auth = () => {
-  const navigate = useNavigate();
+  const { state, authenticate, forgotPassword, resetToIdle, isSubmitting, isRetrying } = useAuthStateMachine();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
   });
 
-  const [forgotPassword, setForgotPassword] = useState(false);
-
-  const handleForgotPassword = async () => {
-    if (!formData.email) {
-      toast.error("Please enter your email address first");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success("Password reset link sent! Check your email inbox.", { duration: 6000 });
-      setForgotPassword(false);
-    } catch (error: any) {
-      if (error.status === 429) {
-        toast.error("Too many attempts. Please wait a few minutes.", { duration: 8000 });
-      } else {
-        toast.error(error.message || "Failed to send reset email");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    await authenticate(formData, isLogin);
+  };
 
-    try {
-      if (isLogin) {
-        const validated = loginSchema.parse(formData);
-        const { error } = await supabase.auth.signInWithPassword({
-          email: validated.email,
-          password: validated.password,
-        });
-
-        if (error) throw error;
-        toast.success("Welcome back!");
-        navigate("/dashboard");
-      } else {
-        const validated = signupSchema.parse(formData);
-        const redirectUrl = `${window.location.origin}/dashboard`;
-        
-        const { error } = await supabase.auth.signUp({
-          email: validated.email,
-          password: validated.password,
-          options: {
-            data: {
-              full_name: validated.fullName,
-            },
-            emailRedirectTo: redirectUrl,
-          },
-        });
-
-        if (error) throw error;
-        toast.success("Account created! Welcome aboard 🎉");
-        navigate("/dashboard");
-      }
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-      } else if (error.message?.toLowerCase().includes("rate limit") || error.status === 429) {
-        toast.error("Too many attempts. Please wait a few minutes before trying again.", { duration: 8000 });
-      } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
-        toast.error("Incorrect email or password. Please try again or create a new account.");
-      } else {
-        toast.error(error.message || "Authentication failed");
-      }
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleMode = () => {
+    setIsLogin(!isLogin);
+    setFormData({ fullName: "", email: "", password: "" });
+    resetToIdle();
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary-glow)/0.2),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,hsl(var(--accent)/0.15),transparent_50%)]" />
-      
+
       <Card className="w-full max-w-md p-8 bg-card/95 backdrop-blur-sm shadow-2xl relative z-10">
         <div className="text-center mb-8">
-          {/* Animated Key Mascot */}
           <div className="w-24 h-24 mx-auto mb-4 rounded-2xl overflow-hidden">
             <video autoPlay loop muted playsInline className="w-full h-full object-cover">
               <source src={authKeyVideo} type="video/mp4" />
@@ -135,6 +49,29 @@ const Auth = () => {
           </p>
         </div>
 
+        {/* System failure banner with retry indicator */}
+        {state.phase === "system_failure" && (
+          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2">
+            <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-destructive">{state.error}</p>
+              {isRetrying && (
+                <p className="text-muted-foreground mt-1 flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  Retrying… ({state.retryCount}/3)
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Expected failure inline error */}
+        {state.phase === "expected_failure" && state.error && (
+          <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-sm text-destructive">
+            {state.error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
@@ -146,6 +83,8 @@ const Auth = () => {
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 required={!isLogin}
+                maxLength={100}
+                disabled={isSubmitting || isRetrying}
               />
             </div>
           )}
@@ -159,6 +98,8 @@ const Auth = () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
+              maxLength={255}
+              disabled={isSubmitting || isRetrying}
             />
           </div>
 
@@ -172,22 +113,24 @@ const Auth = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
+                maxLength={100}
+                disabled={isSubmitting || isRetrying}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            
+
             {!isLogin && formData.password && (
               <>
                 <div className="mt-3">
                   <PasswordStrengthMeter password={formData.password} />
                 </div>
-                
                 <div className="mt-3 space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Password requirements:</p>
                   <div className="grid grid-cols-1 gap-1 text-xs">
@@ -212,17 +155,32 @@ const Auth = () => {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || isRetrying || state.phase === "success"}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                {isRetrying ? "Retrying…" : "Please wait…"}
+              </span>
+            ) : state.phase === "success" ? (
+              "Redirecting…"
+            ) : isLogin ? (
+              "Sign In"
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </form>
 
         {isLogin && (
           <div className="mt-3 text-center">
             <button
-              onClick={handleForgotPassword}
-              disabled={loading}
-              className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors"
+              onClick={() => forgotPassword(formData.email)}
+              disabled={isSubmitting || isRetrying}
+              className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors disabled:opacity-50"
             >
               Forgot your password?
             </button>
@@ -231,11 +189,9 @@ const Auth = () => {
 
         <div className="mt-4 text-center">
           <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setFormData({ fullName: "", email: "", password: "" });
-            }}
-            className="text-sm text-primary hover:underline"
+            onClick={handleToggleMode}
+            disabled={isSubmitting || isRetrying}
+            className="text-sm text-primary hover:underline disabled:opacity-50"
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
           </button>
