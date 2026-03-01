@@ -27,10 +27,16 @@ interface FinalReport {
   communicationScore: number;
   confidenceScore: number;
   technicalScore: number;
+  problemSolvingScore?: number;
+  cultureFitScore?: number;
   summary: string;
   strengths: string[];
   improvements: string[];
   recommendations: string[];
+  sentiment?: { positive: number; neutral: number; hesitant: number };
+  confidenceTimeline?: number[];
+  betterAnswers?: string[];
+  badges?: { name: string; icon: string; description: string }[];
 }
 
 interface PersonalizationData {

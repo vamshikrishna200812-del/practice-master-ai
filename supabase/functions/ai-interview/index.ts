@@ -421,22 +421,50 @@ Analyze this response and provide structured feedback.`;
       systemPrompt = `You are an expert interview coach generating a comprehensive performance report.
 Analyze all responses and provide detailed, actionable feedback.
 Be encouraging while being constructive about areas for improvement.
-Respond in JSON format: {
+
+You MUST respond in this exact JSON format (no markdown fences, just raw JSON):
+{
   "overallScore": number 0-100,
   "communicationScore": number 0-100,
   "confidenceScore": number 0-100,
   "technicalScore": number 0-100,
+  "problemSolvingScore": number 0-100,
+  "cultureFitScore": number 0-100,
   "summary": "2-3 sentence summary",
-  "strengths": ["strength1", "strength2"],
-  "improvements": ["improvement1", "improvement2"],
-  "recommendations": ["rec1", "rec2"]
-}`;
+  "strengths": ["strength1", "strength2", "strength3"],
+  "improvements": ["improvement1", "improvement2", "improvement3"],
+  "recommendations": ["rec1", "rec2", "rec3"],
+  "sentiment": {
+    "positive": number 0-100 (percentage of positive tone),
+    "neutral": number 0-100 (percentage of neutral tone),
+    "hesitant": number 0-100 (percentage of hesitant/uncertain tone)
+  },
+  "confidenceTimeline": [number, number, ...] (confidence score 0-100 for each question in order),
+  "betterAnswers": ["improved version of answer 1", "improved version of answer 2", ...],
+  "badges": [
+    {"name": "badge name", "icon": "icon_key", "description": "why earned"}
+  ]
+}
+
+For badges, award 1-4 based on performance. Possible badges:
+- "Eloquent Speaker" (icon: "mic") - if communicationScore >= 80
+- "Tech Guru" (icon: "cpu") - if technicalScore >= 80
+- "Quick Thinker" (icon: "zap") - if answers are comprehensive and well-structured
+- "Culture Champion" (icon: "heart") - if cultureFitScore >= 80
+- "Problem Solver" (icon: "puzzle") - if problemSolvingScore >= 80
+- "Confidence King" (icon: "crown") - if confidenceScore >= 80
+- "Rising Star" (icon: "star") - if overallScore >= 70 but < 85
+- "Interview Ace" (icon: "trophy") - if overallScore >= 85
+
+For sentiment: the three values MUST add up to 100.
+For confidenceTimeline: provide one value per question answered (not skipped).
+For betterAnswers: provide a concise "better way to say it" for each question (even skipped ones - suggest a good answer).`;
 
       const responsesText = allResponses?.map((r, i) => 
         `Q${i + 1}: ${r.question}\nA: ${r.answer}`
       ).join("\n\n") || "";
       
-      userPrompt = `Interview responses:\n${responsesText}\n\nGenerate a comprehensive performance report.`;
+      userPrompt = `Interview responses:\n${responsesText}\n\nGenerate a comprehensive performance report with all required fields.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
