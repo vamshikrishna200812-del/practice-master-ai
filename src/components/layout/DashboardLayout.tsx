@@ -14,7 +14,6 @@ import {
   Bell, 
   HelpCircle,
   LogOut,
-  
   Calendar,
   FileQuestion,
   ClipboardList,
@@ -23,12 +22,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  Trophy
+  Trophy,
+  GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getTier } from "@/utils/levelTiers";
 import logo from "@/assets/logo.jpeg";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface UserProfile {
   full_name: string;
@@ -100,6 +101,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: "/question-bank", icon: FileQuestion, label: "Questions" },
     { path: "/cheat-sheet", icon: ClipboardList, label: "Cheat Sheet" },
     { path: "/schedule", icon: Calendar, label: "Schedule" },
+    { path: "/classroom", icon: GraduationCap, label: "Classroom" },
     { path: "/leaderboard", icon: Trophy, label: "Hall of Fame" },
     { path: "/resume-builder", icon: FileText, label: "Resume Builder" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
@@ -202,10 +204,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         )}>
           <Link to="/dashboard" className="flex items-center gap-2">
             <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-            {!sidebarCollapsed && (
+          {!sidebarCollapsed && (
               <span className="font-bold text-lg whitespace-nowrap">AITRAININGZONE</span>
             )}
           </Link>
+          {!sidebarCollapsed && <NotificationBell />}
         </div>
 
         {/* User Profile Section */}
@@ -260,7 +263,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <span className="font-bold text-lg">AITRAININGZONE</span>
             </Link>
 
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="w-5 h-5" />
@@ -322,6 +327,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </div>
               </SheetContent>
             </Sheet>
+            </div>
           </div>
         </header>
 
