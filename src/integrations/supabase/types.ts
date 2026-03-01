@@ -212,6 +212,90 @@ export type Database = {
           },
         ]
       }
+      coding_points: {
+        Row: {
+          current_streak: number
+          easy_solved: number
+          hard_solved: number
+          id: string
+          last_solve_date: string | null
+          medium_solved: number
+          problems_solved: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          easy_solved?: number
+          hard_solved?: number
+          id?: string
+          last_solve_date?: string | null
+          medium_solved?: number
+          problems_solved?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          easy_solved?: number
+          hard_solved?: number
+          id?: string
+          last_solve_date?: string | null
+          medium_solved?: number
+          problems_solved?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coding_submissions: {
+        Row: {
+          code: string | null
+          created_at: string
+          execution_time_ms: number | null
+          id: string
+          language: string
+          passed_tests: number
+          points_earned: number
+          problem_id: string
+          problem_title: string
+          total_tests: number
+          user_id: string
+          verdict: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          execution_time_ms?: number | null
+          id?: string
+          language: string
+          passed_tests?: number
+          points_earned?: number
+          problem_id: string
+          problem_title: string
+          total_tests?: number
+          user_id: string
+          verdict?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          execution_time_ms?: number | null
+          id?: string
+          language?: string
+          passed_tests?: number
+          points_earned?: number
+          problem_id?: string
+          problem_title?: string
+          total_tests?: number
+          user_id?: string
+          verdict?: string
+        }
+        Relationships: []
+      }
       course_assessment_completions: {
         Row: {
           completed_at: string
