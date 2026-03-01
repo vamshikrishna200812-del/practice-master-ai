@@ -1,17 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-  InputOTPSeparator,
-} from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, MailCheck, ShieldCheck, ArrowLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, MailCheck, ArrowLeft, ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
 import authKeyVideo from "@/assets/auth-key.mp4";
 
 const RESEND_COOLDOWN = 30;
@@ -21,13 +15,8 @@ const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") ?? "";
 
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [shake, setShake] = useState(false);
   const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
   const [resending, setResending] = useState(false);
-  const [verified, setVerified] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -36,32 +25,16 @@ const EmailVerification = () => {
     return () => clearInterval(id);
   }, [resendTimer]);
 
-  const handleVerify = useCallback(async () => {
-    if (otp.length < 6) return;
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "signup",
-      });
-
-      if (verifyError) throw verifyError;
-
-      setVerified(true);
-      toast.success("Email verified! Welcome aboard 🎉");
-      setTimeout(() => navigate("/dashboard"), 1500);
-    } catch (err: any) {
-      setError(err.message || "Invalid code, please try again");
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-      setOtp("");
-    } finally {
-      setLoading(false);
-    }
-  }, [otp, email, navigate]);
+  // Listen for auth state changes — user clicked the link in the email
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        toast.success("Email verified! Welcome aboard 🎉");
+        navigate("/dashboard");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleResend = async () => {
     if (resendTimer > 0 || resending) return;
@@ -72,11 +45,10 @@ const EmailVerification = () => {
         type: "signup",
       });
       if (error) throw error;
-      toast.success("New code sent! Check your inbox.");
+      toast.success("New verification email sent! Check your inbox.");
       setResendTimer(RESEND_COOLDOWN);
-      setError("");
     } catch (err: any) {
-      toast.error(err.message || "Failed to resend code");
+      toast.error(err.message || "Failed to resend email");
     } finally {
       setResending(false);
     }
@@ -97,146 +69,99 @@ const EmailVerification = () => {
         className="w-full max-w-md relative z-10"
       >
         <Card className="p-8 bg-card/95 backdrop-blur-sm shadow-2xl">
-          <AnimatePresence mode="wait">
-            {verified ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-6 space-y-4"
-              >
-                <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <ShieldCheck className="w-10 h-10 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">Verified!</h2>
-                <p className="text-muted-foreground text-sm">
-                  Redirecting you to your dashboard…
-                </p>
-              </motion.div>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden">
+              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+                <source src={authKeyVideo} type="video/mp4" />
+              </video>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <MailCheck className="w-5 h-5 text-primary" />
+              <h2 className="text-2xl font-bold text-foreground">Check your email</h2>
+            </div>
+
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
+              We've sent a verification link to{" "}
+              <span className="font-semibold text-foreground">{email || "your inbox"}</span>.
+              Click the link in the email to activate your training zone.
+            </p>
+          </div>
+
+          {/* Steps */}
+          <div className="space-y-3 mb-8">
+            {[
+              { step: "1", text: "Open your email inbox" },
+              { step: "2", text: "Find the email from AITRAININGZONE" },
+              { step: "3", text: "Click the verification link" },
+            ].map(({ step, text }) => (
+              <div key={step} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent/50">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                  {step}
+                </span>
+                <span className="text-sm text-foreground">{text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Open email button */}
+          <Button
+            className="w-full mb-4"
+            size="lg"
+            onClick={() => {
+              const domain = email.split("@")[1];
+              const mailUrls: Record<string, string> = {
+                "gmail.com": "https://mail.google.com",
+                "yahoo.com": "https://mail.yahoo.com",
+                "outlook.com": "https://outlook.live.com",
+                "hotmail.com": "https://outlook.live.com",
+              };
+              window.open(mailUrls[domain] || `https://mail.${domain}`, "_blank");
+            }}
+          >
+            <ExternalLink className="w-4 h-4" />
+            Open Email App
+          </Button>
+
+          {/* Resend */}
+          <div className="text-center mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Didn't receive the email? Check your spam folder, or</p>
+            {resendTimer > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Resend in{" "}
+                <span className="font-mono font-semibold text-foreground">
+                  {formatTimer(resendTimer)}
+                </span>
+              </p>
             ) : (
-              <motion.div key="form" exit={{ opacity: 0 }}>
-                {/* Header */}
-                <div className="text-center mb-8">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden">
-                    <video
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover"
-                    >
-                      <source src={authKeyVideo} type="video/mp4" />
-                    </video>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <MailCheck className="w-5 h-5 text-primary" />
-                    <h2 className="text-2xl font-bold text-foreground">
-                      Verify your email
-                    </h2>
-                  </div>
-
-                  <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
-                    We've sent a 6-digit verification code to{" "}
-                    <span className="font-semibold text-foreground">
-                      {email || "your inbox"}
-                    </span>
-                    . Enter it below to activate your training zone.
-                  </p>
-                </div>
-
-                {/* OTP Input */}
-                <motion.div
-                  animate={shake ? { x: [0, -12, 12, -8, 8, -4, 4, 0] } : {}}
-                  transition={{ duration: 0.5 }}
-                  className="flex justify-center mb-6"
-                >
-                  <InputOTP
-                    maxLength={6}
-                    value={otp}
-                    onChange={(val) => {
-                      setOtp(val);
-                      setError("");
-                    }}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                      <InputOTPSlot index={1} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                      <InputOTPSlot index={2} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                    </InputOTPGroup>
-                    <InputOTPSeparator />
-                    <InputOTPGroup>
-                      <InputOTPSlot index={3} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                      <InputOTPSlot index={4} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                      <InputOTPSlot index={5} className="w-12 h-14 text-lg font-mono font-bold border-input" />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </motion.div>
-
-                {/* Error message */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      className="text-destructive text-sm text-center mb-4 font-medium"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-
-                {/* Verify button */}
-                <Button
-                  className="w-full mb-4"
-                  size="lg"
-                  disabled={otp.length < 6 || loading}
-                  onClick={handleVerify}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Verifying…
-                    </>
-                  ) : (
-                    "Verify Account"
-                  )}
-                </Button>
-
-                {/* Resend */}
-                <div className="text-center">
-                  {resendTimer > 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Resend code in{" "}
-                      <span className="font-mono font-semibold text-foreground">
-                        {formatTimer(resendTimer)}
-                      </span>
-                    </p>
-                  ) : (
-                    <button
-                      onClick={handleResend}
-                      disabled={resending}
-                      className="text-sm text-primary hover:underline font-medium disabled:opacity-50"
-                    >
-                      {resending ? "Sending…" : "Resend Code"}
-                    </button>
-                  )}
-                </div>
-
-                {/* Back to sign up */}
-                <div className="mt-6 text-center">
-                  <button
-                    onClick={() => navigate("/auth")}
-                    className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    Back to sign up
-                  </button>
-                </div>
-              </motion.div>
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="text-sm text-primary hover:underline font-medium disabled:opacity-50 inline-flex items-center gap-1"
+              >
+                {resending ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Sending…
+                  </>
+                ) : (
+                  "Resend verification email"
+                )}
+              </button>
             )}
-          </AnimatePresence>
+          </div>
+
+          {/* Back */}
+          <div className="text-center">
+            <button
+              onClick={() => navigate("/auth")}
+              className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Back to sign up
+            </button>
+          </div>
         </Card>
       </motion.div>
     </div>
