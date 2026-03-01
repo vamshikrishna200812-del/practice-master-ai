@@ -6,13 +6,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare,
   Brain, Loader2, ChevronRight, TrendingUp, CheckCircle2,
-  AlertTriangle, Sparkles, Lightbulb, User,
+  AlertTriangle, Sparkles, Lightbulb, User, Zap, Eye,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { HumanAvatar } from "./HumanAvatar";
 import { FaceDetectionFeedback } from "./FaceDetectionFeedback";
 import { AvatarEmotion } from "./AnimatedAvatar";
+import { InterviewState } from "./AIVideoInterview";
 
 interface FeedbackData {
   score: number;
@@ -43,6 +44,8 @@ interface VideoCallInterfaceProps {
   userStream: MediaStream | null;
   isCameraOn: boolean;
   emotion?: AvatarEmotion;
+  interviewState?: InterviewState;
+  proTips?: string[];
 }
 
 export const VideoCallInterface = ({
@@ -67,6 +70,8 @@ export const VideoCallInterface = ({
   userStream,
   isCameraOn,
   emotion = "neutral",
+  interviewState = "IDLE",
+  proTips = [],
 }: VideoCallInterfaceProps) => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const [isAvatarVideoReady, setIsAvatarVideoReady] = useState(false);
@@ -74,8 +79,9 @@ export const VideoCallInterface = ({
   const [showEndModal, setShowEndModal] = useState(false);
   const [waveformBars, setWaveformBars] = useState<number[]>(Array(24).fill(4));
   const [displayedText, setDisplayedText] = useState("");
+  const feedEndRef = useRef<HTMLDivElement>(null);
   const [copilotMessages, setCopilotMessages] = useState<
-    { id: string; type: "hint" | "transcript" | "feedback"; text: string; time: string }[]
+    { id: string; type: "hint" | "transcript" | "feedback" | "tip" | "user"; text: string; time: string }[]
   >([
     {
       id: "welcome",
@@ -155,6 +161,31 @@ export const VideoCallInterface = ({
     }
   }, [currentFeedback]);
 
+  // Push pro-tips to copilot
+  useEffect(() => {
+    if (proTips.length > 0) {
+      const latestTip = proTips[proTips.length - 1];
+      setCopilotMessages((prev) => {
+        // Don't duplicate the same tip
+        if (prev.some(m => m.text === latestTip)) return prev;
+        return [
+          ...prev,
+          {
+            id: `tip-${Date.now()}`,
+            type: "tip",
+            text: latestTip,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ];
+      });
+    }
+  }, [proTips]);
+
+  // Auto-scroll copilot feed
+  useEffect(() => {
+    feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [copilotMessages]);
+
   // Avatar video handling
   useEffect(() => {
     if (avatarVideoUrl && avatarVideoRef.current) {
@@ -168,34 +199,56 @@ export const VideoCallInterface = ({
     avatarVideoRef.current?.play().catch(console.error);
   };
 
+  const getStateLabel = () => {
+    switch (interviewState) {
+      case "LISTENING": return { label: "Listening to you...", color: "bg-blue-500", icon: Mic };
+      case "THINKING": return { label: "AI Processing...", color: "bg-amber-500", icon: Brain };
+      case "RESPONDING": return { label: "AI Speaking", color: "bg-emerald-500", icon: Zap };
+      default: return { label: "Ready", color: "bg-gray-400", icon: Eye };
+    }
+  };
+
+  const stateInfo = getStateLabel();
+  const StateIcon = stateInfo.icon;
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row select-none overflow-y-auto" style={{ background: "#F3F4F6" }}>
-      {/* ═══════════════════════ LEFT: INTERVIEW STAGE (75%) ═══════════════════════ */}
-      <div className="flex-1 lg:w-3/4 flex flex-col min-h-0 p-3 lg:p-4">
+    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row select-none overflow-y-auto" style={{ background: "#F3F4F6", fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* ═══════════════════════ LEFT: INTERVIEW STAGE (70%) ═══════════════════════ */}
+      <div className="flex-1 lg:w-[70%] flex flex-col min-h-0 p-3 lg:p-4">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-md">
-              <Brain className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-md">
+              <Brain className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-sm font-semibold text-gray-800 hidden sm:inline">
-              AI Interview Chamber
-            </span>
+            <div className="hidden sm:block">
+              <h1 className="text-sm font-bold text-gray-800 tracking-tight">AI Interview Chamber</h1>
+              <p className="text-[10px] text-gray-400">Adaptive AI Interviewer</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-400">
-              Question {questionNumber} of {totalQuestions}
+            {/* Interview State Badge */}
+            <Badge className={cn(
+              "text-white border-0 text-[10px] gap-1.5 px-2.5 py-0.5 shadow-sm",
+              stateInfo.color
+            )}>
+              <StateIcon className="w-3 h-3" />
+              {stateInfo.label}
+            </Badge>
+
+            <span className="text-xs text-gray-400 hidden sm:inline">
+              {questionNumber}/{totalQuestions}
             </span>
             <Progress
               value={(questionNumber / totalQuestions) * 100}
-              className="w-24 md:w-36 h-1.5 bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-violet-500"
+              className="w-20 md:w-32 h-1.5 bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-violet-500"
             />
           </div>
         </div>
 
         {/* Video Container */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden bg-gray-900 shadow-xl min-h-0">
+        <div className="flex-1 relative rounded-2xl overflow-hidden bg-gray-900 shadow-xl min-h-[300px] lg:min-h-0">
           {/* AI Avatar */}
           <div className="absolute inset-0">
             {avatarVideoUrl && !avatarError ? (
@@ -218,11 +271,7 @@ export const VideoCallInterface = ({
             {/* Loading */}
             <AnimatePresence>
               {avatarVideoUrl && !isAvatarVideoReady && (
-                <motion.div
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gray-900 flex items-center justify-center"
-                >
+                <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-gray-900 flex items-center justify-center">
                   <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
                 </motion.div>
               )}
@@ -230,23 +279,23 @@ export const VideoCallInterface = ({
 
             {/* AI Thinking Aura */}
             <AnimatePresence>
-              {(isAvatarLoading || isLoading) && (
+              {interviewState === "THINKING" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
                   <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] md:w-[480px] md:h-[480px] rounded-full border border-blue-400/20"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] md:w-[480px] md:h-[480px] rounded-full border border-amber-400/20"
                     animate={{ rotate: 360, scale: [1, 1.06, 1] }}
-                    transition={{ rotate: { duration: 8, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity } }}
-                    style={{ background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)" }}
+                    transition={{ rotate: { duration: 6, repeat: Infinity, ease: "linear" }, scale: { duration: 1.5, repeat: Infinity } }}
+                    style={{ background: "radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%)" }}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Subtle vignette */}
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.35)_100%)]" />
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.3)_100%)]" />
           </div>
 
-          {/* ── Status Badge ── */}
+          {/* ── AI Live Badge ── */}
           <div className="absolute top-4 left-4">
             <Badge className="bg-emerald-500/90 text-white border-0 text-xs gap-1.5 px-3 py-1 shadow-lg">
               <motion.div
@@ -254,13 +303,13 @@ export const VideoCallInterface = ({
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
-              AI Interviewer Connected
+              AI Live
             </Badge>
           </div>
 
-          {/* ── Voice Waveform ── */}
+          {/* ── Voice Waveform (AI Speaking) ── */}
           <AnimatePresence>
-            {isSpeaking && (
+            {interviewState === "RESPONDING" && isSpeaking && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -273,6 +322,27 @@ export const VideoCallInterface = ({
                     className="w-[3px] rounded-full bg-gradient-to-t from-blue-400/70 to-violet-400/90"
                     animate={{ height: `${h}px` }}
                     transition={{ duration: 0.08, ease: "easeOut" }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Listening Waveform (User Speaking) ── */}
+          <AnimatePresence>
+            {interviewState === "LISTENING" && isListening && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-0 left-0 right-0 h-1.5 flex items-end overflow-hidden"
+              >
+                {Array.from({ length: 80 }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex-1 bg-blue-500/50 rounded-t"
+                    animate={{ height: [`${2}px`, `${3 + Math.random() * 8}px`, `${2}px`] }}
+                    transition={{ duration: 0.25 + Math.random() * 0.25, repeat: Infinity, delay: i * 0.01 }}
                   />
                 ))}
               </motion.div>
@@ -304,8 +374,9 @@ export const VideoCallInterface = ({
             <div
               className={cn(
                 "w-36 h-28 md:w-48 md:h-36 rounded-lg overflow-hidden relative shadow-2xl",
+                "backdrop-blur-sm bg-white/10",
                 isListening
-                  ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900"
+                  ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
                   : "border-2 border-white/20"
               )}
             >
@@ -343,27 +414,6 @@ export const VideoCallInterface = ({
               </div>
             </div>
           </motion.div>
-
-          {/* ── Listening Wave (user speaking) ── */}
-          <AnimatePresence>
-            {isListening && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute bottom-0 left-0 right-0 h-1 flex items-end"
-              >
-                {Array.from({ length: 60 }, (_, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex-1 bg-blue-500/40"
-                    animate={{ height: [`${2}px`, `${3 + Math.random() * 6}px`, `${2}px`] }}
-                    transition={{ duration: 0.3 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.015 }}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* ── Control Bar ── */}
@@ -439,16 +489,30 @@ export const VideoCallInterface = ({
         </div>
       </div>
 
-      {/* ═══════════════════════ RIGHT: COPILOT SIDEBAR (25%) ═══════════════════════ */}
-      <div className="lg:w-[25%] h-64 lg:h-auto bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col">
+      {/* ═══════════════════════ RIGHT: COPILOT SIDEBAR (30%) ═══════════════════════ */}
+      <div className="lg:w-[30%] h-72 lg:h-auto bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col">
         {/* Sidebar Header */}
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900 tracking-tight">Live Interview Feed</h2>
+              <p className="text-[11px] text-gray-400">Copilot • Real-time AI assistant</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-gray-900 tracking-tight">Copilot</h2>
-            <p className="text-[11px] text-gray-400">Real-time AI assistant</p>
+          <div className="flex items-center gap-1.5">
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              interviewState === "THINKING" ? "bg-amber-400 animate-pulse" :
+              interviewState === "LISTENING" ? "bg-blue-400 animate-pulse" :
+              interviewState === "RESPONDING" ? "bg-emerald-400 animate-pulse" :
+              "bg-gray-300"
+            )} />
+            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+              {interviewState === "IDLE" ? "Ready" : interviewState}
+            </span>
           </div>
         </div>
 
@@ -464,20 +528,26 @@ export const VideoCallInterface = ({
                   "rounded-xl p-3 text-sm",
                   msg.type === "hint" && "bg-violet-50 border border-violet-100",
                   msg.type === "transcript" && "bg-blue-50 border border-blue-100",
-                  msg.type === "feedback" && "bg-emerald-50 border border-emerald-100"
+                  msg.type === "feedback" && "bg-emerald-50 border border-emerald-100",
+                  msg.type === "tip" && "bg-amber-50 border border-amber-100",
+                  msg.type === "user" && "bg-gray-50 border border-gray-100"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  {msg.type === "hint" && <Lightbulb className="w-3.5 h-3.5 text-violet-500" />}
+                  {msg.type === "hint" && <Sparkles className="w-3.5 h-3.5 text-violet-500" />}
                   {msg.type === "transcript" && <MessageSquare className="w-3.5 h-3.5 text-blue-500" />}
                   {msg.type === "feedback" && <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />}
+                  {msg.type === "tip" && <Lightbulb className="w-3.5 h-3.5 text-amber-500" />}
+                  {msg.type === "user" && <User className="w-3.5 h-3.5 text-gray-400" />}
                   <span className={cn(
                     "text-[10px] font-semibold uppercase tracking-wider",
                     msg.type === "hint" && "text-violet-500",
                     msg.type === "transcript" && "text-blue-500",
-                    msg.type === "feedback" && "text-emerald-500"
+                    msg.type === "feedback" && "text-emerald-500",
+                    msg.type === "tip" && "text-amber-600",
+                    msg.type === "user" && "text-gray-400"
                   )}>
-                    {msg.type === "hint" ? "Hint" : msg.type === "transcript" ? "Question" : "Feedback"}
+                    {msg.type === "hint" ? "Welcome" : msg.type === "transcript" ? "Question" : msg.type === "feedback" ? "Feedback" : msg.type === "tip" ? "Pro Tip" : "Your Answer"}
                   </span>
                   <span className="text-[10px] text-gray-300 ml-auto">{msg.time}</span>
                 </div>
@@ -485,23 +555,25 @@ export const VideoCallInterface = ({
                   "text-[13px] leading-relaxed",
                   msg.type === "hint" && "text-violet-700",
                   msg.type === "transcript" && "text-blue-700",
-                  msg.type === "feedback" && "text-emerald-700"
+                  msg.type === "feedback" && "text-emerald-700",
+                  msg.type === "tip" && "text-amber-700",
+                  msg.type === "user" && "text-gray-600"
                 )}>
                   {msg.text}
                 </p>
               </motion.div>
             ))}
 
-            {/* User transcript live */}
+            {/* Live user transcript */}
             {userTranscript && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl p-3 bg-gray-50 border border-gray-100">
                 <div className="flex items-center gap-2 mb-1.5">
                   <User className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Your Answer</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Your Answer (Live)</span>
                   {isListening && (
                     <div className="flex items-center gap-0.5 ml-auto">
                       {[0, 1, 2].map((i) => (
-                        <motion.div key={i} className="w-1 bg-blue-400 rounded-full" animate={{ height: ["3px", "8px", "3px"] }} transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.1 }} />
+                        <motion.div key={i} className="w-1 bg-blue-400 rounded-full" animate={{ height: ["3px", "10px", "3px"] }} transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.1 }} />
                       ))}
                     </div>
                   )}
@@ -509,14 +581,19 @@ export const VideoCallInterface = ({
                 <p className="text-[13px] text-gray-600 leading-relaxed">{userTranscript}</p>
               </motion.div>
             )}
+
+            <div ref={feedEndRef} />
           </div>
         </ScrollArea>
 
         {/* Sidebar Footer */}
-        <div className="px-4 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[11px] text-gray-400">
-            <div className={cn("w-2 h-2 rounded-full", isLoading || isAvatarLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400")} />
-            {isLoading || isAvatarLoading ? "AI is thinking…" : "AI ready"}
+        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[11px] text-gray-400">
+              <div className={cn("w-2 h-2 rounded-full", isLoading || isAvatarLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400")} />
+              {isLoading || isAvatarLoading ? "AI is thinking…" : "AI ready"}
+            </div>
+            <span className="text-[10px] text-gray-300">Q{questionNumber}/{totalQuestions}</span>
           </div>
         </div>
       </div>
@@ -547,19 +624,12 @@ export const VideoCallInterface = ({
                   Your progress will be saved and a report will be generated based on your completed answers.
                 </p>
                 <div className="flex gap-3 w-full">
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-11 rounded-xl"
-                    onClick={() => setShowEndModal(false)}
-                  >
+                  <Button variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => setShowEndModal(false)}>
                     Continue
                   </Button>
                   <Button
                     className="flex-1 h-11 rounded-xl bg-red-500 hover:bg-red-600 text-white border-0"
-                    onClick={() => {
-                      setShowEndModal(false);
-                      onEndInterview();
-                    }}
+                    onClick={() => { setShowEndModal(false); onEndInterview(); }}
                   >
                     End Session
                   </Button>

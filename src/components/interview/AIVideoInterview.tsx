@@ -39,6 +39,8 @@ interface PersonalizationData {
   customQuestions?: string[];
 }
 
+export type InterviewState = "LISTENING" | "THINKING" | "RESPONDING" | "IDLE";
+
 interface AIVideoInterviewProps {
   interviewType?: "behavioral" | "technical" | "coding";
   totalQuestions?: number;
@@ -59,13 +61,15 @@ export const AIVideoInterview = ({
   // Interview state
   const [phase, setPhase] = useState<"personalization" | "setup" | "interview" | "processing" | "complete">("personalization");
   const [currentQuestion, setCurrentQuestion] = useState("");
-  const [displayQuestion, setDisplayQuestion] = useState(""); // Clean text without emotion tags
+  const [displayQuestion, setDisplayQuestion] = useState("");
   const [currentEmotion, setCurrentEmotion] = useState<AvatarEmotion>("neutral");
   const [questionNumber, setQuestionNumber] = useState(0);
   const [responses, setResponses] = useState<InterviewResponse[]>([]);
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState<InterviewResponse["feedback"] | null>(null);
+  const [interviewState, setInterviewState] = useState<InterviewState>("IDLE");
+  const [followUpCount, setFollowUpCount] = useState(0); // track follow-ups per question
   
   // Personalization state
   const [personalization, setPersonalization] = useState<PersonalizationData>({});
@@ -81,6 +85,9 @@ export const AIVideoInterview = ({
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
+
+  // Pro-tips feed
+  const [proTips, setProTips] = useState<string[]>([]);
 
   // Refs
   const userVideoRef = useRef<HTMLVideoElement>(null);
@@ -111,12 +118,17 @@ export const AIVideoInterview = ({
   } = useBrowserTTS({
     rate: 0.95,
     onEnd: () => {
-      // Auto-start listening after AI finishes speaking
+      setInterviewState("LISTENING");
       if (phase === "interview" && !isRecording && !isLoading) {
         startRecording();
       }
     },
   });
+
+  // Sync interviewState with speaking
+  useEffect(() => {
+    if (isSpeaking) setInterviewState("RESPONDING");
+  }, [isSpeaking]);
 
   // Start camera
   const startCamera = async () => {
@@ -137,7 +149,6 @@ export const AIVideoInterview = ({
     }
   };
 
-  // Stop camera
   const stopCamera = () => {
     if (userStreamRef.current) {
       userStreamRef.current.getTracks().forEach(track => track.stop());
@@ -149,18 +160,14 @@ export const AIVideoInterview = ({
     setIsCameraOn(false);
   };
 
-  // Generate avatar video with D-ID (silently falls back to TTS on failure)
   const generateAvatarVideo = async (text: string): Promise<string | null> => {
-    // Skip D-ID entirely and use browser TTS for reliability
-    // D-ID can be re-enabled when API key is properly configured
     console.log("Using browser TTS for speech");
     setIsAvatarLoading(false);
     return null;
   };
 
-  // Generate question with AI (uses custom questions if available)
+  // Generate question with AI
   const generateQuestion = async (): Promise<string> => {
-    // If we have pre-generated custom questions, use them
     if (customQuestions.length > 0 && questionNumber <= customQuestions.length) {
       return customQuestions[questionNumber - 1] || customQuestions[0];
     }
@@ -187,6 +194,74 @@ export const AIVideoInterview = ({
     }
 
     return data.content;
+  };
+
+  // Generate adaptive follow-up when answer is short/vague
+  const generateFollowUp = async (question: string, answer: string): Promise<string> => {
+    const { data, error } = await supabase.functions.invoke("ai-interview", {
+      body: {
+        type: "generate_question",
+        context: {
+          questionNumber,
+          totalQuestions,
+          previousQuestions: previousQuestionsRef.current,
+          interviewType,
+          resumeText: personalization.resumeText,
+          jobDescription: personalization.jobDescription,
+          recruiterMode,
+          company,
+          personality,
+          isFollowUp: true,
+          previousAnswer: answer,
+          previousQuestion: question,
+        },
+      },
+    });
+
+    if (error || data?.error) {
+      // Fallback generic follow-up
+      return "[thoughtful pause] That's a good start. Could you give me a specific example of when you handled that? I'd love to hear more details about the situation and the outcome.";
+    }
+
+    return data.content;
+  };
+
+  // Determine if answer needs follow-up (adaptive branching)
+  const needsFollowUp = (answer: string): boolean => {
+    if (followUpCount >= 2) return false; // max 2 follow-ups per question
+    const wordCount = answer.trim().split(/\s+/).length;
+    if (wordCount < 20) return true;
+    // Check for vague indicators
+    const vaguePatterns = /^(i don'?t know|not sure|maybe|i guess|um|uh|i think so|yes|no|ok|okay)$/i;
+    if (vaguePatterns.test(answer.trim())) return true;
+    return false;
+  };
+
+  // Generate a pro-tip based on current question
+  const generateProTip = (question: string): string => {
+    const lowerQ = question.toLowerCase();
+    if (lowerQ.includes("tell me about yourself") || lowerQ.includes("your journey")) {
+      return "💡 Pro Tip: Use the Present-Past-Future formula. Start with your current role, then highlight key past experiences, and end with why you're excited about this opportunity.";
+    }
+    if (lowerQ.includes("challenge") || lowerQ.includes("obstacle") || lowerQ.includes("difficult")) {
+      return "💡 Pro Tip: Use the STAR method (Situation, Task, Action, Result). Focus on what YOU did, not the team. Quantify your impact if possible.";
+    }
+    if (lowerQ.includes("leadership") || lowerQ.includes("lead") || lowerQ.includes("manage")) {
+      return "💡 Pro Tip: Highlight your leadership style with a concrete example. Show how you motivated others and what the measurable outcome was.";
+    }
+    if (lowerQ.includes("weakness") || lowerQ.includes("improve")) {
+      return "💡 Pro Tip: Choose a genuine weakness, show self-awareness, and emphasize the concrete steps you're taking to improve.";
+    }
+    if (lowerQ.includes("why") && (lowerQ.includes("company") || lowerQ.includes("role") || lowerQ.includes("here"))) {
+      return "💡 Pro Tip: Show you've done your research. Connect your skills and passions to the company's mission and the role's responsibilities.";
+    }
+    if (lowerQ.includes("conflict") || lowerQ.includes("disagree")) {
+      return "💡 Pro Tip: Focus on the resolution, not the drama. Show empathy, active listening, and how you found common ground.";
+    }
+    if (lowerQ.includes("technical") || lowerQ.includes("system") || lowerQ.includes("design") || lowerQ.includes("architecture")) {
+      return "💡 Pro Tip: Think out loud. Interviewers value your reasoning process. Start with requirements, then discuss trade-offs.";
+    }
+    return "💡 Pro Tip: Be specific and concise. Use examples from real experience. Numbers and outcomes make your answers memorable.";
   };
 
   // Handle personalization complete
@@ -226,7 +301,6 @@ export const AIVideoInterview = ({
     setPhase("setup");
   };
 
-  // Skip personalization
   const handleSkipPersonalization = () => {
     setPhase("setup");
   };
@@ -269,7 +343,6 @@ export const AIVideoInterview = ({
       setFinalReport(data);
       setPhase("complete");
       
-      // Update user progress with scores from the interview
       await updateProgress({
         communicationScore: data.communicationScore || 0,
         confidenceScore: data.confidenceScore || 0,
@@ -288,7 +361,6 @@ export const AIVideoInterview = ({
     }
   };
 
-  // Process question text and extract emotion
   const processQuestionWithEmotion = (rawQuestion: string) => {
     const { cleanText, emotion } = parseEmotionTags(rawQuestion);
     setCurrentQuestion(rawQuestion);
@@ -305,21 +377,25 @@ export const AIVideoInterview = ({
     }
 
     setIsLoading(true);
-    setCurrentEmotion("thinking"); // Show thinking state while generating
+    setInterviewState("THINKING");
+    setCurrentEmotion("thinking");
     setPhase("interview");
     setQuestionNumber(1);
+    setFollowUpCount(0);
 
     try {
       const question = await generateQuestion();
       const cleanQuestion = processQuestionWithEmotion(question);
       previousQuestionsRef.current.push(question);
 
-      // Try D-ID avatar first, fallback to browser TTS
+      // Add pro-tip
+      setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
+
+      setInterviewState("RESPONDING");
       const videoUrl = await generateAvatarVideo(cleanQuestion);
       if (videoUrl) {
         setAvatarVideoUrl(videoUrl);
       } else {
-        // Fallback to browser TTS (use clean text for speech)
         speak(cleanQuestion);
       }
     } catch (error) {
@@ -327,6 +403,7 @@ export const AIVideoInterview = ({
       toast.error("Failed to start interview");
       setPhase("setup");
       setCurrentEmotion("neutral");
+      setInterviewState("IDLE");
     } finally {
       setIsLoading(false);
     }
@@ -340,13 +417,14 @@ export const AIVideoInterview = ({
     }
 
     setIsRecording(true);
+    setInterviewState("LISTENING");
     resetTranscript();
     setUserTranscript("");
     startListening();
     toast.info("Listening... Speak your answer", { duration: 2000 });
   };
 
-  // Stop recording and process response
+  // Stop recording and process with adaptive branching
   const stopRecording = async () => {
     stopListening();
     setIsRecording(false);
@@ -354,56 +432,84 @@ export const AIVideoInterview = ({
     const answer = userTranscript || transcript;
     if (!answer.trim()) {
       toast.warning("No response detected. Please try again.");
+      setInterviewState("LISTENING");
       return;
     }
 
     setIsLoading(true);
+    setInterviewState("THINKING");
+    setCurrentEmotion("thinking");
 
     try {
-      // Analyze the response
-      const feedback = await analyzeResponse(currentQuestion, answer);
+      // Check if answer needs a follow-up (adaptive branching)
+      if (needsFollowUp(answer)) {
+        setFollowUpCount(prev => prev + 1);
+        
+        // Generate probing follow-up
+        const followUp = await generateFollowUp(currentQuestion, answer);
+        const cleanFollowUp = processQuestionWithEmotion(followUp);
+        
+        // Add a tip about elaborating
+        setProTips(prev => [...prev, "💡 Tip: Try to elaborate more. Use specific examples and quantify your impact when possible."]);
 
-      // Save response
-      const newResponse: InterviewResponse = {
-        question: currentQuestion,
-        answer,
-        feedback,
-      };
-      setResponses(prev => [...prev, newResponse]);
-      setCurrentFeedback(feedback);
-
-      // Show brief feedback
-      if (feedback?.feedback) {
-        toast.success(`Score: ${feedback.score}/100`, { duration: 3000 });
-      }
-
-      // Move to next question or finish
-      if (questionNumber >= totalQuestions) {
-        await generateFinalReport();
-      } else {
-        // Generate next question
-        setQuestionNumber(prev => prev + 1);
-        setCurrentEmotion("thinking"); // Show thinking while generating
-        const nextQuestion = await generateQuestion();
-        const cleanQuestion = processQuestionWithEmotion(nextQuestion);
-        previousQuestionsRef.current.push(nextQuestion);
-
-        // Reset user transcript
+        setInterviewState("RESPONDING");
         resetTranscript();
         setUserTranscript("");
 
-        // Generate avatar for next question
-        const videoUrl = await generateAvatarVideo(cleanQuestion);
+        const videoUrl = await generateAvatarVideo(cleanFollowUp);
         if (videoUrl) {
           setAvatarVideoUrl(videoUrl);
         } else {
-          speak(cleanQuestion);
+          speak(cleanFollowUp);
+        }
+      } else {
+        // Comprehensive answer → analyze, validate, and move on
+        const feedback = await analyzeResponse(currentQuestion, answer);
+
+        const newResponse: InterviewResponse = {
+          question: currentQuestion,
+          answer,
+          feedback,
+        };
+        setResponses(prev => [...prev, newResponse]);
+        setCurrentFeedback(feedback);
+
+        if (feedback?.feedback) {
+          toast.success(`Score: ${feedback.score}/100`, { duration: 3000 });
+        }
+
+        // Move to next question or finish
+        if (questionNumber >= totalQuestions) {
+          await generateFinalReport();
+        } else {
+          setQuestionNumber(prev => prev + 1);
+          setFollowUpCount(0);
+          setInterviewState("THINKING");
+          setCurrentEmotion("thinking");
+          const nextQuestion = await generateQuestion();
+          const cleanQuestion = processQuestionWithEmotion(nextQuestion);
+          previousQuestionsRef.current.push(nextQuestion);
+
+          // Add pro-tip for new question
+          setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
+
+          resetTranscript();
+          setUserTranscript("");
+
+          setInterviewState("RESPONDING");
+          const videoUrl = await generateAvatarVideo(cleanQuestion);
+          if (videoUrl) {
+            setAvatarVideoUrl(videoUrl);
+          } else {
+            speak(cleanQuestion);
+          }
         }
       }
     } catch (error) {
       console.error("Process error:", error);
       toast.error("Failed to process response");
       setCurrentEmotion("neutral");
+      setInterviewState("LISTENING");
     } finally {
       setIsLoading(false);
     }
@@ -415,7 +521,7 @@ export const AIVideoInterview = ({
     setIsRecording(false);
     
     const newResponse: InterviewResponse = {
-      question: displayQuestion, // Use clean question text
+      question: displayQuestion,
       answer: "[Skipped]",
     };
     setResponses(prev => [...prev, newResponse]);
@@ -425,6 +531,8 @@ export const AIVideoInterview = ({
     } else {
       setIsLoading(true);
       setQuestionNumber(prev => prev + 1);
+      setFollowUpCount(0);
+      setInterviewState("THINKING");
       setCurrentEmotion("thinking");
       
       try {
@@ -432,9 +540,12 @@ export const AIVideoInterview = ({
         const cleanQuestion = processQuestionWithEmotion(nextQuestion);
         previousQuestionsRef.current.push(nextQuestion);
         
+        setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
+        
         resetTranscript();
         setUserTranscript("");
         
+        setInterviewState("RESPONDING");
         const videoUrl = await generateAvatarVideo(cleanQuestion);
         if (videoUrl) {
           setAvatarVideoUrl(videoUrl);
@@ -445,13 +556,13 @@ export const AIVideoInterview = ({
         console.error("Skip error:", error);
         toast.error("Failed to load next question");
         setCurrentEmotion("neutral");
+        setInterviewState("IDLE");
       } finally {
         setIsLoading(false);
       }
     }
   };
 
-  // End interview early
   const endInterview = () => {
     if (responses.length > 0) {
       generateFinalReport();
@@ -459,17 +570,17 @@ export const AIVideoInterview = ({
       stopCamera();
       stopSpeaking();
       setPhase("setup");
+      setInterviewState("IDLE");
     }
   };
 
-  // Handle avatar video end
   const handleAvatarVideoEnd = () => {
+    setInterviewState("LISTENING");
     if (!isRecording && !isLoading && phase === "interview") {
       startRecording();
     }
   };
 
-  // Reset interview
   const resetInterview = () => {
     setPhase("personalization");
     setResponses([]);
@@ -483,6 +594,9 @@ export const AIVideoInterview = ({
     setAvatarVideoUrl(null);
     setCustomQuestions([]);
     setPersonalization({});
+    setInterviewState("IDLE");
+    setFollowUpCount(0);
+    setProTips([]);
     previousQuestionsRef.current = [];
   };
 
@@ -545,6 +659,8 @@ export const AIVideoInterview = ({
         userStream={userStreamRef.current}
         isCameraOn={isCameraOn}
         emotion={currentEmotion}
+        interviewState={interviewState}
+        proTips={proTips}
       />
     );
   }
