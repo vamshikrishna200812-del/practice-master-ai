@@ -5,10 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Code, BookOpen, CheckCircle2, ChevronRight, Trophy } from "lucide-react";
-import { codingProblems, codingCourses, allTags, allCategories } from "@/data/codingProblems";
+import { codingProblems, codingCourses, allTags, allCategories, POINTS_MAP } from "@/data/codingProblems";
 import { motion } from "framer-motion";
 import { useCodingSubmissions } from "@/hooks/useCodingSubmissions";
 import { useNavigate } from "react-router-dom";
+import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
+import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProblemListProps {
   onSelectProblem: (slug: string) => void;
@@ -27,11 +30,19 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [view, setView] = useState<"problems" | "courses">("problems");
   const [solvedSet, setSolvedSet] = useState<Set<string>>(new Set());
+  const [totalPoints, setTotalPoints] = useState(0);
   const { getSolvedProblems } = useCodingSubmissions();
   const navigate = useNavigate();
 
   useEffect(() => {
     getSolvedProblems().then(setSolvedSet);
+    // Fetch user's total points
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("coding_points").select("total_points").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+        if (data) setTotalPoints(data.total_points);
+      });
+    });
   }, []);
 
   const filtered = useMemo(() => {
@@ -48,21 +59,47 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
     <div className="space-y-6">
       {/* Hero */}
       <div className="bg-gradient-hero text-white rounded-xl p-6 md:p-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <Code className="w-8 h-8" />
-          Coding Challenges
-        </h1>
-        <p className="text-white/80 max-w-xl">
-          Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories.
-          <span className="ml-2 text-white/60">{solvedSet.size} solved</span>
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+              <Code className="w-8 h-8" />
+              Coding Challenges
+            </h1>
+            <p className="text-white/80 max-w-xl">
+              Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories.
+              <span className="ml-2 text-white/60">{solvedSet.size} solved</span>
+            </p>
+          </div>
+          {/* Tier Card */}
+          {(() => {
+            const tier = getTier(totalPoints);
+            const TierIcon = tier.icon;
+            const progress = getTierProgress(totalPoints);
+            const next = getNextTier(totalPoints);
+            return (
+              <div className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+                <TierIcon className={`w-8 h-8 ${tier.textClass}`} />
+                <div>
+                  <p className="text-sm font-bold">{tier.name} • {totalPoints} pts</p>
+                  {next && (
+                    <>
+                      <Progress value={progress} className="h-1.5 w-24 mt-1" />
+                      <p className="text-[10px] text-white/60 mt-0.5">{next.minPoints - totalPoints} pts to {next.name}</p>
+                    </>
+                  )}
+                  {!next && <p className="text-[10px] text-white/60">Max tier reached!</p>}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
         <Button
           variant="secondary"
           size="sm"
           className="mt-3 gap-2"
           onClick={() => navigate("/leaderboard")}
         >
-          <Trophy className="w-4 h-4" /> Leaderboard
+          <Trophy className="w-4 h-4" /> Hall of Fame
         </Button>
       </div>
 
@@ -193,9 +230,15 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                   onClick={() => onSelectProblem(problem.slug)}
                 >
                   {solvedSet.has(problem.id) ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hidden sm:inline-flex">Done</Badge>
+                    </div>
                   ) : (
-                    <div className="w-4 h-4 rounded-full border border-muted-foreground/40 shrink-0" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="w-4 h-4 rounded-full border border-muted-foreground/40" />
+                      <Badge variant="outline" className="text-[10px] hidden sm:inline-flex">Pending</Badge>
+                    </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{problem.title}</div>
@@ -205,6 +248,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                       ))}
                     </div>
                   </div>
+                  <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">+{POINTS_MAP[problem.difficulty] || 10}pts</span>
                   <Badge variant="outline" className={`text-xs shrink-0 ${difficultyColor[problem.difficulty]}`}>
                     {problem.difficulty}
                   </Badge>

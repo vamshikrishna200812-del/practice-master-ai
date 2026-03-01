@@ -21,10 +21,12 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getTier } from "@/utils/levelTiers";
 
 interface UserProfile {
   full_name: string;
@@ -42,6 +44,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userPoints, setUserPoints] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
@@ -51,6 +54,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         .eq('id', userId)
         .single();
       if (data) setProfile(data);
+      // Fetch points
+      const { data: pts } = await supabase
+        .from('coding_points')
+        .select('total_points')
+        .eq('user_id', userId)
+        .maybeSingle();
+      setUserPoints(pts?.total_points ?? 0);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -88,6 +98,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: "/question-bank", icon: FileQuestion, label: "Questions" },
     { path: "/cheat-sheet", icon: ClipboardList, label: "Cheat Sheet" },
     { path: "/schedule", icon: Calendar, label: "Schedule" },
+    { path: "/leaderboard", icon: Trophy, label: "Hall of Fame" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
     { path: "/settings", icon: Settings, label: "Settings" },
     { path: "/help", icon: HelpCircle, label: "Help" },
@@ -156,6 +167,16 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <span className="text-xs text-muted-foreground truncate">
               {user?.email || ''}
             </span>
+            {userPoints !== null && (() => {
+              const tier = getTier(userPoints);
+              const TierIcon = tier.icon;
+              return (
+                <span className={`text-[10px] flex items-center gap-1 mt-0.5 ${tier.textClass}`}>
+                  <TierIcon className="w-3 h-3" />
+                  {tier.name} • {userPoints} pts
+                </span>
+              );
+            })()}
           </div>
         )}
       </Link>
