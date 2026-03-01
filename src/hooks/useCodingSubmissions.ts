@@ -139,28 +139,13 @@ export const useCodingSubmissions = () => {
   };
 
   const getLeaderboard = async () => {
-    const { data } = await supabase
-      .from("coding_points")
-      .select("user_id, total_points, problems_solved, easy_solved, medium_solved, hard_solved, current_streak")
-      .order("total_points", { ascending: false })
-      .limit(50);
+    const { data } = await supabase.rpc("get_leaderboard");
 
     if (!data || data.length === 0) return [];
 
-    // Get profile names
-    const userIds = data.map(d => d.user_id);
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, full_name, avatar_url")
-      .in("id", userIds);
-
-    const profileMap = new Map((profiles || []).map(p => [p.id, p]));
-
-    return data.map((entry, i) => ({
+    return (data as any[]).map((entry, i) => ({
       rank: i + 1,
       ...entry,
-      full_name: profileMap.get(entry.user_id)?.full_name || "Anonymous",
-      avatar_url: profileMap.get(entry.user_id)?.avatar_url || null,
     }));
   };
 
