@@ -28,6 +28,7 @@ import { ChatWidget } from "./components/chat-widget";
 import AIAssistant from "./pages/AIAssistant";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import Classroom from "./pages/Classroom";
+import ResetPassword from "./pages/ResetPassword";
 
 // Create QueryClient outside component to prevent recreation on re-renders
 const queryClient = new QueryClient({
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="/resume-builder" element={<ResumeBuilder />} />
             <Route path="/classroom" element={<Classroom />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatWidget

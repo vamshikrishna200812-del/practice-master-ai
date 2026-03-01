@@ -40,6 +40,32 @@ const Auth = () => {
     password: "",
   });
 
+  const [forgotPassword, setForgotPassword] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent! Check your email inbox.", { duration: 6000 });
+      setForgotPassword(false);
+    } catch (error: any) {
+      if (error.status === 429) {
+        toast.error("Too many attempts. Please wait a few minutes.", { duration: 8000 });
+      } else {
+        toast.error(error.message || "Failed to send reset email");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -191,7 +217,19 @@ const Auth = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
+        {isLogin && (
+          <div className="mt-3 text-center">
+            <button
+              onClick={handleForgotPassword}
+              disabled={loading}
+              className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors"
+            >
+              Forgot your password?
+            </button>
+          </div>
+        )}
+
+        <div className="mt-4 text-center">
           <button
             onClick={() => {
               setIsLogin(!isLogin);
