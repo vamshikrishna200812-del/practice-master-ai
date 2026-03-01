@@ -27,6 +27,7 @@ import Leaderboard from "./pages/Leaderboard";
 import { ChatWidget } from "./components/chat-widget";
 import AIAssistant from "./pages/AIAssistant";
 import ResumeBuilder from "./pages/ResumeBuilder";
+import Classroom from "./pages/Classroom";
 
 // Create QueryClient outside component to prevent recreation on re-renders
 const queryClient = new QueryClient({
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/ai-assistant" element={<AIAssistant />} />
             <Route path="/resume-builder" element={<ResumeBuilder />} />
+            <Route path="/classroom" element={<Classroom />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatWidget
