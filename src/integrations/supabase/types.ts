@@ -801,6 +801,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          current_streak: number
+          easy_solved: number
+          full_name: string
+          hard_solved: number
+          medium_solved: number
+          problems_solved: number
+          total_points: number
+          user_id: string
+        }[]
+      }
       has_active_interview: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
