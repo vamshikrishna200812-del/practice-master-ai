@@ -14,7 +14,7 @@ import {
   Bell, 
   HelpCircle,
   LogOut,
-  Brain,
+  
   Calendar,
   FileQuestion,
   ClipboardList,
@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getTier } from "@/utils/levelTiers";
+import logo from "@/assets/logo.jpeg";
 
 interface UserProfile {
   full_name: string;
@@ -198,9 +199,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           sidebarCollapsed ? "justify-center" : "justify-between"
         )}>
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shrink-0">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
+            <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover shrink-0" />
             {!sidebarCollapsed && (
               <span className="font-bold text-lg whitespace-nowrap">AITRAININGZONE</span>
             )}
@@ -255,9 +254,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <header className="md:hidden sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div className="flex h-14 items-center justify-between px-4">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
-              </div>
+              <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover" />
               <span className="font-bold text-lg">AITRAININGZONE</span>
             </Link>
 

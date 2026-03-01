@@ -6,10 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Eye, EyeOff, Brain } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import authKeyVideo from "@/assets/auth-key.mp4";
+import logo from "@/assets/logo.jpeg";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -101,6 +102,7 @@ const Auth = () => {
               <source src={authKeyVideo} type="video/mp4" />
             </video>
           </div>
+          <img src={logo} alt="AITRAININGZONE" className="w-16 h-16 rounded-xl object-cover mx-auto mb-3" />
           <h1 className="text-3xl font-bold mb-2">AITRAININGZONE</h1>
           <p className="text-muted-foreground">
             {isLogin ? "Welcome back! Ready to practice?" : "Start your journey to interview mastery"}
