@@ -2,20 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Award, 
-  MessageSquare, 
-  TrendingUp, 
-  Brain, 
-  CheckCircle2, 
-  AlertCircle,
-  Play,
-  Download,
-  Share2,
-  Target,
-  Home
+  Award, MessageSquare, TrendingUp, Brain, CheckCircle2, AlertCircle,
+  Play, Share2, Target, Home, Mic, Cpu, Zap, Heart, 
+  PuzzleIcon, Crown, Star, Trophy, FileDown, Volume2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,22 +17,11 @@ import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
 import { ConfettiRain } from "@/components/ui/ConfettiRain";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useCelebrationSound } from "@/hooks/useCelebrationSound";
+import { useBrowserTTS } from "@/hooks/useBrowserTTS";
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell, LineChart, Line,
 } from "recharts";
 
 interface InterviewResponse {
@@ -55,15 +35,27 @@ interface InterviewResponse {
   };
 }
 
+interface ReportBadge {
+  name: string;
+  icon: string;
+  description: string;
+}
+
 interface FinalReport {
   overallScore: number;
   communicationScore: number;
   confidenceScore: number;
   technicalScore: number;
+  problemSolvingScore?: number;
+  cultureFitScore?: number;
   summary: string;
   strengths: string[];
   improvements: string[];
   recommendations: string[];
+  sentiment?: { positive: number; neutral: number; hesitant: number };
+  confidenceTimeline?: number[];
+  betterAnswers?: string[];
+  badges?: ReportBadge[];
 }
 
 interface InterviewReportProps {
@@ -72,6 +64,13 @@ interface InterviewReportProps {
   interviewType: "behavioral" | "technical" | "coding";
   onPracticeAgain: () => void;
 }
+
+const BADGE_ICONS: Record<string, React.ElementType> = {
+  mic: Mic, cpu: Cpu, zap: Zap, heart: Heart, puzzle: PuzzleIcon,
+  crown: Crown, star: Star, trophy: Trophy,
+};
+
+const PIE_COLORS = ["#22c55e", "#94a3b8", "#f59e0b"];
 
 export const InterviewReport = ({
   report,
@@ -84,8 +83,9 @@ export const InterviewReport = ({
   const [showAchievementConfetti, setShowAchievementConfetti] = useState(false);
   const { checkAndAwardAchievements } = useAchievements();
   const { playSound } = useCelebrationSound();
+  const { speak, isSpeaking, stop: stopSpeaking } = useBrowserTTS({ rate: 0.95 });
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
 
-  // Check for achievements when report loads
   useEffect(() => {
     const checkAchievements = async () => {
       const earned = await checkAndAwardAchievements({
@@ -94,18 +94,16 @@ export const InterviewReport = ({
         bodyLanguageScore: report.confidenceScore,
         communicationScore: report.communicationScore,
       });
-      
       if (earned.length > 0) {
         setShowAchievementConfetti(true);
         playSound("achievement");
       }
     };
-    
     checkAchievements();
   }, [report, checkAndAwardAchievements, playSound]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-500";
+    if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-amber-500";
     return "text-red-500";
   };
@@ -118,28 +116,52 @@ export const InterviewReport = ({
     return "Needs Improvement";
   };
 
-  // Radar chart data
+  const handleSpeak = (text: string, index: number) => {
+    if (speakingIndex === index && isSpeaking) {
+      stopSpeaking();
+      setSpeakingIndex(null);
+    } else {
+      stopSpeaking();
+      setSpeakingIndex(index);
+      speak(text);
+    }
+  };
+
+  // Radar chart data (5 dimensions)
   const radarData = [
+    { skill: "Technical", score: report.technicalScore, fullMark: 100 },
     { skill: "Communication", score: report.communicationScore, fullMark: 100 },
     { skill: "Confidence", score: report.confidenceScore, fullMark: 100 },
-    { skill: "Technical", score: report.technicalScore, fullMark: 100 },
-    { skill: "Overall", score: report.overallScore, fullMark: 100 },
+    { skill: "Problem Solving", score: report.problemSolvingScore ?? Math.round((report.technicalScore + report.overallScore) / 2), fullMark: 100 },
+    { skill: "Culture Fit", score: report.cultureFitScore ?? Math.round((report.communicationScore + report.confidenceScore) / 2), fullMark: 100 },
   ];
 
-  // Question-by-question performance data
+  // Sentiment pie
+  const sentiment = report.sentiment ?? { positive: 55, neutral: 30, hesitant: 15 };
+  const sentimentData = [
+    { name: "Positive", value: sentiment.positive },
+    { name: "Neutral", value: sentiment.neutral },
+    { name: "Hesitant", value: sentiment.hesitant },
+  ];
+
+  // Timeline
+  const timeline = report.confidenceTimeline ?? responses.map((r) => r.feedback?.score ?? 50);
+  const timelineData = timeline.map((val, i) => ({ question: `Q${i + 1}`, confidence: val }));
+
+  // Question scores
   const questionScores = responses.map((r, i) => ({
     question: `Q${i + 1}`,
     score: r.feedback?.score || 0,
-    fullName: r.question.substring(0, 30) + "...",
   }));
 
-  // Download report as PDF
+  // Badges
+  const badges = report.badges ?? [];
+
+  // PDF download
   const handleDownload = async () => {
     toast.info("Generating PDF...");
     try {
       const htmlContent = generateReportHTML(report, responses, interviewType);
-
-      // Render HTML in a hidden iframe to capture it
       const iframe = document.createElement("iframe");
       iframe.style.position = "fixed";
       iframe.style.left = "-9999px";
@@ -147,36 +169,22 @@ export const InterviewReport = ({
       iframe.style.height = "1600px";
       iframe.style.border = "none";
       document.body.appendChild(iframe);
-
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       if (!iframeDoc) throw new Error("Could not access iframe");
       iframeDoc.open();
       iframeDoc.write(htmlContent);
       iframeDoc.close();
-
-      // Wait for fonts/images to load
       await new Promise((r) => setTimeout(r, 800));
-
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
-
-      const canvas = await html2canvas(iframeDoc.body, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#0f172a",
-        width: 1100,
-        windowWidth: 1100,
-      });
-
+      const canvas = await html2canvas(iframeDoc.body, { scale: 2, useCORS: true, backgroundColor: "#ffffff", width: 1100, windowWidth: 1100 });
       document.body.removeChild(iframe);
-
       const imgData = canvas.toDataURL("image/png");
-      const pdfWidth = 210; // A4 mm
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pdf = new jsPDF({ orientation: pdfHeight > 297 ? "p" : "p", unit: "mm", format: [pdfWidth, pdfHeight] });
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [pdfWidth, pdfHeight] });
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`interview-report-${new Date().toISOString().split("T")[0]}.pdf`);
-
       toast.success("PDF report downloaded!");
     } catch (err) {
       console.error("PDF generation failed:", err);
@@ -184,62 +192,19 @@ export const InterviewReport = ({
     }
   };
 
-  // Share report
   const handleShare = async () => {
     const shareText = `I just completed an AI Interview! 🎯\n\nOverall Score: ${report.overallScore}/100\nCommunication: ${report.communicationScore}/100\nConfidence: ${report.confidenceScore}/100\nTechnical: ${report.technicalScore}/100`;
-    
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "My AI Interview Results",
-          text: shareText,
-        });
-      } catch (err) {
-        console.error("Share failed:", err);
-      }
+      try { await navigator.share({ title: "My AI Interview Results", text: shareText }); } catch {}
     } else {
       await navigator.clipboard.writeText(shareText);
       toast.success("Results copied to clipboard!");
     }
   };
 
-  const scoreCards = [
-    { 
-      label: "Overall", 
-      score: report.overallScore, 
-      icon: Award, 
-      color: "from-primary to-primary/80",
-      bgColor: "bg-primary/10"
-    },
-    { 
-      label: "Communication", 
-      score: report.communicationScore, 
-      icon: MessageSquare, 
-      color: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-500/10"
-    },
-    { 
-      label: "Confidence", 
-      score: report.confidenceScore, 
-      icon: TrendingUp, 
-      color: "from-green-500 to-green-600",
-      bgColor: "bg-green-500/10"
-    },
-    { 
-      label: "Technical", 
-      score: report.technicalScore, 
-      icon: Brain, 
-      color: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-500/10"
-    },
-  ];
-
   return (
     <>
-      <ConfettiRain 
-        isActive={showAchievementConfetti} 
-        onComplete={() => setShowAchievementConfetti(false)} 
-      />
+      <ConfettiRain isActive={showAchievementConfetti} onComplete={() => setShowAchievementConfetti(false)} />
       <SuccessCelebration
         isOpen={showCelebration}
         onClose={() => setShowCelebration(false)}
@@ -248,293 +213,305 @@ export const InterviewReport = ({
         actionLabel="View Full Report"
         onAction={() => setShowCelebration(false)}
       />
-      
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-4">
-            <CheckCircle2 className="w-10 h-10 text-green-500" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Interview Complete!</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">{report.summary}</p>
-        </motion.div>
 
-        {/* Score Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          {scoreCards.map((card, i) => (
-            <Card key={card.label} className={cn("p-5 text-center", card.bgColor)}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 + i * 0.1, type: "spring" }}
-              >
-                <div className={cn(
-                  "w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center",
-                  "bg-gradient-to-br", card.color
-                )}>
-                  <card.icon className="w-6 h-6 text-white" />
+      <div className="min-h-screen bg-gray-50 py-8 px-4" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="max-w-5xl mx-auto space-y-6">
+
+          {/* ── Header ── */}
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-4">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Interview Complete!</h1>
+            <p className="text-gray-500 max-w-lg mx-auto">{report.summary}</p>
+          </motion.div>
+
+          {/* ── Circular Score Card ── */}
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}>
+            <Card className="p-8 text-center bg-white shadow-sm border-gray-200">
+              <div className="relative w-40 h-40 mx-auto mb-4">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                  <circle
+                    cx="50" cy="50" r="42" fill="none"
+                    stroke={report.overallScore >= 80 ? "#22c55e" : report.overallScore >= 60 ? "#f59e0b" : "#ef4444"}
+                    strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={`${(report.overallScore / 100) * 263.9} 263.9`}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={cn("text-4xl font-bold", getScoreColor(report.overallScore))}>{report.overallScore}</span>
+                  <span className="text-xs text-gray-400">/100</span>
                 </div>
-                <p className={cn("text-4xl font-bold mb-1", getScoreColor(card.score))}>
-                  {card.score}
-                </p>
-                <p className="text-sm text-muted-foreground">{card.label}</p>
-              </motion.div>
-            </Card>
-          ))}
-        </motion.div>
-
-        {/* Overall Assessment */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Target className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Overall Assessment</h3>
-                <p className={cn("text-sm font-medium", getScoreColor(report.overallScore))}>
-                  {getScoreLabel(report.overallScore)}
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Interview Performance</span>
-                  <span className="font-medium text-foreground">{report.overallScore}%</span>
-                </div>
-                <Progress value={report.overallScore} className="h-3" />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+              <p className={cn("text-lg font-semibold", getScoreColor(report.overallScore))}>{getScoreLabel(report.overallScore)}</p>
+              <p className="text-sm text-gray-400 mt-1">Overall Interview Score</p>
 
-        {/* Performance Charts */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="grid md:grid-cols-2 gap-6"
-        >
-          {/* Radar Chart */}
-          <Card className="p-6">
-            <h3 className="font-semibold text-foreground mb-4">Skills Overview</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(var(--muted-foreground) / 0.3)" />
-                  <PolarAngleAxis 
-                    dataKey="skill" 
-                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  />
-                  <PolarRadiusAxis 
-                    angle={30} 
-                    domain={[0, 100]} 
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-                  />
-                  <Radar
-                    name="Score"
-                    dataKey="score"
-                    stroke="hsl(var(--primary))"
-                    fill="hsl(var(--primary))"
-                    fillOpacity={0.4}
-                    strokeWidth={2}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Question Performance Bar Chart */}
-          <Card className="p-6">
-            <h3 className="font-semibold text-foreground mb-4">Question Performance</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={questionScores}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.2)" />
-                  <XAxis 
-                    dataKey="question" 
-                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  />
-                  <YAxis 
-                    domain={[0, 100]} 
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    labelStyle={{ color: "hsl(var(--foreground))" }}
-                  />
-                  <Bar 
-                    dataKey="score" 
-                    fill="hsl(var(--primary))"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Strengths & Improvements */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid md:grid-cols-2 gap-6"
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <h3 className="font-semibold text-foreground">Your Strengths</h3>
-            </div>
-            <ul className="space-y-3">
-              {report.strengths.map((strength, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                  </div>
-                  <span className="text-sm text-foreground">{strength}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-amber-500" />
-              <h3 className="font-semibold text-foreground">Areas to Improve</h3>
-            </div>
-            <ul className="space-y-3">
-              {report.improvements.map((improvement, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                  </div>
-                  <span className="text-sm text-foreground">{improvement}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </Card>
-        </motion.div>
-
-        {/* Recommendations */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="p-6">
-            <h3 className="font-semibold text-foreground mb-4">Personalized Recommendations</h3>
-            <div className="space-y-3">
-              {report.recommendations.map((rec, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <Badge variant="secondary" className="mt-0.5">{i + 1}</Badge>
-                  <span className="text-sm text-foreground">{rec}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Response Details */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          <Card className="p-6">
-            <h3 className="font-semibold text-foreground mb-4">Your Responses</h3>
-            <ScrollArea className="max-h-[400px] pr-4">
-              <div className="space-y-4">
-                {responses.map((response, i) => (
-                  <div key={i} className="border-b border-border last:border-0 pb-4 last:pb-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <p className="font-medium text-primary text-sm">Q{i + 1}: {response.question}</p>
-                      {response.feedback && (
-                        <Badge 
-                          variant={response.feedback.score >= 70 ? "default" : "secondary"}
-                          className={response.feedback.score >= 70 ? "bg-green-600" : ""}
-                        >
-                          {response.feedback.score}/100
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {response.answer === "[Skipped]" ? (
-                        <span className="italic">Question skipped</span>
-                      ) : (
-                        response.answer
-                      )}
-                    </p>
-                    {response.feedback && (
-                      <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                        {response.feedback.feedback}
-                      </p>
-                    )}
+              {/* Sub-scores */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+                {[
+                  { label: "Technical", score: report.technicalScore, icon: Brain },
+                  { label: "Communication", score: report.communicationScore, icon: MessageSquare },
+                  { label: "Confidence", score: report.confidenceScore, icon: TrendingUp },
+                  { label: "Problem Solving", score: report.problemSolvingScore ?? 0, icon: Target },
+                  { label: "Culture Fit", score: report.cultureFitScore ?? 0, icon: Heart },
+                ].map((s) => (
+                  <div key={s.label} className="text-center">
+                    <s.icon className="w-5 h-5 mx-auto mb-1 text-gray-400" />
+                    <p className={cn("text-xl font-bold", getScoreColor(s.score))}>{s.score}</p>
+                    <p className="text-[11px] text-gray-400">{s.label}</p>
                   </div>
                 ))}
               </div>
-            </ScrollArea>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
 
-        {/* Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="flex flex-wrap justify-center gap-4"
-        >
-          <Button size="lg" onClick={onPracticeAgain}>
-            <Play className="w-4 h-4 mr-2" />
-            Practice Again
-          </Button>
-          <Button size="lg" variant="outline" onClick={handleDownload}>
-            <Download className="w-4 h-4 mr-2" />
-            Download Report
-          </Button>
-          <Button size="lg" variant="outline" onClick={handleShare}>
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Results
-          </Button>
-          <Button size="lg" variant="ghost" onClick={() => navigate("/ai-interview-bot")}>
-            <Home className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </motion.div>
+          {/* ── Charts Row: Radar + Sentiment Pie + Timeline ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid md:grid-cols-3 gap-6">
+            {/* Radar Chart */}
+            <Card className="p-5 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">Performance Radar</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="#e5e7eb" />
+                    <PolarAngleAxis dataKey="skill" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#9ca3af", fontSize: 9 }} />
+                    <Radar name="Score" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} strokeWidth={2} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            {/* Sentiment Pie */}
+            <Card className="p-5 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">Tone Analysis</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name} ${value}%`} labelLine={false}>
+                      {sentimentData.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-center gap-4 mt-2">
+                {sentimentData.map((s, i) => (
+                  <div key={s.name} className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
+                    {s.name}
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Confidence Timeline */}
+            <Card className="p-5 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">Confidence Timeline</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={timelineData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis dataKey="question" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "#9ca3af", fontSize: 9 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: 12 }} />
+                    <Line type="monotone" dataKey="confidence" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4, fill: "#8b5cf6" }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* ── Strengths & Weaknesses ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid md:grid-cols-2 gap-6">
+            <Card className="p-6 bg-white shadow-sm border-gray-200">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-gray-900">What You Nailed</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.strengths.map((s, i) => (
+                  <motion.li key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">{s}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-6 bg-white shadow-sm border-gray-200">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-amber-500" />
+                <h3 className="font-semibold text-gray-900">Areas to Improve</h3>
+              </div>
+              <ul className="space-y-3">
+                {report.improvements.map((s, i) => (
+                  <motion.li key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                    </div>
+                    <span className="text-sm text-gray-700">{s}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </Card>
+          </motion.div>
+
+          {/* ── Question Review with "Better Way to Say It" ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <Card className="p-6 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4">Sample Question Review</h3>
+              <ScrollArea className="max-h-[500px] pr-2">
+                <div className="space-y-5">
+                  {responses.map((response, i) => {
+                    const betterAnswer = report.betterAnswers?.[i];
+                    return (
+                      <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50">
+                        {/* Question */}
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <p className="font-medium text-gray-900 text-sm">Q{i + 1}: {response.question}</p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSpeak(betterAnswer || response.answer, i)}
+                              className={cn(
+                                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                                speakingIndex === i && isSpeaking
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                              )}
+                              title="Listen to better answer"
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </button>
+                            {response.feedback && (
+                              <Badge variant={response.feedback.score >= 70 ? "default" : "secondary"} className={cn("text-xs", response.feedback.score >= 70 ? "bg-green-600 hover:bg-green-700" : "")}>
+                                {response.feedback.score}/100
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* User's answer */}
+                        <div className="mb-3">
+                          <p className="text-[11px] uppercase tracking-wider text-gray-400 font-medium mb-1">Your Answer</p>
+                          <p className="text-sm text-gray-600">
+                            {response.answer === "[Skipped]" ? <span className="italic text-gray-400">Skipped</span> : response.answer}
+                          </p>
+                        </div>
+
+                        {/* Better way */}
+                        {betterAnswer && (
+                          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                            <p className="text-[11px] uppercase tracking-wider text-blue-500 font-medium mb-1">💡 Better Way to Say It</p>
+                            <p className="text-sm text-blue-800 leading-relaxed">{betterAnswer}</p>
+                          </div>
+                        )}
+
+                        {/* Feedback */}
+                        {response.feedback && (
+                          <p className="text-xs text-gray-400 mt-2 bg-white p-2 rounded border border-gray-100">
+                            {response.feedback.feedback}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </Card>
+          </motion.div>
+
+          {/* ── Question Performance Bar Chart ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+            <Card className="p-6 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4">Question-by-Question Performance</h3>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={questionScores}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis dataKey="question" tick={{ fill: "#6b7280", fontSize: 11 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: "#9ca3af", fontSize: 10 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: 12 }} />
+                    <Bar dataKey="score" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* ── Badges Earned ── */}
+          {badges.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <Card className="p-6 bg-white shadow-sm border-gray-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  <h3 className="font-semibold text-gray-900">Badges Earned</h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {badges.map((badge, i) => {
+                    const Icon = BADGE_ICONS[badge.icon] || Award;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.6 + i * 0.1, type: "spring" }}
+                        className="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-2 shadow-md">
+                          <Icon className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">{badge.name}</p>
+                        <p className="text-[11px] text-gray-500 mt-1">{badge.description}</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* ── Recommendations ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+            <Card className="p-6 bg-white shadow-sm border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4">Personalized Recommendations</h3>
+              <div className="space-y-3">
+                {report.recommendations.map((rec, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                    <Badge variant="secondary" className="mt-0.5 bg-blue-100 text-blue-700 border-0">{i + 1}</Badge>
+                    <span className="text-sm text-gray-700">{rec}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* ── Actions ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="flex flex-wrap justify-center gap-3 pb-8">
+            <Button size="lg" onClick={onPracticeAgain} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md">
+              <Play className="w-4 h-4 mr-2" />
+              Practice Again
+            </Button>
+            <Button size="lg" variant="outline" onClick={handleDownload} className="rounded-xl border-gray-300">
+              <FileDown className="w-4 h-4 mr-2" />
+              Download Full Report (PDF)
+            </Button>
+            <Button size="lg" variant="outline" onClick={handleShare} className="rounded-xl border-gray-300">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Results
+            </Button>
+            <Button size="lg" variant="ghost" onClick={() => navigate("/ai-interview-bot")} className="rounded-xl">
+              <Home className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </motion.div>
+        </div>
       </div>
-    </div>
     </>
   );
 };
