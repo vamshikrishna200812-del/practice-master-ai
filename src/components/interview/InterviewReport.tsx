@@ -133,17 +133,55 @@ export const InterviewReport = ({
     fullName: r.question.substring(0, 30) + "...",
   }));
 
-  // Download report as beautiful HTML
-  const handleDownload = () => {
-    const htmlContent = generateReportHTML(report, responses, interviewType);
-    const blob = new Blob([htmlContent], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `interview-report-${new Date().toISOString().split("T")[0]}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Report downloaded! Open the HTML file in your browser to view.");
+  // Download report as PDF
+  const handleDownload = async () => {
+    toast.info("Generating PDF...");
+    try {
+      const htmlContent = generateReportHTML(report, responses, interviewType);
+
+      // Render HTML in a hidden iframe to capture it
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.left = "-9999px";
+      iframe.style.width = "1100px";
+      iframe.style.height = "1600px";
+      iframe.style.border = "none";
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) throw new Error("Could not access iframe");
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+
+      // Wait for fonts/images to load
+      await new Promise((r) => setTimeout(r, 800));
+
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(iframeDoc.body, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0f172a",
+        width: 1100,
+        windowWidth: 1100,
+      });
+
+      document.body.removeChild(iframe);
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdfWidth = 210; // A4 mm
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF({ orientation: pdfHeight > 297 ? "p" : "p", unit: "mm", format: [pdfWidth, pdfHeight] });
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`interview-report-${new Date().toISOString().split("T")[0]}.pdf`);
+
+      toast.success("PDF report downloaded!");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
   };
 
   // Share report
