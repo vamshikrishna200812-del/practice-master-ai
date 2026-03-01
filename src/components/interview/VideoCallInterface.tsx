@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Mic, MicOff, Video, VideoOff, PhoneOff, Volume2, MessageSquare,
+  Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare,
   Brain, Loader2, ChevronRight, TrendingUp, CheckCircle2,
-  AlertTriangle,
+  AlertTriangle, Sparkles, Lightbulb, User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -74,6 +74,16 @@ export const VideoCallInterface = ({
   const [showEndModal, setShowEndModal] = useState(false);
   const [waveformBars, setWaveformBars] = useState<number[]>(Array(24).fill(4));
   const [displayedText, setDisplayedText] = useState("");
+  const [copilotMessages, setCopilotMessages] = useState<
+    { id: string; type: "hint" | "transcript" | "feedback"; text: string; time: string }[]
+  >([
+    {
+      id: "welcome",
+      type: "hint",
+      text: "Great to see you! Ready for your NextGen Interview? I'll provide real-time hints and feedback as you go. 🚀",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    },
+  ]);
 
   // Attach user stream
   useEffect(() => {
@@ -82,16 +92,14 @@ export const VideoCallInterface = ({
     }
   }, [userStream, userVideoRef]);
 
-  // Voice waveform animation
+  // Voice waveform
   useEffect(() => {
     if (isSpeaking) {
       const interval = setInterval(() => {
         setWaveformBars(
           Array.from({ length: 24 }, (_, i) => {
-            const center = 12;
-            const dist = Math.abs(i - center);
-            const base = Math.max(4, 28 - dist * 2);
-            return base + Math.random() * 18;
+            const dist = Math.abs(i - 12);
+            return Math.max(4, 28 - dist * 2) + Math.random() * 18;
           })
         );
       }, 80);
@@ -100,7 +108,7 @@ export const VideoCallInterface = ({
     setWaveformBars(Array(24).fill(4));
   }, [isSpeaking]);
 
-  // Typewriter effect for live transcript
+  // Typewriter
   useEffect(() => {
     if (!currentQuestion) {
       setDisplayedText("");
@@ -117,6 +125,36 @@ export const VideoCallInterface = ({
     return () => clearInterval(id);
   }, [currentQuestion, isSpeaking]);
 
+  // Push questions to copilot feed
+  useEffect(() => {
+    if (currentQuestion) {
+      setCopilotMessages((prev) => [
+        ...prev,
+        {
+          id: `q-${questionNumber}-${Date.now()}`,
+          type: "transcript",
+          text: `Q${questionNumber}: ${currentQuestion}`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
+  }, [currentQuestion, questionNumber]);
+
+  // Push feedback to copilot
+  useEffect(() => {
+    if (currentFeedback) {
+      setCopilotMessages((prev) => [
+        ...prev,
+        {
+          id: `fb-${Date.now()}`,
+          type: "feedback",
+          text: `Score: ${currentFeedback.score}/100 — ${currentFeedback.feedback}`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
+  }, [currentFeedback]);
+
   // Avatar video handling
   useEffect(() => {
     if (avatarVideoUrl && avatarVideoRef.current) {
@@ -131,386 +169,366 @@ export const VideoCallInterface = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-[hsl(222,20%,6%)] flex flex-col z-50 select-none">
-      {/* ─── TOP STATUS BAR ─── */}
-      <div className="h-12 flex items-center justify-between px-4 md:px-6 bg-white/[0.03] border-b border-white/[0.06] backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-            <Brain className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-sm font-semibold text-white/90 hidden sm:inline">
-            AI Interview Chamber
-          </span>
-          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] px-2 py-0 h-5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
-            LIVE
-          </Badge>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-white/40 hidden sm:inline">
-            Question {questionNumber}/{totalQuestions}
-          </span>
-          <Progress
-            value={(questionNumber / totalQuestions) * 100}
-            className="w-24 md:w-36 h-1.5 bg-white/10 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-violet-500"
-          />
-        </div>
-      </div>
-
-      {/* ─── MAIN STAGE ─── */}
-      <div className="flex-1 relative overflow-hidden">
-        {/* AI Avatar - Full Cinematic View */}
-        <div className="absolute inset-0">
-          {avatarVideoUrl && !avatarError ? (
-            <video
-              ref={avatarVideoRef}
-              src={avatarVideoUrl}
-              onCanPlay={handleAvatarCanPlay}
-              onEnded={onAvatarVideoEnd}
-              className="w-full h-full object-cover"
-              playsInline
-            />
-          ) : (
-            <HumanAvatar
-              isSpeaking={isSpeaking}
-              isLoading={isAvatarLoading || isLoading}
-              emotion={emotion}
-            />
-          )}
-
-          {/* Loading overlay */}
-          <AnimatePresence>
-            {avatarVideoUrl && !isAvatarVideoReady && (
-              <motion.div
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-[hsl(222,20%,6%)] flex items-center justify-center"
-              >
-                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* AI Thinking Aura */}
-          <AnimatePresence>
-            {(isAvatarLoading || isLoading) && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 pointer-events-none"
-              >
-                <motion.div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] md:w-[500px] md:h-[500px] rounded-full border border-blue-500/20"
-                  animate={{ rotate: 360, scale: [1, 1.08, 1] }}
-                  transition={{ rotate: { duration: 8, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity } }}
-                  style={{
-                    background: "radial-gradient(circle, hsl(220 80% 60% / 0.08) 0%, transparent 70%)",
-                  }}
-                />
-                <motion.div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] md:w-[400px] md:h-[400px] rounded-full border border-violet-500/15"
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Vignette overlay */}
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_40%,hsl(222,20%,6%)_100%)]" />
-        </div>
-
-        {/* ─── VOICE WAVEFORM (bottom of AI frame) ─── */}
-        <AnimatePresence>
-          {isSpeaking && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 flex items-end gap-[2px] h-10"
-            >
-              {waveformBars.map((h, i) => (
-                <motion.div
-                  key={i}
-                  className="w-[3px] rounded-full bg-gradient-to-t from-blue-500/60 to-violet-400/80"
-                  animate={{ height: `${h}px` }}
-                  transition={{ duration: 0.08, ease: "easeOut" }}
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ─── LIVE TRANSCRIPT OVERLAY ─── */}
-        <motion.div
-          layout
-          className="absolute bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-2xl"
-        >
-          <div className="bg-black/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 md:p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center mt-0.5">
-                <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1.5 font-medium">
-                  AI Interviewer
-                </p>
-                <p className="text-sm md:text-base leading-relaxed text-white/90 font-light">
-                  {displayedText}
-                  {displayedText.length < (currentQuestion?.length || 0) && (
-                    <motion.span
-                      className="inline-block w-[2px] h-4 bg-blue-400 ml-0.5 align-text-bottom"
-                      animate={{ opacity: [1, 0] }}
-                      transition={{ duration: 0.6, repeat: Infinity }}
-                    />
-                  )}
-                </p>
-              </div>
+    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row select-none" style={{ background: "#F3F4F6" }}>
+      {/* ═══════════════════════ LEFT: INTERVIEW STAGE (75%) ═══════════════════════ */}
+      <div className="flex-1 lg:w-3/4 flex flex-col min-h-0 p-3 lg:p-4">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-md">
+              <Brain className="w-4 h-4 text-white" />
             </div>
+            <span className="text-sm font-semibold text-gray-800 hidden sm:inline">
+              AI Interview Chamber
+            </span>
           </div>
-        </motion.div>
 
-        {/* ─── USER PIP FEED ─── */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-4 right-4 md:bottom-36 md:top-auto md:right-6"
-        >
-          <div
-            className={cn(
-              "w-36 h-28 md:w-52 md:h-40 rounded-2xl overflow-hidden border relative",
-              isListening
-                ? "border-blue-500/60 shadow-[0_0_24px_hsl(220_80%_60%/0.25)]"
-                : "border-white/[0.08] shadow-2xl"
-            )}
-          >
-            <video
-              ref={userVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className={cn(
-                "w-full h-full object-cover transition-opacity duration-300",
-                isCameraOn ? "opacity-100" : "opacity-0"
-              )}
-              style={{ transform: "scaleX(-1)" }}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400">
+              Question {questionNumber} of {totalQuestions}
+            </span>
+            <Progress
+              value={(questionNumber / totalQuestions) * 100}
+              className="w-24 md:w-36 h-1.5 bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-violet-500"
             />
+          </div>
+        </div>
 
-            {!isCameraOn && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[hsl(222,20%,10%)]">
-                <VideoOff className="w-6 h-6 text-white/20 mb-1" />
-                <span className="text-[10px] text-white/20">Camera Off</span>
-              </div>
+        {/* Video Container */}
+        <div className="flex-1 relative rounded-2xl overflow-hidden bg-gray-900 shadow-xl min-h-0">
+          {/* AI Avatar */}
+          <div className="absolute inset-0">
+            {avatarVideoUrl && !avatarError ? (
+              <video
+                ref={avatarVideoRef}
+                src={avatarVideoUrl}
+                onCanPlay={handleAvatarCanPlay}
+                onEnded={onAvatarVideoEnd}
+                className="w-full h-full object-cover"
+                playsInline
+              />
+            ) : (
+              <HumanAvatar
+                isSpeaking={isSpeaking}
+                isLoading={isAvatarLoading || isLoading}
+                emotion={emotion}
+              />
             )}
 
-            <FaceDetectionFeedback videoRef={userVideoRef} isActive={isCameraOn} />
-
-            {/* Recording indicator */}
+            {/* Loading */}
             <AnimatePresence>
-              {(isRecording || isListening) && (
+              {avatarVideoUrl && !isAvatarVideoReady && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute top-2 right-2"
+                  className="absolute inset-0 bg-gray-900 flex items-center justify-center"
                 >
-                  <Badge className="bg-red-600/90 text-white text-[10px] gap-1 py-0 h-5 border-0">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    REC
-                  </Badge>
+                  <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {isCameraOn && !isRecording && !isListening && (
-              <div className="absolute top-2 left-2">
-                <Badge className="bg-black/50 backdrop-blur-sm text-emerald-400 text-[10px] py-0 h-5 border border-emerald-500/20">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />
-                  LIVE
-                </Badge>
-              </div>
-            )}
-
-            <div className="absolute bottom-2 left-2">
-              <span className="text-[10px] text-white/50 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                You
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ─── AI SPEAKING BADGE ─── */}
-        <AnimatePresence>
-          {(isSpeaking || isAvatarLoading) && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="absolute top-4 left-4"
-            >
-              <Badge className="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs gap-1.5 px-3 py-1">
-                {isAvatarLoading ? (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Thinking…
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="w-3 h-3" />
-                    Speaking
-                  </>
-                )}
-              </Badge>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ─── FEEDBACK TOAST ─── */}
-        <AnimatePresence>
-          {currentFeedback && (
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 40 }}
-              className="absolute top-4 right-44 md:top-6 md:right-64 w-64"
-            >
-              <div className="bg-black/70 backdrop-blur-xl border border-white/[0.08] rounded-xl p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] uppercase tracking-widest text-white/30 font-medium">
-                    Feedback
-                  </span>
-                  <Badge
-                    className={cn(
-                      "text-[10px] h-5 border-0",
-                      currentFeedback.score >= 70
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    )}
-                  >
-                    {currentFeedback.score}/100
-                  </Badge>
-                </div>
-                <p className="text-xs text-white/60 mb-2 line-clamp-2">
-                  {currentFeedback.feedback}
-                </p>
-                {currentFeedback.strengths.slice(0, 1).map((s, i) => (
-                  <p key={i} className="text-[10px] text-emerald-400/80 flex items-start gap-1">
-                    <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-1">{s}</span>
-                  </p>
-                ))}
-                {currentFeedback.improvements.slice(0, 1).map((s, i) => (
-                  <p key={i} className="text-[10px] text-amber-400/80 flex items-start gap-1 mt-0.5">
-                    <TrendingUp className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <span className="line-clamp-1">{s}</span>
-                  </p>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* ─── FLOATING CONTROL DOCK ─── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-        <motion.div
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-          className="flex items-center gap-2 md:gap-3 bg-black/70 backdrop-blur-2xl border border-white/[0.08] rounded-full px-3 md:px-5 py-2.5 shadow-2xl"
-        >
-          {/* Mute */}
-          <button
-            onClick={() => setIsMuted(!isMuted)}
-            className={cn(
-              "w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200",
-              isMuted
-                ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                : "bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white"
-            )}
-          >
-            {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-          </button>
-
-          {/* Camera */}
-          <button
-            className={cn(
-              "w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200",
-              !isCameraOn
-                ? "bg-red-500/20 text-red-400"
-                : "bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white"
-            )}
-            disabled
-          >
-            {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-          </button>
-
-          {/* Divider */}
-          <div className="w-px h-7 bg-white/[0.08]" />
-
-          {/* Record / Submit */}
-          {isRecording ? (
-            <Button
-              onClick={onStopRecording}
-              disabled={isLoading}
-              className="h-11 px-5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm border-0 shadow-lg shadow-emerald-500/20"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="hidden sm:inline ml-1">Processing</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="hidden sm:inline ml-1">Submit</span>
-                </>
+            {/* AI Thinking Aura */}
+            <AnimatePresence>
+              {(isAvatarLoading || isLoading) && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
+                  <motion.div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] md:w-[480px] md:h-[480px] rounded-full border border-blue-400/20"
+                    animate={{ rotate: 360, scale: [1, 1.06, 1] }}
+                    transition={{ rotate: { duration: 8, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity } }}
+                    style={{ background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)" }}
+                  />
+                </motion.div>
               )}
-            </Button>
-          ) : (
-            <Button
-              onClick={onStartRecording}
-              disabled={isLoading || isSpeaking || isAvatarLoading}
-              className="h-11 px-5 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm border-0 shadow-lg shadow-blue-500/20"
-            >
-              <Mic className="w-4 h-4" />
-              <span className="hidden sm:inline ml-1">Speak</span>
-            </Button>
+            </AnimatePresence>
+
+            {/* Subtle vignette */}
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.35)_100%)]" />
+          </div>
+
+          {/* ── Status Badge ── */}
+          <div className="absolute top-4 left-4">
+            <Badge className="bg-emerald-500/90 text-white border-0 text-xs gap-1.5 px-3 py-1 shadow-lg">
+              <motion.div
+                className="w-2 h-2 rounded-full bg-white"
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              AI Interviewer Connected
+            </Badge>
+          </div>
+
+          {/* ── Voice Waveform ── */}
+          <AnimatePresence>
+            {isSpeaking && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-end gap-[2px] h-10"
+              >
+                {waveformBars.map((h, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-[3px] rounded-full bg-gradient-to-t from-blue-400/70 to-violet-400/90"
+                    animate={{ height: `${h}px` }}
+                    transition={{ duration: 0.08, ease: "easeOut" }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Live Transcript Overlay ── */}
+          {displayedText && (
+            <motion.div layout className="absolute bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-2xl">
+              <div className="bg-black/50 backdrop-blur-xl rounded-xl px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="w-4 h-4 text-blue-300 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1 font-medium">AI Interviewer</p>
+                    <p className="text-sm leading-relaxed text-white/90">
+                      {displayedText}
+                      {displayedText.length < (currentQuestion?.length || 0) && (
+                        <motion.span className="inline-block w-[2px] h-4 bg-blue-400 ml-0.5 align-text-bottom" animate={{ opacity: [1, 0] }} transition={{ duration: 0.6, repeat: Infinity }} />
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           )}
 
-          {/* Skip */}
-          <button
-            onClick={onSkipQuestion}
-            disabled={isLoading}
-            className="h-11 px-4 rounded-full bg-white/[0.06] text-white/50 hover:bg-white/[0.12] hover:text-white/80 text-sm transition-all disabled:opacity-30 flex items-center gap-1"
-          >
-            Skip
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          {/* ── User PiP Webcam ── */}
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="absolute bottom-4 right-4">
+            <div
+              className={cn(
+                "w-36 h-28 md:w-48 md:h-36 rounded-lg overflow-hidden relative shadow-2xl",
+                isListening
+                  ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900"
+                  : "border-2 border-white/20"
+              )}
+            >
+              <video
+                ref={userVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className={cn("w-full h-full object-cover transition-opacity", isCameraOn ? "opacity-100" : "opacity-0")}
+                style={{ transform: "scaleX(-1)" }}
+              />
 
-          {/* Divider */}
-          <div className="w-px h-7 bg-white/[0.08]" />
+              {!isCameraOn && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800">
+                  <VideoOff className="w-6 h-6 text-white/30 mb-1" />
+                  <span className="text-[10px] text-white/30">Camera Off</span>
+                </div>
+              )}
 
-          {/* End Session */}
-          <button
-            onClick={() => setShowEndModal(true)}
-            className="w-11 h-11 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center justify-center transition-all duration-200"
+              <FaceDetectionFeedback videoRef={userVideoRef} isActive={isCameraOn} />
+
+              <AnimatePresence>
+                {(isRecording || isListening) && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute top-2 right-2">
+                    <Badge className="bg-red-600 text-white text-[10px] gap-1 py-0 h-5 border-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      REC
+                    </Badge>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="absolute bottom-1.5 left-2">
+                <span className="text-[10px] text-white/70 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">You</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── Listening Wave (user speaking) ── */}
+          <AnimatePresence>
+            {isListening && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-0 left-0 right-0 h-1 flex items-end"
+              >
+                {Array.from({ length: 60 }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex-1 bg-blue-500/40"
+                    animate={{ height: [`${2}px`, `${3 + Math.random() * 6}px`, `${2}px`] }}
+                    transition={{ duration: 0.3 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.015 }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── Control Bar ── */}
+        <div className="flex items-center justify-center mt-3">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 py-2.5 shadow-lg border border-gray-200"
           >
-            <PhoneOff className="w-5 h-5" />
-          </button>
-        </motion.div>
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className={cn(
+                "w-11 h-11 rounded-full flex items-center justify-center transition-all",
+                isMuted ? "bg-red-50 text-red-500 hover:bg-red-100" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+            >
+              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </button>
+
+            <button
+              className={cn(
+                "w-11 h-11 rounded-full flex items-center justify-center transition-all",
+                !isCameraOn ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+              disabled
+            >
+              {isCameraOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+            </button>
+
+            <div className="w-px h-7 bg-gray-200" />
+
+            {isRecording ? (
+              <Button
+                onClick={onStopRecording}
+                disabled={isLoading}
+                className="h-11 px-5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-sm border-0 shadow-md"
+              >
+                {isLoading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /><span className="hidden sm:inline ml-1">Processing</span></>
+                ) : (
+                  <><CheckCircle2 className="w-4 h-4" /><span className="hidden sm:inline ml-1">Submit</span></>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={onStartRecording}
+                disabled={isLoading || isSpeaking || isAvatarLoading}
+                className="h-11 px-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm border-0 shadow-md"
+              >
+                <Mic className="w-4 h-4" />
+                <span className="hidden sm:inline ml-1">Speak</span>
+              </Button>
+            )}
+
+            <button
+              onClick={onSkipQuestion}
+              disabled={isLoading}
+              className="h-11 px-4 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 text-sm transition-all disabled:opacity-30 flex items-center gap-1"
+            >
+              Skip <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-px h-7 bg-gray-200" />
+
+            <button
+              onClick={() => setShowEndModal(true)}
+              className="w-11 h-11 rounded-full bg-red-500 text-white hover:bg-red-600 flex items-center justify-center transition-all shadow-md"
+            >
+              <PhoneOff className="w-5 h-5" />
+            </button>
+          </motion.div>
+        </div>
       </div>
 
-      {/* ─── END SESSION MODAL ─── */}
+      {/* ═══════════════════════ RIGHT: COPILOT SIDEBAR (25%) ═══════════════════════ */}
+      <div className="lg:w-[25%] h-64 lg:h-auto bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col">
+        {/* Sidebar Header */}
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900 tracking-tight">Copilot</h2>
+            <p className="text-[11px] text-gray-400">Real-time AI assistant</p>
+          </div>
+        </div>
+
+        {/* Copilot Feed */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="p-4 space-y-3">
+            {copilotMessages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "rounded-xl p-3 text-sm",
+                  msg.type === "hint" && "bg-violet-50 border border-violet-100",
+                  msg.type === "transcript" && "bg-blue-50 border border-blue-100",
+                  msg.type === "feedback" && "bg-emerald-50 border border-emerald-100"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  {msg.type === "hint" && <Lightbulb className="w-3.5 h-3.5 text-violet-500" />}
+                  {msg.type === "transcript" && <MessageSquare className="w-3.5 h-3.5 text-blue-500" />}
+                  {msg.type === "feedback" && <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />}
+                  <span className={cn(
+                    "text-[10px] font-semibold uppercase tracking-wider",
+                    msg.type === "hint" && "text-violet-500",
+                    msg.type === "transcript" && "text-blue-500",
+                    msg.type === "feedback" && "text-emerald-500"
+                  )}>
+                    {msg.type === "hint" ? "Hint" : msg.type === "transcript" ? "Question" : "Feedback"}
+                  </span>
+                  <span className="text-[10px] text-gray-300 ml-auto">{msg.time}</span>
+                </div>
+                <p className={cn(
+                  "text-[13px] leading-relaxed",
+                  msg.type === "hint" && "text-violet-700",
+                  msg.type === "transcript" && "text-blue-700",
+                  msg.type === "feedback" && "text-emerald-700"
+                )}>
+                  {msg.text}
+                </p>
+              </motion.div>
+            ))}
+
+            {/* User transcript live */}
+            {userTranscript && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl p-3 bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <User className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Your Answer</span>
+                  {isListening && (
+                    <div className="flex items-center gap-0.5 ml-auto">
+                      {[0, 1, 2].map((i) => (
+                        <motion.div key={i} className="w-1 bg-blue-400 rounded-full" animate={{ height: ["3px", "8px", "3px"] }} transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.1 }} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-[13px] text-gray-600 leading-relaxed">{userTranscript}</p>
+              </motion.div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Sidebar Footer */}
+        <div className="px-4 py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-[11px] text-gray-400">
+            <div className={cn("w-2 h-2 rounded-full", isLoading || isAvatarLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400")} />
+            {isLoading || isAvatarLoading ? "AI is thinking…" : "AI ready"}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════ END SESSION MODAL ═══════════════════════ */}
       <AnimatePresence>
         {showEndModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm"
             onClick={() => setShowEndModal(false)}
           >
             <motion.div
@@ -518,23 +536,20 @@ export const VideoCallInterface = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[hsl(222,20%,10%)] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
+              className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl border border-gray-200"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-7 h-7 text-red-400" />
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                  <AlertTriangle className="w-7 h-7 text-red-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  End Interview Session?
-                </h3>
-                <p className="text-sm text-white/50 mb-6">
-                  Your progress will be saved and a report will be generated
-                  based on your completed answers.
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">End Interview Session?</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Your progress will be saved and a report will be generated based on your completed answers.
                 </p>
                 <div className="flex gap-3 w-full">
                   <Button
-                    variant="ghost"
-                    className="flex-1 h-11 rounded-xl bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white border-0"
+                    variant="outline"
+                    className="flex-1 h-11 rounded-xl"
                     onClick={() => setShowEndModal(false)}
                   >
                     Continue
@@ -554,39 +569,6 @@ export const VideoCallInterface = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ─── USER TRANSCRIPT SIDEBAR (Desktop) ─── */}
-      <div className="hidden lg:block absolute top-12 right-0 bottom-0 w-72 bg-black/40 backdrop-blur-xl border-l border-white/[0.06]">
-        <div className="p-4 border-b border-white/[0.06]">
-          <h4 className="text-xs uppercase tracking-widest text-white/30 font-medium flex items-center gap-2">
-            <Mic className="w-3.5 h-3.5" />
-            Your Response
-          </h4>
-        </div>
-        <ScrollArea className="h-[calc(100%-48px)] p-4">
-          {isListening && (
-            <div className="flex items-center gap-1 mb-3 h-4">
-              {Array.from({ length: 5 }, (_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 bg-blue-400 rounded-full"
-                  animate={{ height: [`${4}px`, `${8 + Math.random() * 12}px`, `${4}px`] }}
-                  transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.08 }}
-                />
-              ))}
-              <span className="text-[10px] text-blue-400 ml-2">Listening…</span>
-            </div>
-          )}
-          <p
-            className={cn(
-              "text-sm leading-relaxed",
-              userTranscript ? "text-white/80" : "text-white/20 italic"
-            )}
-          >
-            {userTranscript || "Start speaking to see your response here…"}
-          </p>
-        </ScrollArea>
-      </div>
     </div>
   );
 };
