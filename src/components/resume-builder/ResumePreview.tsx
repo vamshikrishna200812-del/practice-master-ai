@@ -71,18 +71,51 @@ export default function ResumePreview({ resume, template }: ResumePreviewProps) 
         )}
       </div>
 
-      {/* Summary */}
+      {/* Professional Objective */}
       {resume.summary && (
         <div className="mb-3">
-          <h2 className={s.sectionTitle}>Summary</h2>
+          <h2 className={s.sectionTitle}>Professional Objective</h2>
           <p className={s.body}>{resume.summary}</p>
         </div>
       )}
 
-      {/* Experience */}
+      {/* Education */}
+      {resume.education.length > 0 && (
+        <div className="mb-3">
+          <h2 className={s.sectionTitle}>Education</h2>
+          {resume.education.map(edu => (
+            <div key={edu.id} className="mb-1.5">
+              <div className="flex justify-between items-baseline">
+                <span className="font-semibold text-[11px]">
+                  {edu.degree}{edu.field && ` in ${edu.field}`}{edu.school && ` — ${edu.school}`}
+                </span>
+                <span className="text-[9px] text-slate-400 shrink-0 ml-2">
+                  {formatDate(edu.startDate)}{edu.startDate && " – "}{formatDate(edu.endDate)}
+                </span>
+              </div>
+              {edu.gpa && <p className={cn(s.body, "text-[9.5px]")}>CGPA/Percentage: {edu.gpa}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Skills */}
+      {(resume.hardSkills.length > 0 || resume.softSkills.length > 0) && (
+        <div className="mb-3">
+          <h2 className={s.sectionTitle}>Skills</h2>
+          {resume.hardSkills.length > 0 && (
+            <p className={s.body}><span className="font-semibold">Technical:</span> {resume.hardSkills.join(" • ")}</p>
+          )}
+          {resume.softSkills.length > 0 && (
+            <p className={cn(s.body, "mt-0.5")}><span className="font-semibold">Soft Skills:</span> {resume.softSkills.join(" • ")}</p>
+          )}
+        </div>
+      )}
+
+      {/* Experience / Internships */}
       {resume.experience.length > 0 && (
         <div className="mb-3">
-          <h2 className={s.sectionTitle}>Experience</h2>
+          <h2 className={s.sectionTitle}>Internships & Experience</h2>
           {resume.experience.map(exp => (
             <div key={exp.id} className="mb-2">
               <div className="flex justify-between items-baseline">
@@ -104,34 +137,6 @@ export default function ResumePreview({ resume, template }: ResumePreviewProps) 
         </div>
       )}
 
-      {/* Education */}
-      {resume.education.length > 0 && (
-        <div className="mb-3">
-          <h2 className={s.sectionTitle}>Education</h2>
-          {resume.education.map(edu => (
-            <div key={edu.id} className="mb-1.5">
-              <div className="flex justify-between items-baseline">
-                <span className="font-semibold text-[11px]">
-                  {edu.degree}{edu.field && ` in ${edu.field}`}{edu.school && ` — ${edu.school}`}
-                </span>
-                <span className="text-[9px] text-slate-400 shrink-0 ml-2">
-                  {formatDate(edu.startDate)}{edu.startDate && " – "}{formatDate(edu.endDate)}
-                </span>
-              </div>
-              {edu.gpa && <p className={cn(s.body, "text-[9.5px]")}>GPA: {edu.gpa}</p>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Skills */}
-      {resume.skills.length > 0 && (
-        <div className="mb-3">
-          <h2 className={s.sectionTitle}>Skills</h2>
-          <p className={s.body}>{resume.skills.join(" • ")}</p>
-        </div>
-      )}
-
       {/* Projects */}
       {resume.projects.length > 0 && (
         <div className="mb-3">
@@ -147,8 +152,38 @@ export default function ResumePreview({ resume, template }: ResumePreviewProps) 
         </div>
       )}
 
+      {/* Certifications */}
+      {resume.certifications.length > 0 && (
+        <div className="mb-3">
+          <h2 className={s.sectionTitle}>Certifications</h2>
+          {resume.certifications.map(cert => (
+            <div key={cert.id} className="mb-1">
+              <span className="font-semibold text-[11px]">{cert.name}</span>
+              {cert.issuer && <span className="text-[9.5px] text-slate-500"> — {cert.issuer}</span>}
+              {cert.date && <span className="text-[9px] text-slate-400 ml-1.5">{formatDate(cert.date)}</span>}
+              {cert.link && <p className="text-[9px] text-indigo-500">{cert.link}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Achievements */}
+      {resume.achievements.length > 0 && (
+        <div className="mb-3">
+          <h2 className={s.sectionTitle}>Achievements</h2>
+          <ul className="space-y-0.5">
+            {resume.achievements.filter(a => a.description).map(a => (
+              <li key={a.id} className={cn(s.body, "flex gap-1.5")}>
+                <span className={s.bulletColor}>★</span>
+                <span>{a.description}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Empty state */}
-      {!pi.fullName && !resume.summary && resume.experience.length === 0 && (
+      {!pi.fullName && !resume.summary && resume.experience.length === 0 && resume.education.length === 0 && (
         <div className="flex items-center justify-center h-full text-slate-300 text-sm">
           Start typing to see your resume preview
         </div>

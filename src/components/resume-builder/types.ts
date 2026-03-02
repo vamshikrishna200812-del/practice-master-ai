@@ -35,13 +35,30 @@ export interface Project {
   link: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  link: string;
+}
+
+export interface Achievement {
+  id: string;
+  description: string;
+}
+
 export interface ResumeData {
   personalInfo: PersonalInfo;
   summary: string;
   experience: Experience[];
   education: Education[];
-  skills: string[];
+  hardSkills: string[];
+  softSkills: string[];
+  skills: string[]; // legacy compat
   projects: Project[];
+  certifications: Certification[];
+  achievements: Achievement[];
 }
 
 export type TemplateStyle = "modern" | "professional" | "creative" | "minimal";
@@ -58,6 +75,10 @@ export const EMPTY_RESUME: ResumeData = {
   summary: "",
   experience: [],
   education: [],
+  hardSkills: [],
+  softSkills: [],
   skills: [],
   projects: [],
+  certifications: [],
+  achievements: [],
 };

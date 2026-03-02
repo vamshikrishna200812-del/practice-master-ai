@@ -20,7 +20,10 @@ const ResumeBuilder = () => {
     updatePersonalInfo, updateSummary,
     addExperience, updateExperience, removeExperience,
     addEducation, updateEducation, removeEducation,
-    updateSkills, addProject, updateProject, removeProject,
+    updateHardSkills, updateSoftSkills,
+    addProject, updateProject, removeProject,
+    addCertification, updateCertification, removeCertification,
+    addAchievement, updateAchievement, removeAchievement,
     resetResume, calculateScore,
   } = useResumeBuilder();
 
@@ -93,10 +96,17 @@ const ResumeBuilder = () => {
               addEducation={addEducation}
               updateEducation={updateEducation}
               removeEducation={removeEducation}
-              updateSkills={updateSkills}
+              updateHardSkills={updateHardSkills}
+              updateSoftSkills={updateSoftSkills}
               addProject={addProject}
               updateProject={updateProject}
               removeProject={removeProject}
+              addCertification={addCertification}
+              updateCertification={updateCertification}
+              removeCertification={removeCertification}
+              addAchievement={addAchievement}
+              updateAchievement={updateAchievement}
+              removeAchievement={removeAchievement}
               onOpenSummaryAI={() => setSummaryModalOpen(true)}
             />
           </ScrollArea>

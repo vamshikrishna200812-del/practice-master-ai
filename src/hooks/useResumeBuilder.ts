@@ -8,7 +8,20 @@ export function useResumeBuilder() {
   const [resume, setResume] = useState<ResumeData>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : EMPTY_RESUME;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Migrate legacy data
+        return {
+          ...EMPTY_RESUME,
+          ...parsed,
+          hardSkills: parsed.hardSkills || [],
+          softSkills: parsed.softSkills || [],
+          skills: parsed.skills || [],
+          certifications: parsed.certifications || [],
+          achievements: parsed.achievements || [],
+        };
+      }
+      return EMPTY_RESUME;
     } catch {
       return EMPTY_RESUME;
     }
@@ -37,6 +50,7 @@ export function useResumeBuilder() {
     setResume(prev => ({ ...prev, summary }));
   }, []);
 
+  // Experience
   const addExperience = useCallback(() => {
     setResume(prev => ({
       ...prev,
@@ -58,6 +72,7 @@ export function useResumeBuilder() {
     setResume(prev => ({ ...prev, experience: prev.experience.filter(e => e.id !== id) }));
   }, []);
 
+  // Education
   const addEducation = useCallback(() => {
     setResume(prev => ({
       ...prev,
@@ -79,10 +94,20 @@ export function useResumeBuilder() {
     setResume(prev => ({ ...prev, education: prev.education.filter(e => e.id !== id) }));
   }, []);
 
+  // Skills (hard/soft + legacy)
+  const updateHardSkills = useCallback((hardSkills: string[]) => {
+    setResume(prev => ({ ...prev, hardSkills, skills: [...hardSkills, ...prev.softSkills] }));
+  }, []);
+
+  const updateSoftSkills = useCallback((softSkills: string[]) => {
+    setResume(prev => ({ ...prev, softSkills, skills: [...prev.hardSkills, ...softSkills] }));
+  }, []);
+
   const updateSkills = useCallback((skills: string[]) => {
     setResume(prev => ({ ...prev, skills }));
   }, []);
 
+  // Projects
   const addProject = useCallback(() => {
     setResume(prev => ({
       ...prev,
@@ -104,6 +129,50 @@ export function useResumeBuilder() {
     setResume(prev => ({ ...prev, projects: prev.projects.filter(p => p.id !== id) }));
   }, []);
 
+  // Certifications
+  const addCertification = useCallback(() => {
+    setResume(prev => ({
+      ...prev,
+      certifications: [
+        ...prev.certifications,
+        { id: crypto.randomUUID(), name: "", issuer: "", date: "", link: "" },
+      ],
+    }));
+  }, []);
+
+  const updateCertification = useCallback((id: string, field: string, value: string) => {
+    setResume(prev => ({
+      ...prev,
+      certifications: prev.certifications.map(c => c.id === id ? { ...c, [field]: value } : c),
+    }));
+  }, []);
+
+  const removeCertification = useCallback((id: string) => {
+    setResume(prev => ({ ...prev, certifications: prev.certifications.filter(c => c.id !== id) }));
+  }, []);
+
+  // Achievements
+  const addAchievement = useCallback(() => {
+    setResume(prev => ({
+      ...prev,
+      achievements: [
+        ...prev.achievements,
+        { id: crypto.randomUUID(), description: "" },
+      ],
+    }));
+  }, []);
+
+  const updateAchievement = useCallback((id: string, description: string) => {
+    setResume(prev => ({
+      ...prev,
+      achievements: prev.achievements.map(a => a.id === id ? { ...a, description } : a),
+    }));
+  }, []);
+
+  const removeAchievement = useCallback((id: string) => {
+    setResume(prev => ({ ...prev, achievements: prev.achievements.filter(a => a.id !== id) }));
+  }, []);
+
   const resetResume = useCallback(() => {
     setResume(EMPTY_RESUME);
     setTemplate("modern");
@@ -118,17 +187,18 @@ export function useResumeBuilder() {
     if (pi.phone) score += 5;
     if (pi.location) score += 5;
     if (pi.linkedin) score += 5;
-    if (resume.summary && resume.summary.length > 30) score += 15;
-    else if (resume.summary) score += 5;
-    // Experience
-    const expScore = Math.min(resume.experience.length * 8, 24);
+    if (resume.summary && resume.summary.length > 30) score += 12;
+    else if (resume.summary) score += 4;
+    const expScore = Math.min(resume.experience.length * 6, 18);
     score += expScore;
     const bulletCount = resume.experience.reduce((sum, e) => sum + e.bullets.filter(b => b.length > 10).length, 0);
-    score += Math.min(bulletCount * 3, 12);
-    // Education
-    score += Math.min(resume.education.length * 6, 12);
-    // Skills
-    score += Math.min(resume.skills.length, 7);
+    score += Math.min(bulletCount * 2, 8);
+    score += Math.min(resume.education.length * 5, 10);
+    score += Math.min(resume.hardSkills.length, 5);
+    score += Math.min(resume.softSkills.length, 4);
+    score += Math.min(resume.projects.length * 3, 6);
+    score += Math.min(resume.certifications.length * 3, 6);
+    score += Math.min(resume.achievements.length * 2, 4);
     return Math.min(score, 100);
   }, [resume]);
 
@@ -137,8 +207,10 @@ export function useResumeBuilder() {
     updatePersonalInfo, updateSummary,
     addExperience, updateExperience, removeExperience,
     addEducation, updateEducation, removeEducation,
-    updateSkills,
+    updateSkills, updateHardSkills, updateSoftSkills,
     addProject, updateProject, removeProject,
+    addCertification, updateCertification, removeCertification,
+    addAchievement, updateAchievement, removeAchievement,
     resetResume, calculateScore,
   };
 }
