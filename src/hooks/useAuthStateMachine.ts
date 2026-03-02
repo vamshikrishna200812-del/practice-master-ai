@@ -122,6 +122,7 @@ export function useAuthStateMachine() {
       const sanitized = sanitizeAuthInput(formData);
 
       // ── Transition: Idle → Authenticating ──
+      console.log("[Auth] Phase → authenticating", { isLogin, email: sanitized.email });
       setState((s) => ({
         ...s,
         phase: "authenticating",
@@ -131,20 +132,25 @@ export function useAuthStateMachine() {
 
       try {
         // ── Validate ──
+        console.log("[Auth] Validating form data…");
         const validated = isLogin
           ? loginSchema.parse({ email: sanitized.email, password: sanitized.password })
           : signupSchema.parse(sanitized);
+        console.log("[Auth] Validation passed");
 
         // ── Call Supabase ──
         if (isLogin) {
-          const { error } = await supabase.auth.signInWithPassword({
+          console.log("[Auth] Calling signInWithPassword…");
+          const { data, error } = await supabase.auth.signInWithPassword({
             email: validated.email,
             password: validated.password,
           });
+          console.log("[Auth] signInWithPassword response:", { user: data?.user?.id, error: error?.message });
           if (error) throw error;
         } else {
           const fullValidated = validated as z.infer<typeof signupSchema>;
-          const { error } = await supabase.auth.signUp({
+          console.log("[Auth] Calling signUp…");
+          const { data, error } = await supabase.auth.signUp({
             email: fullValidated.email,
             password: fullValidated.password,
             options: {
@@ -152,16 +158,28 @@ export function useAuthStateMachine() {
               emailRedirectTo: `${window.location.origin}/dashboard`,
             },
           });
+          console.log("[Auth] signUp response:", { userId: data?.user?.id, session: !!data?.session, error: error?.message });
           if (error) throw error;
+
+          // If no session returned, user needs email confirmation
+          if (!data?.session) {
+            console.log("[Auth] No session returned — email confirmation may be required");
+            setState({ phase: "idle", error: null, retryCount: 0, lastAttempt: now });
+            toast.success("Account created! Please check your email to verify your account.", { duration: 6000 });
+            navigate("/email-verification?email=" + encodeURIComponent(fullValidated.email), { replace: true });
+            return;
+          }
         }
 
         // ── Transition: Authenticating → Success (atomic redirect) ──
+        console.log("[Auth] Phase → success, redirecting to /dashboard");
         setState({ phase: "success", error: null, retryCount: 0, lastAttempt: now });
         toast.success(isLogin ? "Welcome back!" : "Account created! Welcome aboard 🎉");
 
         // Atomic redirect — replace history entry to prevent back-button re-auth
         navigate("/dashboard", { replace: true });
       } catch (error: any) {
+        console.error("[Auth] Caught error:", error);
         if (error instanceof z.ZodError) {
           // Validation errors are always "expected"
           const msg = error.errors[0].message;
