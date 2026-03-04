@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Code, BookOpen, CheckCircle2, ChevronRight, Trophy } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Search, Code, BookOpen, ChevronRight, Trophy } from "lucide-react";
 import { codingProblems, codingCourses, allTags, allCategories, POINTS_MAP } from "@/data/codingProblems";
 import { motion } from "framer-motion";
 import { useCodingSubmissions } from "@/hooks/useCodingSubmissions";
@@ -229,17 +230,13 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                   className="flex items-center gap-4 px-4 py-3 hover:bg-accent/50 cursor-pointer transition-colors group"
                   onClick={() => onSelectProblem(problem.slug)}
                 >
-                  {solvedSet.has(problem.id) ? (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hidden sm:inline-flex">Done</Badge>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <div className="w-4 h-4 rounded-full border border-muted-foreground/40" />
-                      <Badge variant="outline" className="text-[10px] hidden sm:inline-flex">Pending</Badge>
-                    </div>
-                  )}
+                  <div className="shrink-0 hidden sm:block">
+                    {solvedSet.has(problem.id) ? (
+                      <StatusBadge status="success" className="text-[10px]">Done</StatusBadge>
+                    ) : (
+                      <StatusBadge status="pending" className="text-[10px]">Pending</StatusBadge>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{problem.title}</div>
                     <div className="flex gap-1.5 mt-1 flex-wrap">
