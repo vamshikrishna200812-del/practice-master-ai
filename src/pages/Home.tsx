@@ -1,4 +1,5 @@
 import { SplineScene } from "@/components/ui/splite";
+import { BeamsBackground } from "@/components/ui/beams-background";
 import { Card } from "@/components/ui/card";
 import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
