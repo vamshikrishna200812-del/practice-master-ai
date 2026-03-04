@@ -57,7 +57,7 @@ const Auth = () => {
       <div className="absolute inset-0 bg-black" />
       <BackgroundPaths />
 
-      <Card className="w-full max-w-md p-8 bg-card/95 backdrop-blur-sm shadow-2xl relative z-10">
+      <Card className="w-full max-w-md p-8 bg-white/95 backdrop-blur-sm shadow-2xl relative z-10 border-black/10">
         <div className="text-center mb-8">
           <div className="w-24 h-24 mx-auto mb-4 rounded-2xl overflow-hidden">
             <video autoPlay loop muted playsInline className="w-full h-full object-cover">
@@ -65,8 +65,8 @@ const Auth = () => {
             </video>
           </div>
           <img src={logo} alt="AITRAININGZONE" className="w-16 h-16 rounded-xl object-cover mx-auto mb-3" />
-          <h1 className="text-3xl font-bold mb-2">AITRAININGZONE</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2 text-black">AITRAININGZONE</h1>
+          <p className="text-black/60">
             {isLogin ? "Welcome back! Ready to practice?" : "Start your journey to interview mastery"}
           </p>
         </div>
@@ -97,7 +97,7 @@ const Auth = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName" className="text-black">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
@@ -112,7 +112,7 @@ const Auth = () => {
           )}
 
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-black">Email</Label>
             <Input
               id="email"
               type="email"
@@ -126,7 +126,7 @@ const Auth = () => {
           </div>
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-black">Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -179,7 +179,7 @@ const Auth = () => {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-black text-white hover:bg-black/90"
             disabled={isSubmitting || isRetrying || state.phase === "success"}
           >
             {isSubmitting ? (
@@ -199,17 +199,17 @@ const Auth = () => {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
+            <span className="w-full border-t border-black/10" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-white px-2 text-black/50">Or continue with</span>
           </div>
         </div>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full border-black/20 text-black hover:bg-black/5"
           onClick={handleGoogleSignIn}
           disabled={isSubmitting || isRetrying || googleLoading}
         >
@@ -231,7 +231,7 @@ const Auth = () => {
             <button
               onClick={() => forgotPassword(formData.email)}
               disabled={isSubmitting || isRetrying}
-              className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors disabled:opacity-50"
+              className="text-sm text-black/50 hover:text-black hover:underline transition-colors disabled:opacity-50"
             >
               Forgot your password?
             </button>
@@ -242,7 +242,7 @@ const Auth = () => {
           <button
             onClick={handleToggleMode}
             disabled={isSubmitting || isRetrying}
-            className="text-sm text-primary hover:underline disabled:opacity-50"
+            className="text-sm text-black font-medium hover:underline disabled:opacity-50"
           >
             {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
           </button>
