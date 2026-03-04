@@ -8,7 +8,7 @@ import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { useAuthStateMachine } from "@/hooks/useAuthStateMachine";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
-import authKeyVideo from "@/assets/auth-key.mp4";
+
 import logo from "@/assets/logo.jpeg";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
@@ -59,11 +59,6 @@ const Auth = () => {
 
       <Card className="w-full max-w-md p-8 bg-white/95 backdrop-blur-sm shadow-2xl relative z-10 border-black/10">
         <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto mb-4 rounded-2xl overflow-hidden">
-            <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-              <source src={authKeyVideo} type="video/mp4" />
-            </video>
-          </div>
           <img src={logo} alt="AITRAININGZONE" className="w-16 h-16 rounded-xl object-cover mx-auto mb-3" />
           <h1 className="text-3xl font-bold mb-2 text-black">AITRAININGZONE</h1>
           <p className="text-black/60">
