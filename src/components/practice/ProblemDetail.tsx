@@ -364,10 +364,11 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                         className={`rounded-lg border p-3 ${verdictBg(r.verdict)}`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          {verdictIcon(r.verdict)}
+                          <StatusBadge status={verdictToStatus(r.verdict)} className="text-[10px]">
+                            {r.verdict}
+                          </StatusBadge>
                           <span className="text-sm font-medium">Test Case {i + 1}</span>
-                          <span className="text-xs ml-auto">{r.verdict}</span>
-                          {r.hidden && <Badge variant="outline" className="text-[10px]">Hidden</Badge>}
+                          {r.hidden && <StatusBadge status="default" className="text-[10px]">Hidden</StatusBadge>}
                         </div>
                         {!r.hidden && (
                           <div className="grid grid-cols-3 gap-2 text-xs font-mono">
@@ -411,12 +412,9 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          {sub.verdict === "Accepted" ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <XCircle className="w-4 h-4 text-red-400" />
-                          )}
-                          <span className="font-medium">{sub.verdict}</span>
+                          <StatusBadge status={sub.verdict === "Accepted" ? "success" : "error"}>
+                            {sub.verdict}
+                          </StatusBadge>
                           {sub.points_earned > 0 && (
                             <Badge variant="secondary" className="text-[10px]">+{sub.points_earned} pts</Badge>
                           )}
