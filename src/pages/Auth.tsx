@@ -8,7 +8,7 @@ import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { useAuthStateMachine } from "@/hooks/useAuthStateMachine";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
-import authKeyVideo from "@/assets/auth-key.mp4";
+
 import logo from "@/assets/logo.jpeg";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 
