@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Select,
   SelectContent,
@@ -222,12 +223,12 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
     );
   };
 
-  const verdictIcon = (v: Verdict) => {
+  const verdictToStatus = (v: Verdict): "success" | "error" | "warning" | "pending" => {
     switch (v) {
-      case "Passed": return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-      case "Failed": return <XCircle className="w-4 h-4 text-red-400" />;
-      case "Runtime Error": return <AlertTriangle className="w-4 h-4 text-orange-400" />;
-      case "Time Limit Exceeded": return <Clock className="w-4 h-4 text-amber-400" />;
+      case "Passed": return "success";
+      case "Failed": return "error";
+      case "Runtime Error": return "warning";
+      case "Time Limit Exceeded": return "pending";
     }
   };
 
