@@ -1,4 +1,5 @@
 import { SplineScene } from "@/components/ui/splite";
+import { BeamsBackground } from "@/components/ui/beams-background";
 import { Card } from "@/components/ui/card";
 import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
@@ -206,9 +207,8 @@ const StepsSection = () => (
 
 /* ─────────────────── CTA ─────────────────── */
 const CTASection = () => (
-  <section className="py-24 px-4 bg-gradient-hero relative overflow-hidden">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary-glow)/0.3),transparent_70%)]" />
-    <div className="container mx-auto relative z-10">
+  <BeamsBackground intensity="strong" className="py-24 px-4">
+    <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -216,10 +216,10 @@ const CTASection = () => (
         transition={{ duration: 0.4 }}
         className="text-center max-w-3xl mx-auto"
       >
-        <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
           Ready to Master Your Interviews?
         </h2>
-        <p className="text-xl text-primary-foreground/90 mb-10">
+        <p className="text-xl text-white/80 mb-10">
           Join thousands of successful candidates who transformed their interview skills with AITRAININGZONE
         </p>
         <Link to="/auth">
@@ -230,7 +230,7 @@ const CTASection = () => (
         </Link>
       </motion.div>
     </div>
-  </section>
+  </BeamsBackground>
 );
 
 /* ─────────────────── Footer ─────────────────── */
