@@ -175,13 +175,13 @@ export const ProgressTrendsChart = () => {
 
   if (loading) {
     return (
-      <Card className="p-6">
+      <div className="p-0">
         <div className="flex items-center justify-between mb-6">
-          <Skeleton className="h-7 w-48" />
-          <Skeleton className="h-9 w-48" />
+          <Skeleton className="h-7 w-48 bg-white/10" />
+          <Skeleton className="h-9 w-48 bg-white/10" />
         </div>
-        <Skeleton className="h-64 w-full" />
-      </Card>
+        <Skeleton className="h-64 w-full bg-white/10" />
+      </div>
     );
   }
 
@@ -189,7 +189,7 @@ export const ProgressTrendsChart = () => {
   const hasChartData = chartData.some(d => d.count > 0);
 
   return (
-    <Card className="p-6">
+    <div className="p-0">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" />
@@ -338,6 +338,6 @@ export const ProgressTrendsChart = () => {
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
