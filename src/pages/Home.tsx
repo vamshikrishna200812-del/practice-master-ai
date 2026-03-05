@@ -1,5 +1,4 @@
-import { SplineScene } from "@/components/ui/splite";
-import { BeamsBackground } from "@/components/ui/beams-background";
+import { lazy, Suspense, memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,10 @@ import {
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.jpeg";
+
+// Lazy-load heavy components
+const SplineScene = lazy(() => import("@/components/ui/splite").then(m => ({ default: m.SplineScene })));
+const BeamsBackground = lazy(() => import("@/components/ui/beams-background").then(m => ({ default: m.BeamsBackground })));
 
 /* ─────────────────── Hero Section ─────────────────── */
 const HeroSection = () => (
@@ -56,7 +59,7 @@ const HeroSection = () => (
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-14 px-10 text-lg bg-white/5 backdrop-blur-sm border border-white/20 text-white hover:bg-white/10 transition-all duration-200"
+                  className="h-14 px-10 text-lg bg-white/5 backdrop-blur-sm border border-white/20 text-white hover:bg-white/10 transition-[background-color,opacity] duration-200"
                 >
                   Explore Features
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -66,12 +69,14 @@ const HeroSection = () => (
           </motion.div>
         </div>
 
-        {/* Right 3D scene */}
+        {/* Right 3D scene - lazy loaded */}
         <div className="flex-1 relative min-h-[400px] md:min-h-0">
-          <SplineScene
-            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-            className="w-full h-full"
-          />
+          <Suspense fallback={<div className="w-full h-full bg-black/50 animate-pulse" />}>
+            <SplineScene
+              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+              className="w-full h-full"
+            />
+          </Suspense>
         </div>
       </div>
     </Card>
@@ -86,7 +91,7 @@ const stats = [
   { value: "24/7", label: "AI Availability", icon: Zap },
 ];
 
-const StatsSection = () => (
+const StatsSection = memo(() => (
   <section className="py-16 px-4 bg-muted/30 border-y border-border/50">
     <div className="container mx-auto">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -95,7 +100,7 @@ const StatsSection = () => (
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.3, delay: i * 0.1 }}
             className="text-center"
           >
@@ -107,7 +112,8 @@ const StatsSection = () => (
       </div>
     </div>
   </section>
-);
+));
+StatsSection.displayName = "StatsSection";
 
 /* ─────────────────── Features ─────────────────── */
 const features = [
@@ -119,13 +125,13 @@ const features = [
   { icon: Award, title: "Personalized Learning", description: "AI-generated learning paths tailored to your strengths and weaknesses" },
 ];
 
-const FeaturesSection = () => (
+const FeaturesSection = memo(() => (
   <section id="features-section" className="py-24 px-4 bg-background">
     <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.4 }}
         className="text-center mb-16"
       >
@@ -141,11 +147,11 @@ const FeaturesSection = () => (
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
           >
             <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-200 bg-card border-border/50 group">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors duration-150">
                 <f.icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">{f.title}</h3>
@@ -156,7 +162,8 @@ const FeaturesSection = () => (
       </div>
     </div>
   </section>
-);
+));
+FeaturesSection.displayName = "FeaturesSection";
 
 /* ─────────────────── Steps ─────────────────── */
 const steps = [
@@ -166,13 +173,13 @@ const steps = [
   { number: "04", title: "Track & Improve", description: "Monitor progress and follow personalized learning recommendations" },
 ];
 
-const StepsSection = () => (
+const StepsSection = memo(() => (
   <section className="py-24 px-4 bg-muted/20">
     <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.4 }}
         className="text-center mb-16"
       >
@@ -188,7 +195,7 @@ const StepsSection = () => (
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.3, delay: i * 0.1 }}
           >
             <Card className="p-6 h-full relative overflow-hidden bg-card border-border/50">
@@ -203,43 +210,46 @@ const StepsSection = () => (
       </div>
     </div>
   </section>
-);
+));
+StepsSection.displayName = "StepsSection";
 
 /* ─────────────────── CTA ─────────────────── */
 const CTASection = () => (
-  <BeamsBackground intensity="strong" className="py-24 px-4">
-    <div className="container mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4 }}
-        className="text-center max-w-3xl mx-auto"
-      >
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-          Ready to Master Your Interviews?
-        </h2>
-        <p className="text-xl text-white/80 mb-10">
-          Join thousands of successful candidates who transformed their interview skills with AITRAININGZONE
-        </p>
-        <Link to="/auth">
-          <LoadingButton size="xl" variant="hero">
-            Get Started Now
-            <ArrowRight className="w-5 h-5" />
-          </LoadingButton>
-        </Link>
-      </motion.div>
-    </div>
-  </BeamsBackground>
+  <Suspense fallback={<div className="py-24 px-4 bg-black" />}>
+    <BeamsBackground intensity="strong" className="py-24 px-4">
+      <div className="container mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.4 }}
+          className="text-center max-w-3xl mx-auto"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to Master Your Interviews?
+          </h2>
+          <p className="text-xl text-white/80 mb-10">
+            Join thousands of successful candidates who transformed their interview skills with AITRAININGZONE
+          </p>
+          <Link to="/auth">
+            <LoadingButton size="xl" variant="hero">
+              Get Started Now
+              <ArrowRight className="w-5 h-5" />
+            </LoadingButton>
+          </Link>
+        </motion.div>
+      </div>
+    </BeamsBackground>
+  </Suspense>
 );
 
 /* ─────────────────── Footer ─────────────────── */
-const Footer = () => (
+const Footer = memo(() => (
   <footer className="py-8 px-4 border-t bg-card">
     <div className="container mx-auto">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover" />
+          <img src={logo} alt="AITRAININGZONE" className="w-8 h-8 rounded-lg object-cover" loading="lazy" />
           <span className="font-bold text-foreground">AITRAININGZONE</span>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -248,7 +258,8 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+));
+Footer.displayName = "Footer";
 
 /* ─────────────────── Page ─────────────────── */
 const Home = () => (
