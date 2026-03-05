@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface AnimatedGradientBackgroundProps {
@@ -38,7 +38,7 @@ function createBeam(width: number, height: number): Beam {
   };
 }
 
-export function BeamsBackground({
+export const BeamsBackground = memo(function BeamsBackground({
   className,
   children,
   intensity = "strong",
@@ -46,7 +46,8 @@ export function BeamsBackground({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beamsRef = useRef<Beam[]>([]);
   const animationFrameRef = useRef<number>(0);
-  const MINIMUM_BEAMS = 20;
+  // Reduced beam count for better perf
+  const MINIMUM_BEAMS = 12;
 
   const opacityMap = { subtle: 0.7, medium: 0.85, strong: 1 };
 
@@ -63,8 +64,7 @@ export function BeamsBackground({
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
       ctx.scale(dpr, dpr);
-      const totalBeams = MINIMUM_BEAMS * 1.5;
-      beamsRef.current = Array.from({ length: totalBeams }, () =>
+      beamsRef.current = Array.from({ length: MINIMUM_BEAMS }, () =>
         createBeam(canvas.width, canvas.height)
       );
     };
@@ -126,9 +126,13 @@ export function BeamsBackground({
 
   return (
     <div className={cn("relative w-full overflow-hidden bg-black", className)}>
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" style={{ filter: "blur(15px)" }} />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ filter: "blur(15px)", willChange: "transform" }}
+      />
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative z-10">{children}</div>
     </div>
   );
-}
+});

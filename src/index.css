@@ -162,9 +162,13 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Default transition for interactive elements */
-  button, a, input, select, textarea {
-    transition: var(--transition-default);
+  /* Default transition for interactive elements - GPU-accelerated properties only */
+  button, a {
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.15s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    will-change: auto;
+  }
+  input, select, textarea {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   }
 
   /* Typography */
