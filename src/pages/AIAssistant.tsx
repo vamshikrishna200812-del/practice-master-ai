@@ -6,7 +6,7 @@ import {
   Trash2,
   Download,
   Settings,
-  ChevronDown,
+  
   ArrowDown,
   Zap,
 } from "lucide-react";
