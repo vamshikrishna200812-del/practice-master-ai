@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { ProgressTrendsChart } from "@/components/dashboard/ProgressTrendsChart";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
+
 import {
   TrendingUp,
   Video,
@@ -66,7 +66,6 @@ const QuickActionSkeleton = () => (
   </div>
 );
 
-/** Reusable wrapper that adds the glowing border effect to any card */
 const GlowCard = ({
   children,
   className,
@@ -74,18 +73,8 @@ const GlowCard = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={`relative rounded-xl ${className ?? ""}`}>
-    <GlowingEffect
-      spread={40}
-      glow
-      disabled={false}
-      proximity={64}
-      inactiveZone={0.01}
-      borderWidth={2}
-    />
-    <div className="relative rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 h-full">
-      {children}
-    </div>
+  <div className={`relative rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 h-full ${className ?? ""}`}>
+    {children}
   </div>
 );
 
