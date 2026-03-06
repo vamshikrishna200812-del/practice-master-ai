@@ -18,14 +18,14 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, children }) => {
   };
 
   return (
-    <div className="relative group my-2 rounded-lg overflow-hidden border border-gray-700">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-gray-800 text-gray-400 text-xs">
-        <span>{language || "code"}</span>
+    <div className="relative group my-2 rounded-lg overflow-hidden border border-white/10">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 text-white/40 text-xs">
+        <span className="font-mono">{language || "code"}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 hover:text-white transition-colors"
+          className="flex items-center gap-1 hover:text-white/70 transition-colors"
         >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
@@ -33,7 +33,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, children }) => {
         style={oneDark}
         language={language || "text"}
         PreTag="div"
-        customStyle={{ margin: 0, borderRadius: 0, fontSize: "13px" }}
+        customStyle={{ margin: 0, borderRadius: 0, fontSize: "13px", background: "rgba(0,0,0,0.4)" }}
       >
         {children}
       </SyntaxHighlighter>
