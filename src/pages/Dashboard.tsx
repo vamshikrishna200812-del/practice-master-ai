@@ -20,6 +20,7 @@ import {
 "lucide-react";
 import { Link } from "react-router-dom";
 import dashboardOwlVideo from "@/assets/dashboard-owl.mp4";
+import AnimatedCard from "@/components/ui/dynamic-border-animations-card";
 
 interface UserProgress {
   total_interviews: number;
@@ -347,6 +348,14 @@ const Dashboard = () => {
           <GlowCard>
             <ProgressTrendsChart />
           </GlowCard>
+        </motion.div>
+
+        {/* Animated Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.45, ease: [0.4, 0, 0.2, 1] }}>
+          <AnimatedCard />
         </motion.div>
 
         {/* Quick Actions */}
