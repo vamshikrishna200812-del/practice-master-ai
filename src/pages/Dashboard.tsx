@@ -20,7 +20,7 @@ import {
 "lucide-react";
 import { Link } from "react-router-dom";
 import dashboardOwlVideo from "@/assets/dashboard-owl.mp4";
-import AnimatedCard from "@/components/ui/dynamic-border-animations-card";
+
 
 interface UserProgress {
   total_interviews: number;
