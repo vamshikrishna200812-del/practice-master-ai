@@ -73,6 +73,7 @@ serve(async (req) => {
       });
     }
 
+    // Personality-based system prompts
     const personalityPrompts: Record<string, string> = {
       professional: "You are a professional, concise assistant. Give clear, well-structured answers.",
       friendly: "You are a warm, friendly assistant. Be encouraging and approachable.",
@@ -80,18 +81,30 @@ serve(async (req) => {
       "code-expert": "You are an expert programmer. Provide clean, well-commented code with explanations.",
     };
 
-    const systemPrompt = personalityPrompts[settings?.personality] || personalityPrompts.professional;
+    // Use custom system prompt if provided, otherwise fall back to personality preset
+    const basePrompt = settings?.systemPrompt?.trim()
+      ? settings.systemPrompt.trim()
+      : (personalityPrompts[settings?.personality] || personalityPrompts.professional);
+
     const languageNote = settings?.language && settings.language !== 'en'
       ? ` Always respond in the language with code: ${settings.language}.`
       : '';
 
     const openaiMessages = [
-      { role: "system", content: systemPrompt + languageNote },
+      { role: "system", content: basePrompt + languageNote },
       ...messages.map((m: { role: string; content: string }) => ({
         role: m.role,
         content: m.content,
       })),
     ];
+
+    // Clamp temperature and topP to safe ranges
+    const temperature = typeof settings?.temperature === 'number'
+      ? Math.max(0, Math.min(2, settings.temperature))
+      : 0.7;
+    const topP = typeof settings?.topP === 'number'
+      ? Math.max(0, Math.min(1, settings.topP))
+      : 0.9;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -103,6 +116,8 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: openaiMessages,
         stream: true,
+        temperature,
+        top_p: topP,
       }),
     });
 

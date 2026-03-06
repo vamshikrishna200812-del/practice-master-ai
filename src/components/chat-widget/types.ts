@@ -13,6 +13,9 @@ export interface ChatMessage {
 export interface ChatWidgetSettings {
   personality: PersonalityMode;
   language: Language;
+  temperature?: number;
+  topP?: number;
+  systemPrompt?: string;
 }
 
 export interface ChatWidgetConfig {
