@@ -217,8 +217,7 @@ const Dashboard = () => {
                   <Link to="/practice">
                     <Button
                       size="lg"
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10 transition-all duration-200"
+                      className="bg-black text-white border border-white/20 hover:bg-black/80 transition-all duration-200"
                     >
                       <Code className="mr-2 w-5 h-5" />
                       Practice Coding
