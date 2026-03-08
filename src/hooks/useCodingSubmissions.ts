@@ -1,5 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
-import { POINTS_MAP } from "@/data/codingProblems";
+import { codingProblems, POINTS_MAP } from "@/data/codingProblems";
+
+/** Deterministic daily hash – must match DailyChallenge component */
+const dayHash = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
+const getDailyProblemId = (solvedIds: Set<string>): string | null => {
+  const unsolved = codingProblems.filter((p) => !solvedIds.has(p.id));
+  const pool = unsolved.length > 0 ? unsolved : codingProblems;
+  if (pool.length === 0) return null;
+  const today = new Date().toISOString().split("T")[0];
+  return pool[dayHash(today) % pool.length].id;
+};
 
 export interface CodingSubmission {
   id: string;
