@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import DailyChallenge from "./DailyChallenge";
+
+const TubesBackground = lazy(() => import("./TubesBackground"));
 
 interface ProblemListProps {
   onSelectProblem: (slug: string) => void;
@@ -58,51 +61,65 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="bg-gradient-hero text-white rounded-xl p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-              <Code className="w-8 h-8" />
-              Coding Challenges
-            </h1>
-            <p className="text-white/80 max-w-xl">
-              Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories.
-              <span className="ml-2 text-white/60">{solvedSet.size} solved</span>
-            </p>
-          </div>
-          {/* Tier Card */}
-          {(() => {
-            const tier = getTier(totalPoints);
-            const TierIcon = tier.icon;
-            const progress = getTierProgress(totalPoints);
-            const next = getNextTier(totalPoints);
-            return (
-              <div className="flex items-center gap-3 bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-                <TierIcon className={`w-8 h-8 ${tier.textClass}`} />
-                <div>
-                  <p className="text-sm font-bold">{tier.name} • {totalPoints} pts</p>
-                  {next && (
-                    <>
-                      <Progress value={progress} className="h-1.5 w-24 mt-1" />
-                      <p className="text-[10px] text-white/60 mt-0.5">{next.minPoints - totalPoints} pts to {next.name}</p>
-                    </>
-                  )}
-                  {!next && <p className="text-[10px] text-white/60">Max tier reached!</p>}
-                </div>
+      {/* Hero with 3D Tubes Background */}
+      <Suspense fallback={<div className="bg-gradient-hero text-white rounded-xl p-6 md:p-8 min-h-[180px]" />}>
+        <TubesBackground className="rounded-xl min-h-[180px]">
+          <div className="p-6 md:p-8 text-white">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <Code className="w-8 h-8" />
+                  Coding Challenges
+                </h1>
+                <p className="text-white/80 max-w-xl">
+                  Sharpen your skills with {codingProblems.length} hand-picked problems across {allCategories.length} categories.
+                  <span className="ml-2 text-white/60">{solvedSet.size} solved</span>
+                </p>
               </div>
-            );
-          })()}
-        </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="mt-3 gap-2"
-          onClick={() => navigate("/leaderboard")}
-        >
-          <Trophy className="w-4 h-4" /> Hall of Fame
-        </Button>
-      </div>
+              {/* Tier Card */}
+              {(() => {
+                const tier = getTier(totalPoints);
+                const TierIcon = tier.icon;
+                const progress = getTierProgress(totalPoints);
+                const next = getNextTier(totalPoints);
+                return (
+                  <div className="flex items-center gap-3 bg-black/30 rounded-lg px-4 py-3 backdrop-blur-sm border border-white/10">
+                    <TierIcon className={`w-8 h-8 ${tier.textClass}`} />
+                    <div>
+                      <p className="text-sm font-bold">{tier.name} • {totalPoints} pts</p>
+                      {next && (
+                        <>
+                          <Progress value={progress} className="h-1.5 w-24 mt-1" />
+                          <p className="text-[10px] text-white/60 mt-0.5">{next.minPoints - totalPoints} pts to {next.name}</p>
+                        </>
+                      )}
+                      {!next && <p className="text-[10px] text-white/60">Max tier reached!</p>}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="flex items-center gap-3 mt-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate("/leaderboard")}
+              >
+                <Trophy className="w-4 h-4" /> Hall of Fame
+              </Button>
+              <span className="text-[10px] text-white/40">Click background to randomize colors</span>
+            </div>
+          </div>
+        </TubesBackground>
+      </Suspense>
+
+      {/* Daily Challenge */}
+      <DailyChallenge
+        problems={codingProblems}
+        solvedSet={solvedSet}
+        onSelect={onSelectProblem}
+      />
 
       {/* View Toggle */}
       <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">

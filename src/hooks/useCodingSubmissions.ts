@@ -1,5 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
-import { POINTS_MAP } from "@/data/codingProblems";
+import { codingProblems, POINTS_MAP } from "@/data/codingProblems";
+
+/** Deterministic daily hash – must match DailyChallenge component */
+const dayHash = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
+const getDailyProblemId = (solvedIds: Set<string>): string | null => {
+  const unsolved = codingProblems.filter((p) => !solvedIds.has(p.id));
+  const pool = unsolved.length > 0 ? unsolved : codingProblems;
+  if (pool.length === 0) return null;
+  const today = new Date().toISOString().split("T")[0];
+  return pool[dayHash(today) % pool.length].id;
+};
 
 export interface CodingSubmission {
   id: string;
@@ -30,7 +45,13 @@ export const useCodingSubmissions = () => {
 
     const allPassed = params.passedTests === params.totalTests;
     const verdict = allPassed ? "Accepted" : "Wrong Answer";
-    const points = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
+    const basePoints = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
+
+    // Check if this is the daily challenge for 2× bonus
+    const solvedSoFar = await getSolvedProblems();
+    const dailyId = getDailyProblemId(solvedSoFar);
+    const isDailyChallenge = params.problemId === dailyId;
+    const points = isDailyChallenge ? basePoints * 2 : basePoints;
 
     // Check if already solved
     const { data: existing } = await supabase
@@ -61,14 +82,15 @@ export const useCodingSubmissions = () => {
 
     // Update points only if newly solved
     if (allPassed && !alreadySolved) {
-      await updatePoints(user.id, params.difficulty);
+      await updatePoints(user.id, params.difficulty, isDailyChallenge);
     }
 
-    return { verdict, points: alreadySolved ? 0 : points, alreadySolved };
+    return { verdict, points: alreadySolved ? 0 : points, alreadySolved, isDailyChallenge };
   };
 
-  const updatePoints = async (userId: string, difficulty: string) => {
-    const points = POINTS_MAP[difficulty] || 10;
+  const updatePoints = async (userId: string, difficulty: string, isDailyBonus = false) => {
+    const base = POINTS_MAP[difficulty] || 10;
+    const points = isDailyBonus ? base * 2 : base;
     const today = new Date().toISOString().split("T")[0];
 
     const { data: existing } = await supabase
