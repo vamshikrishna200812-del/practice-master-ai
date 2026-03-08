@@ -20,12 +20,11 @@ const TubesBackground = ({ children, className }: TubesBackgroundProps) => {
     const init = async () => {
       if (!canvasRef.current) return;
       try {
-        // @ts-ignore – CDN ESM import
-        const mod = await import(
-          "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
-        );
+        const cdnUrl = "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js";
+        const mod = await (Function(`return import("${cdnUrl}")`)() as Promise<any>);
         if (!mounted) return;
-        const app = mod.default(canvasRef.current, {
+        const TubesCursor = mod.default;
+        const app = TubesCursor(canvasRef.current, {
           tubes: {
             colors: ["#f967fb", "#53bc28", "#6958d5"],
             lights: {
