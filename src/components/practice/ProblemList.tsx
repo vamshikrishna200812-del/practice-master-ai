@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import DailyChallenge from "./DailyChallenge";
+
+const TubesBackground = lazy(() => import("./TubesBackground"));
 
 interface ProblemListProps {
   onSelectProblem: (slug: string) => void;
