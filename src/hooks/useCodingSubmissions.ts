@@ -88,8 +88,9 @@ export const useCodingSubmissions = () => {
     return { verdict, points: alreadySolved ? 0 : points, alreadySolved, isDailyChallenge };
   };
 
-  const updatePoints = async (userId: string, difficulty: string) => {
-    const points = POINTS_MAP[difficulty] || 10;
+  const updatePoints = async (userId: string, difficulty: string, isDailyBonus = false) => {
+    const base = POINTS_MAP[difficulty] || 10;
+    const points = isDailyBonus ? base * 2 : base;
     const today = new Date().toISOString().split("T")[0];
 
     const { data: existing } = await supabase
