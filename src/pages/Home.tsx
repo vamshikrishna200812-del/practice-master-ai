@@ -13,7 +13,7 @@ import logo from "@/assets/logo.jpeg";
 
 // Lazy-load heavy components
 const SplineScene = lazy(() => import("@/components/ui/splite").then(m => ({ default: m.SplineScene })));
-const BeamsBackground = lazy(() => import("@/components/ui/beams-background").then(m => ({ default: m.BeamsBackground })));
+
 const TubesBackground = lazy(() => import("@/components/practice/TubesBackground"));
 
 /* ─────────────────── Hero Section ─────────────────── */
