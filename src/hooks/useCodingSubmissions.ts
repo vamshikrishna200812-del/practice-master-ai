@@ -45,7 +45,7 @@ export const useCodingSubmissions = () => {
 
     const allPassed = params.passedTests === params.totalTests;
     const verdict = allPassed ? "Accepted" : "Wrong Answer";
-    const points = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
+    const basePoints = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
 
     // Check if already solved
     const { data: existing } = await supabase
