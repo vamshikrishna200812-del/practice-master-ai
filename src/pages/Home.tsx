@@ -13,7 +13,8 @@ import logo from "@/assets/logo.jpeg";
 
 // Lazy-load heavy components
 const SplineScene = lazy(() => import("@/components/ui/splite").then(m => ({ default: m.SplineScene })));
-const BeamsBackground = lazy(() => import("@/components/ui/beams-background").then(m => ({ default: m.BeamsBackground })));
+
+const TubesBackground = lazy(() => import("@/components/practice/TubesBackground"));
 
 /* ─────────────────── Hero Section ─────────────────── */
 const HeroSection = () => (
@@ -216,7 +217,7 @@ StepsSection.displayName = "StepsSection";
 /* ─────────────────── CTA ─────────────────── */
 const CTASection = () => (
   <Suspense fallback={<div className="py-24 px-4 bg-black" />}>
-    <BeamsBackground intensity="strong" className="py-24 px-4">
+    <TubesBackground className="py-24 px-4">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -237,9 +238,10 @@ const CTASection = () => (
               <ArrowRight className="w-5 h-5" />
             </LoadingButton>
           </Link>
+          <p className="text-xs text-white/30 mt-4">Click to randomize colors</p>
         </motion.div>
       </div>
-    </BeamsBackground>
+    </TubesBackground>
   </Suspense>
 );
 
