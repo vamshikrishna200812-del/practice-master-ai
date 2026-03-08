@@ -47,6 +47,12 @@ export const useCodingSubmissions = () => {
     const verdict = allPassed ? "Accepted" : "Wrong Answer";
     const basePoints = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
 
+    // Check if this is the daily challenge for 2× bonus
+    const solvedSoFar = await getSolvedProblems();
+    const dailyId = getDailyProblemId(solvedSoFar);
+    const isDailyChallenge = params.problemId === dailyId;
+    const points = isDailyChallenge ? basePoints * 2 : basePoints;
+
     // Check if already solved
     const { data: existing } = await supabase
       .from("coding_submissions")
@@ -76,10 +82,10 @@ export const useCodingSubmissions = () => {
 
     // Update points only if newly solved
     if (allPassed && !alreadySolved) {
-      await updatePoints(user.id, params.difficulty);
+      await updatePoints(user.id, params.difficulty, isDailyChallenge);
     }
 
-    return { verdict, points: alreadySolved ? 0 : points, alreadySolved };
+    return { verdict, points: alreadySolved ? 0 : points, alreadySolved, isDailyChallenge };
   };
 
   const updatePoints = async (userId: string, difficulty: string) => {
