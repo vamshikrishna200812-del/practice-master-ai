@@ -1,41 +1,35 @@
 import { lazy, Suspense, memo } from "react";
 import { Card } from "@/components/ui/card";
-import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/ui/loading-button";
 import {
   Brain, Code, MessageSquare, Video, Target, TrendingUp, Award,
-  ArrowRight, Sparkles, CheckCircle, Users, Zap,
+  ArrowRight, Sparkles, CheckCircle, Users, Zap, MousePointer2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.jpeg";
 
-// Lazy-load heavy components
-const SplineScene = lazy(() => import("@/components/ui/splite").then(m => ({ default: m.SplineScene })));
-
 const TubesBackground = lazy(() => import("@/components/practice/TubesBackground"));
 
 /* ─────────────────── Hero Section ─────────────────── */
 const HeroSection = () => (
-  <section className="min-h-screen relative overflow-hidden">
-    <Card className="w-full min-h-screen rounded-none border-0 bg-black/[0.96] relative">
-      <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" size={400} />
-
-      <div className="flex flex-col md:flex-row min-h-screen w-full">
-        {/* Left content */}
-        <div className="flex-1 p-8 md:p-16 relative z-10 flex flex-col justify-center">
+  <section className="min-h-screen relative overflow-hidden bg-black">
+    <Suspense fallback={<div className="w-full min-h-screen bg-black" />}>
+      <TubesBackground className="min-h-screen w-full">
+        <div className="flex flex-col items-center justify-center min-h-screen px-6 md:px-16 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+            className="max-w-4xl mx-auto"
           >
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8 border border-white/10">
               <Sparkles className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-medium text-neutral-300">AI-Powered Interview Training</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-[1.1]">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight leading-[1.05]">
               Masterpieces are
               <br />
               made in{" "}
@@ -44,12 +38,12 @@ const HeroSection = () => (
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-neutral-400 mb-10 max-w-xl leading-relaxed">
+            <p className="text-lg md:text-xl text-neutral-400 mb-10 max-w-2xl mx-auto leading-relaxed">
               Transform your interview skills with AI-powered real-time feedback.
               Master coding, communication, and confidence — all in one place.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
                 <LoadingButton size="xl" variant="hero" className="w-full sm:w-auto">
                   Start Training Free
@@ -68,19 +62,19 @@ const HeroSection = () => (
               </a>
             </div>
           </motion.div>
-        </div>
 
-        {/* Right 3D scene - lazy loaded */}
-        <div className="flex-1 relative min-h-[400px] md:min-h-0">
-          <Suspense fallback={<div className="w-full h-full bg-black/50 animate-pulse" />}>
-            <SplineScene
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="w-full h-full"
-            />
-          </Suspense>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            className="absolute bottom-8 flex items-center gap-2 text-white/30 text-xs"
+          >
+            <MousePointer2 className="w-3.5 h-3.5" />
+            Click to randomize colors
+          </motion.div>
         </div>
-      </div>
-    </Card>
+      </TubesBackground>
+    </Suspense>
   </section>
 );
 
@@ -238,7 +232,6 @@ const CTASection = () => (
               <ArrowRight className="w-5 h-5" />
             </LoadingButton>
           </Link>
-          <p className="text-xs text-white/30 mt-4">Click to randomize colors</p>
         </motion.div>
       </div>
     </TubesBackground>

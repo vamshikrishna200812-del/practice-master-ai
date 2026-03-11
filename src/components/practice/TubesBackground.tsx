@@ -50,7 +50,7 @@ const TubesBackground = ({ children, className, enableClickInteraction = true }:
   }, []);
 
   const handleClick = () => {
-    if (!tubesRef.current) return;
+    if (!enableClickInteraction || !tubesRef.current) return;
     tubesRef.current.tubes.setColors(randomColors(3));
     tubesRef.current.tubes.setLightsColors(randomColors(4));
   };
