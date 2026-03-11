@@ -10,7 +10,13 @@ interface TubesBackgroundProps {
   className?: string;
 }
 
-const TubesBackground = ({ children, className }: TubesBackgroundProps) => {
+interface TubesBackgroundProps {
+  children?: React.ReactNode;
+  className?: string;
+  enableClickInteraction?: boolean;
+}
+
+const TubesBackground = ({ children, className, enableClickInteraction = true }: TubesBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tubesRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
@@ -44,7 +50,7 @@ const TubesBackground = ({ children, className }: TubesBackgroundProps) => {
   }, []);
 
   const handleClick = () => {
-    if (!tubesRef.current) return;
+    if (!enableClickInteraction || !tubesRef.current) return;
     tubesRef.current.tubes.setColors(randomColors(3));
     tubesRef.current.tubes.setLightsColors(randomColors(4));
   };
