@@ -10,7 +10,13 @@ interface TubesBackgroundProps {
   className?: string;
 }
 
-const TubesBackground = ({ children, className }: TubesBackgroundProps) => {
+interface TubesBackgroundProps {
+  children?: React.ReactNode;
+  className?: string;
+  enableClickInteraction?: boolean;
+}
+
+const TubesBackground = ({ children, className, enableClickInteraction = true }: TubesBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tubesRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
