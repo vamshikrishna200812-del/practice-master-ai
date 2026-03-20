@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DailyChallenge from "./DailyChallenge";
 import ProgressDashboard from "./ProgressDashboard";
 import RecommendedNext from "./RecommendedNext";
+import StreakTracker from "./StreakTracker";
 
 const TubesBackground = lazy(() => import("./TubesBackground"));
 
@@ -146,6 +147,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
             transition={{ duration: 0.3 }}
             className="space-y-4"
           >
+            <StreakTracker />
             <ProgressDashboard solvedSet={solvedSet} />
             <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
           </motion.div>
