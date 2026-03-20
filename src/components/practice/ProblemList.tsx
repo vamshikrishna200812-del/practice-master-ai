@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Search, Code, BookOpen, ChevronRight, Trophy } from "lucide-react";
+import { Search, Code, BookOpen, ChevronRight, Trophy, ChevronDown, ChevronUp, BarChart3 } from "lucide-react";
 import { codingProblems, codingCourses, allTags, allCategories, POINTS_MAP } from "@/data/codingProblems";
 import { motion } from "framer-motion";
 import { useCodingSubmissions } from "@/hooks/useCodingSubmissions";
