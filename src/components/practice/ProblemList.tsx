@@ -147,6 +147,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
             transition={{ duration: 0.3 }}
             className="space-y-4"
           >
+            <StreakTracker />
             <ProgressDashboard solvedSet={solvedSet} />
             <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
           </motion.div>
