@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import DailyChallenge from "./DailyChallenge";
 import ProgressDashboard from "./ProgressDashboard";
+import RecommendedNext from "./RecommendedNext";
 
 const TubesBackground = lazy(() => import("./TubesBackground"));
 
@@ -124,6 +125,9 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
 
       {/* Progress Dashboard */}
       <ProgressDashboard solvedSet={solvedSet} />
+
+      {/* Recommended Next */}
+      <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
 
       {/* View Toggle */}
       <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
