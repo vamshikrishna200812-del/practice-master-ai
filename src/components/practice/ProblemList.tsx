@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DailyChallenge from "./DailyChallenge";
 import ProgressDashboard from "./ProgressDashboard";
 import RecommendedNext from "./RecommendedNext";
+import StreakTracker from "./StreakTracker";
 
 const TubesBackground = lazy(() => import("./TubesBackground"));
 
