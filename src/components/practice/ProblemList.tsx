@@ -124,11 +124,33 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
         onSelect={onSelectProblem}
       />
 
-      {/* Progress Dashboard */}
-      <ProgressDashboard solvedSet={solvedSet} />
-
-      {/* Recommended Next */}
-      <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
+      {/* Collapsible Progress Section */}
+      <div className="space-y-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-between gap-2"
+          onClick={() => setShowDashboard((v) => !v)}
+        >
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <BarChart3 className="w-4 h-4" />
+            Progress & Recommendations
+          </span>
+          {showDashboard ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </Button>
+        {showDashboard && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
+            <ProgressDashboard solvedSet={solvedSet} />
+            <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
+          </motion.div>
+        )}
+      </div>
 
       {/* View Toggle */}
       <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
