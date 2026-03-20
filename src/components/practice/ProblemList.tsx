@@ -14,6 +14,7 @@ import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import DailyChallenge from "./DailyChallenge";
+import ProgressDashboard from "./ProgressDashboard";
 
 const TubesBackground = lazy(() => import("./TubesBackground"));
 
