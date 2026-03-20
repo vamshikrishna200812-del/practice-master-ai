@@ -126,6 +126,9 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
       {/* Progress Dashboard */}
       <ProgressDashboard solvedSet={solvedSet} />
 
+      {/* Recommended Next */}
+      <RecommendedNext solvedSet={solvedSet} onSelect={onSelectProblem} />
+
       {/* View Toggle */}
       <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
         <TabsList>
