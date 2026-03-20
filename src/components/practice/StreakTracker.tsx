@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Flame, Calendar, Trophy, Zap } from "lucide-react";
+import { Flame, Trophy, Zap } from "lucide-react";
 
 interface StreakTrackerProps {
   className?: string;
