@@ -14,6 +14,7 @@ import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import DailyChallenge from "./DailyChallenge";
+import ProgressDashboard from "./ProgressDashboard";
 
 const TubesBackground = lazy(() => import("./TubesBackground"));
 
@@ -120,6 +121,9 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
         solvedSet={solvedSet}
         onSelect={onSelectProblem}
       />
+
+      {/* Progress Dashboard */}
+      <ProgressDashboard solvedSet={solvedSet} />
 
       {/* View Toggle */}
       <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
