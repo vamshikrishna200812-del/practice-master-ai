@@ -37,6 +37,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
   const [view, setView] = useState<"problems" | "courses">("problems");
   const [solvedSet, setSolvedSet] = useState<Set<string>>(new Set());
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showDashboard, setShowDashboard] = useState(true);
   const { getSolvedProblems } = useCodingSubmissions();
   const navigate = useNavigate();
 
