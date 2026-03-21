@@ -29,12 +29,17 @@ const getIntensityClass = (count: number): string => {
   return "bg-emerald-500";
 };
 
+const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+
 const StreakTracker = ({ className }: StreakTrackerProps) => {
   const [activityMap, setActivityMap] = useState<Map<string, number>>(new Map());
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [totalActiveDays, setTotalActiveDays] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showMilestone, setShowMilestone] = useState(false);
+  const [milestoneValue, setMilestoneValue] = useState(0);
+  const { playSound } = useCelebrationSound();
 
   useEffect(() => {
     const fetchActivity = async () => {
