@@ -23,6 +23,10 @@ const InterviewRequestSchema = z.object({
     isFollowUp: z.boolean().optional(),
     previousAnswer: z.string().max(10000).optional(),
     previousQuestion: z.string().max(5000).optional(),
+    conversationHistory: z.array(z.object({
+      role: z.enum(["interviewer", "candidate"]),
+      text: z.string().max(10000),
+    })).max(40).optional(),
   }).optional(),
   userResponse: z.string().max(10000).optional(),
   question: z.string().max(5000).optional(),
