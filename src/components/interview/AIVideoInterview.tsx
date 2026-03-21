@@ -205,14 +205,6 @@ export const AIVideoInterview = ({
     return null;
   };
 
-  // Build conversation context string for AI
-  const buildConversationContext = (): string => {
-    if (conversationHistoryRef.current.length === 0) return "";
-    return "\n\nCONVERSATION HISTORY SO FAR:\n" + 
-      conversationHistoryRef.current.map((entry) => 
-        `${entry.role === "interviewer" ? "Interviewer" : "Candidate"}: ${entry.text}`
-      ).join("\n");
-  };
 
   // Generate question with AI (with full conversation history)
   const generateQuestion = async (): Promise<string> => {
