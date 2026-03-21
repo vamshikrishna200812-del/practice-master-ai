@@ -375,6 +375,15 @@ OUTPUT FORMAT:
         userPromptParts.push(`TARGET JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
       }
 
+      // Inject full conversation history for contextual responses
+      const conversationHistory = context?.conversationHistory;
+      if (conversationHistory && conversationHistory.length > 0) {
+        const historyStr = conversationHistory.map(
+          (entry: { role: string; text: string }) => `${entry.role === "interviewer" ? "You (Interviewer)" : "Candidate"}: ${entry.text}`
+        ).join("\n\n");
+        userPromptParts.push(`FULL CONVERSATION SO FAR (use this to reference earlier answers naturally and maintain continuity):\n${historyStr}`);
+      }
+
       const isFollowUp = context?.isFollowUp || false;
       const previousAnswer = context?.previousAnswer || "";
       const previousQuestionText = context?.previousQuestion || "";
