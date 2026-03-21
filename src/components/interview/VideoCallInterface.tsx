@@ -185,6 +185,26 @@ export const VideoCallInterface = ({
     }
   }, [proTips]);
 
+  // Push user submitted answers to copilot feed
+  useEffect(() => {
+    if (userAnswerLog.length > 0) {
+      const latest = userAnswerLog[userAnswerLog.length - 1];
+      setCopilotMessages((prev) => {
+        const id = `user-a-${latest.questionNum}-${Date.now()}`;
+        if (prev.some(m => m.id.startsWith(`user-a-${latest.questionNum}-`))) return prev;
+        return [
+          ...prev,
+          {
+            id,
+            type: "user" as const,
+            text: latest.answer,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ];
+      });
+    }
+  }, [userAnswerLog]);
+
   // Auto-scroll copilot feed
   useEffect(() => {
     feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
