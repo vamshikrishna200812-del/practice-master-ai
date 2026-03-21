@@ -107,6 +107,19 @@ const StreakTracker = ({ className }: StreakTrackerProps) => {
         setCurrentStreak(points.current_streak);
       }
 
+      // Check for milestone
+      const finalStreak = (points && points.current_streak > streak) ? points.current_streak : streak;
+      const hit = STREAK_MILESTONES.find(m => finalStreak >= m && finalStreak < m + 1);
+      if (hit) {
+        const key = `streak_milestone_${hit}_shown`;
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          setMilestoneValue(hit);
+          setShowMilestone(true);
+          playSound("celebration");
+        }
+      }
+
       setLoading(false);
     };
 
