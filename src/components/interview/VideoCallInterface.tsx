@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare,
   Brain, Loader2, ChevronRight, TrendingUp, CheckCircle2,
-  AlertTriangle, Sparkles, Lightbulb, User, Zap, Eye,
+  AlertTriangle, Sparkles, Lightbulb, User, Zap, Eye, Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,8 @@ interface VideoCallInterfaceProps {
   emotion?: AvatarEmotion;
   interviewState?: InterviewState;
   proTips?: string[];
+  elapsedSeconds?: number;
+  userAnswerLog?: { answer: string; questionNum: number }[];
 }
 
 export const VideoCallInterface = ({
@@ -72,6 +74,8 @@ export const VideoCallInterface = ({
   emotion = "neutral",
   interviewState = "IDLE",
   proTips = [],
+  elapsedSeconds = 0,
+  userAnswerLog = [],
 }: VideoCallInterfaceProps) => {
   const avatarVideoRef = useRef<HTMLVideoElement>(null);
   const [isAvatarVideoReady, setIsAvatarVideoReady] = useState(false);
@@ -181,6 +185,26 @@ export const VideoCallInterface = ({
     }
   }, [proTips]);
 
+  // Push user submitted answers to copilot feed
+  useEffect(() => {
+    if (userAnswerLog.length > 0) {
+      const latest = userAnswerLog[userAnswerLog.length - 1];
+      setCopilotMessages((prev) => {
+        const id = `user-a-${latest.questionNum}-${Date.now()}`;
+        if (prev.some(m => m.id.startsWith(`user-a-${latest.questionNum}-`))) return prev;
+        return [
+          ...prev,
+          {
+            id,
+            type: "user" as const,
+            text: latest.answer,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ];
+      });
+    }
+  }, [userAnswerLog]);
+
   // Auto-scroll copilot feed
   useEffect(() => {
     feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -228,6 +252,14 @@ export const VideoCallInterface = ({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Interview Timer */}
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">
+              <Clock className="w-3 h-3" />
+              <span className="font-mono tabular-nums">
+                {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
+              </span>
+            </div>
+
             {/* Interview State Badge */}
             <Badge className={cn(
               "text-white border-0 text-[10px] gap-1.5 px-2.5 py-0.5 shadow-sm",

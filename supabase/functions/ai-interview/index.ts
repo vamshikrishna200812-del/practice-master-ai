@@ -23,6 +23,10 @@ const InterviewRequestSchema = z.object({
     isFollowUp: z.boolean().optional(),
     previousAnswer: z.string().max(10000).optional(),
     previousQuestion: z.string().max(5000).optional(),
+    conversationHistory: z.array(z.object({
+      role: z.enum(["interviewer", "candidate"]),
+      text: z.string().max(10000),
+    })).max(40).optional(),
   }).optional(),
   userResponse: z.string().max(10000).optional(),
   question: z.string().max(5000).optional(),
@@ -369,6 +373,15 @@ OUTPUT FORMAT:
       }
       if (context?.jobDescription) {
         userPromptParts.push(`TARGET JOB DESCRIPTION:\n${context.jobDescription.substring(0, 2000)}`);
+      }
+
+      // Inject full conversation history for contextual responses
+      const conversationHistory = context?.conversationHistory;
+      if (conversationHistory && conversationHistory.length > 0) {
+        const historyStr = conversationHistory.map(
+          (entry: { role: string; text: string }) => `${entry.role === "interviewer" ? "You (Interviewer)" : "Candidate"}: ${entry.text}`
+        ).join("\n\n");
+        userPromptParts.push(`FULL CONVERSATION SO FAR (use this to reference earlier answers naturally and maintain continuity):\n${historyStr}`);
       }
 
       const isFollowUp = context?.isFollowUp || false;

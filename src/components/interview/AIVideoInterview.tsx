@@ -75,7 +75,11 @@ export const AIVideoInterview = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState<InterviewResponse["feedback"] | null>(null);
   const [interviewState, setInterviewState] = useState<InterviewState>("IDLE");
-  const [followUpCount, setFollowUpCount] = useState(0); // track follow-ups per question
+  const [followUpCount, setFollowUpCount] = useState(0);
+  
+  // Timer state
+  const [interviewStartTime, setInterviewStartTime] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   
   // Personalization state
   const [personalization, setPersonalization] = useState<PersonalizationData>({});
@@ -95,12 +99,30 @@ export const AIVideoInterview = ({
   // Pro-tips feed
   const [proTips, setProTips] = useState<string[]>([]);
 
+  // User answer log for copilot
+  const [userAnswerLog, setUserAnswerLog] = useState<{ answer: string; questionNum: number }[]>([]);
+
+  // Conversation history for contextual AI
+  const conversationHistoryRef = useRef<{ role: "interviewer" | "candidate"; text: string }[]>([]);
+
+  // Auto-submit guard
+  const isProcessingRef = useRef(false);
+
   // Refs
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const userStreamRef = useRef<MediaStream | null>(null);
   const previousQuestionsRef = useRef<string[]>([]);
 
-  // Speech recognition
+  // Auto-silence handler
+  const handleSilenceTimeout = useCallback((finalTranscript: string) => {
+    if (isProcessingRef.current || !finalTranscript.trim()) return;
+    console.log("Silence detected, auto-submitting answer...");
+    toast.info("Silence detected — submitting your answer", { duration: 2000 });
+    // Trigger stop recording flow
+    stopRecordingWithAnswer(finalTranscript);
+  }, []);
+
+  // Speech recognition with silence detection
   const { 
     transcript, 
     isListening, 
@@ -110,6 +132,8 @@ export const AIVideoInterview = ({
     resetTranscript 
   } = useSpeechRecognition({
     onResult: (text) => setUserTranscript(text),
+    onSilenceTimeout: handleSilenceTimeout,
+    silenceTimeoutMs: 4000, // 4 seconds of silence = auto-submit
   });
 
   // User progress tracking
@@ -125,11 +149,20 @@ export const AIVideoInterview = ({
     rate: 0.95,
     onEnd: () => {
       setInterviewState("LISTENING");
-      if (phase === "interview" && !isRecording && !isLoading) {
+      if (phase === "interview" && !isRecording && !isLoading && !isProcessingRef.current) {
         startRecording();
       }
     },
   });
+
+  // Interview timer
+  useEffect(() => {
+    if (!interviewStartTime || phase !== "interview") return;
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - interviewStartTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [interviewStartTime, phase]);
 
   // Sync interviewState with speaking
   useEffect(() => {
@@ -172,7 +205,8 @@ export const AIVideoInterview = ({
     return null;
   };
 
-  // Generate question with AI
+
+  // Generate question with AI (with full conversation history)
   const generateQuestion = async (): Promise<string> => {
     if (customQuestions.length > 0 && questionNumber <= customQuestions.length) {
       return customQuestions[questionNumber - 1] || customQuestions[0];
@@ -191,6 +225,7 @@ export const AIVideoInterview = ({
           recruiterMode,
           company,
           personality,
+          conversationHistory: conversationHistoryRef.current.slice(-20), // Last 20 turns
         },
       },
     });
@@ -220,12 +255,12 @@ export const AIVideoInterview = ({
           isFollowUp: true,
           previousAnswer: answer,
           previousQuestion: question,
+          conversationHistory: conversationHistoryRef.current.slice(-20),
         },
       },
     });
 
     if (error || data?.error) {
-      // Fallback generic follow-up
       return "[thoughtful pause] That's a good start. Could you give me a specific example of when you handled that? I'd love to hear more details about the situation and the outcome.";
     }
 
@@ -234,10 +269,9 @@ export const AIVideoInterview = ({
 
   // Determine if answer needs follow-up (adaptive branching)
   const needsFollowUp = (answer: string): boolean => {
-    if (followUpCount >= 2) return false; // max 2 follow-ups per question
+    if (followUpCount >= 2) return false;
     const wordCount = answer.trim().split(/\s+/).length;
     if (wordCount < 20) return true;
-    // Check for vague indicators
     const vaguePatterns = /^(i don'?t know|not sure|maybe|i guess|um|uh|i think so|yes|no|ok|okay)$/i;
     if (vaguePatterns.test(answer.trim())) return true;
     return false;
@@ -388,11 +422,17 @@ export const AIVideoInterview = ({
     setPhase("interview");
     setQuestionNumber(1);
     setFollowUpCount(0);
+    setInterviewStartTime(Date.now());
+    setElapsedSeconds(0);
+    conversationHistoryRef.current = [];
 
     try {
       const question = await generateQuestion();
       const cleanQuestion = processQuestionWithEmotion(question);
       previousQuestionsRef.current.push(question);
+
+      // Log to conversation history
+      conversationHistoryRef.current.push({ role: "interviewer", text: cleanQuestion });
 
       // Add pro-tip
       setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
@@ -422,25 +462,36 @@ export const AIVideoInterview = ({
       return;
     }
 
+    if (isProcessingRef.current) return;
+
     setIsRecording(true);
     setInterviewState("LISTENING");
     resetTranscript();
     setUserTranscript("");
     startListening();
-    toast.info("Listening... Speak your answer", { duration: 2000 });
+    toast.info("Listening... Speak your answer (auto-submits after 4s silence)", { duration: 3000 });
   };
 
-  // Stop recording and process with adaptive branching
-  const stopRecording = async () => {
+  // Core answer processing logic (shared by manual stop and auto-silence)
+  const stopRecordingWithAnswer = async (answer: string) => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     stopListening();
     setIsRecording(false);
 
-    const answer = userTranscript || transcript;
     if (!answer.trim()) {
       toast.warning("No response detected. Please try again.");
       setInterviewState("LISTENING");
+      isProcessingRef.current = false;
       return;
     }
+
+    // Log user answer to copilot
+    setUserAnswerLog(prev => [...prev, { answer: answer.trim(), questionNum: questionNumber }]);
+
+    // Log to conversation history
+    conversationHistoryRef.current.push({ role: "candidate", text: answer.trim() });
 
     setIsLoading(true);
     setInterviewState("THINKING");
@@ -451,11 +502,12 @@ export const AIVideoInterview = ({
       if (needsFollowUp(answer)) {
         setFollowUpCount(prev => prev + 1);
         
-        // Generate probing follow-up
         const followUp = await generateFollowUp(currentQuestion, answer);
         const cleanFollowUp = processQuestionWithEmotion(followUp);
         
-        // Add a tip about elaborating
+        // Log follow-up to history
+        conversationHistoryRef.current.push({ role: "interviewer", text: cleanFollowUp });
+
         setProTips(prev => [...prev, "💡 Tip: Try to elaborate more. Use specific examples and quantify your impact when possible."]);
 
         setInterviewState("RESPONDING");
@@ -469,7 +521,6 @@ export const AIVideoInterview = ({
           speak(cleanFollowUp);
         }
       } else {
-        // Comprehensive answer → analyze, validate, and move on
         const feedback = await analyzeResponse(currentQuestion, answer);
 
         const newResponse: InterviewResponse = {
@@ -484,7 +535,6 @@ export const AIVideoInterview = ({
           toast.success(`Score: ${feedback.score}/100`, { duration: 3000 });
         }
 
-        // Move to next question or finish
         if (questionNumber >= totalQuestions) {
           await generateFinalReport();
         } else {
@@ -496,7 +546,9 @@ export const AIVideoInterview = ({
           const cleanQuestion = processQuestionWithEmotion(nextQuestion);
           previousQuestionsRef.current.push(nextQuestion);
 
-          // Add pro-tip for new question
+          // Log to conversation history
+          conversationHistoryRef.current.push({ role: "interviewer", text: cleanQuestion });
+
           setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
 
           resetTranscript();
@@ -518,19 +570,30 @@ export const AIVideoInterview = ({
       setInterviewState("LISTENING");
     } finally {
       setIsLoading(false);
+      isProcessingRef.current = false;
     }
+  };
+
+  // Stop recording (manual submit button)
+  const stopRecording = async () => {
+    const answer = userTranscript || transcript;
+    await stopRecordingWithAnswer(answer);
   };
 
   // Skip current question
   const skipQuestion = async () => {
     stopListening();
     setIsRecording(false);
+    isProcessingRef.current = false;
     
     const newResponse: InterviewResponse = {
       question: displayQuestion,
       answer: "[Skipped]",
     };
     setResponses(prev => [...prev, newResponse]);
+
+    // Log skip to conversation history
+    conversationHistoryRef.current.push({ role: "candidate", text: "[Candidate skipped this question]" });
 
     if (questionNumber >= totalQuestions) {
       await generateFinalReport();
@@ -546,6 +609,7 @@ export const AIVideoInterview = ({
         const cleanQuestion = processQuestionWithEmotion(nextQuestion);
         previousQuestionsRef.current.push(nextQuestion);
         
+        conversationHistoryRef.current.push({ role: "interviewer", text: cleanQuestion });
         setProTips(prev => [...prev, generateProTip(cleanQuestion)]);
         
         resetTranscript();
@@ -570,6 +634,7 @@ export const AIVideoInterview = ({
   };
 
   const endInterview = () => {
+    isProcessingRef.current = false;
     if (responses.length > 0) {
       generateFinalReport();
     } else {
@@ -582,12 +647,13 @@ export const AIVideoInterview = ({
 
   const handleAvatarVideoEnd = () => {
     setInterviewState("LISTENING");
-    if (!isRecording && !isLoading && phase === "interview") {
+    if (!isRecording && !isLoading && phase === "interview" && !isProcessingRef.current) {
       startRecording();
     }
   };
 
   const resetInterview = () => {
+    isProcessingRef.current = false;
     setPhase("personalization");
     setResponses([]);
     setQuestionNumber(0);
@@ -603,6 +669,10 @@ export const AIVideoInterview = ({
     setInterviewState("IDLE");
     setFollowUpCount(0);
     setProTips([]);
+    setUserAnswerLog([]);
+    setInterviewStartTime(null);
+    setElapsedSeconds(0);
+    conversationHistoryRef.current = [];
     previousQuestionsRef.current = [];
   };
 
@@ -667,6 +737,8 @@ export const AIVideoInterview = ({
         emotion={currentEmotion}
         interviewState={interviewState}
         proTips={proTips}
+        elapsedSeconds={elapsedSeconds}
+        userAnswerLog={userAnswerLog}
       />
     );
   }
