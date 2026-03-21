@@ -201,10 +201,35 @@ const StreakTracker = ({ className }: StreakTrackerProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Milestone celebration */}
+          <ConfettiRain isActive={showMilestone} duration={3500} particleCount={50} onComplete={() => setShowMilestone(false)} />
+          <AnimatePresence>
+            {showMilestone && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                className="relative overflow-hidden rounded-xl border border-orange-500/30 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-red-500/10 p-4 text-center"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 0.6, repeat: 3 }}
+                  className="inline-block"
+                >
+                  <Flame className="w-10 h-10 text-orange-500 mx-auto drop-shadow-lg" />
+                </motion.div>
+                <p className="text-sm font-bold mt-1">🔥 {milestoneValue}-Day Streak!</p>
+                <p className="text-xs text-muted-foreground">You're on fire! Keep it going!</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
-              <Flame className="w-5 h-5 text-orange-500 shrink-0" />
+              <motion.div animate={currentStreak >= 7 ? { scale: [1, 1.15, 1] } : {}} transition={{ repeat: Infinity, duration: 1.5 }}>
+                <Flame className="w-5 h-5 text-orange-500 shrink-0" />
+              </motion.div>
               <div>
                 <p className="text-lg font-bold leading-none">{currentStreak}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Current Streak</p>
