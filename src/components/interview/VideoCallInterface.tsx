@@ -46,6 +46,8 @@ interface VideoCallInterfaceProps {
   emotion?: AvatarEmotion;
   interviewState?: InterviewState;
   proTips?: string[];
+  elapsedSeconds?: number;
+  userAnswerLog?: { answer: string; questionNum: number }[];
 }
 
 export const VideoCallInterface = ({
