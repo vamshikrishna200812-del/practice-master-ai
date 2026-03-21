@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare,
   Brain, Loader2, ChevronRight, TrendingUp, CheckCircle2,
-  AlertTriangle, Sparkles, Lightbulb, User, Zap, Eye,
+  AlertTriangle, Sparkles, Lightbulb, User, Zap, Eye, Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
