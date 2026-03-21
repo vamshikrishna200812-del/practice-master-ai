@@ -232,6 +232,14 @@ export const VideoCallInterface = ({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Interview Timer */}
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">
+              <Clock className="w-3 h-3" />
+              <span className="font-mono tabular-nums">
+                {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
+              </span>
+            </div>
+
             {/* Interview State Badge */}
             <Badge className={cn(
               "text-white border-0 text-[10px] gap-1.5 px-2.5 py-0.5 shadow-sm",
