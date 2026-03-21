@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Trophy, Zap } from "lucide-react";
+import { ConfettiRain } from "@/components/ui/ConfettiRain";
+import { useCelebrationSound } from "@/hooks/useCelebrationSound";
 
 interface StreakTrackerProps {
   className?: string;
