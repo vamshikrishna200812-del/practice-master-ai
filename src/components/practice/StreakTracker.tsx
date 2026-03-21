@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Trophy, Zap } from "lucide-react";
+import { ConfettiRain } from "@/components/ui/ConfettiRain";
+import { useCelebrationSound } from "@/hooks/useCelebrationSound";
 
 interface StreakTrackerProps {
   className?: string;
@@ -27,12 +29,17 @@ const getIntensityClass = (count: number): string => {
   return "bg-emerald-500";
 };
 
+const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+
 const StreakTracker = ({ className }: StreakTrackerProps) => {
   const [activityMap, setActivityMap] = useState<Map<string, number>>(new Map());
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [totalActiveDays, setTotalActiveDays] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showMilestone, setShowMilestone] = useState(false);
+  const [milestoneValue, setMilestoneValue] = useState(0);
+  const { playSound } = useCelebrationSound();
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -98,6 +105,19 @@ const StreakTracker = ({ className }: StreakTrackerProps) => {
         .maybeSingle();
       if (points && points.current_streak > streak) {
         setCurrentStreak(points.current_streak);
+      }
+
+      // Check for milestone
+      const finalStreak = (points && points.current_streak > streak) ? points.current_streak : streak;
+      const hit = STREAK_MILESTONES.find(m => finalStreak >= m && finalStreak < m + 1);
+      if (hit) {
+        const key = `streak_milestone_${hit}_shown`;
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          setMilestoneValue(hit);
+          setShowMilestone(true);
+          playSound("celebration");
+        }
       }
 
       setLoading(false);
@@ -181,10 +201,35 @@ const StreakTracker = ({ className }: StreakTrackerProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Milestone celebration */}
+          <ConfettiRain isActive={showMilestone} duration={3500} particleCount={50} onComplete={() => setShowMilestone(false)} />
+          <AnimatePresence>
+            {showMilestone && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                className="relative overflow-hidden rounded-xl border border-orange-500/30 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-red-500/10 p-4 text-center"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 0.6, repeat: 3 }}
+                  className="inline-block"
+                >
+                  <Flame className="w-10 h-10 text-orange-500 mx-auto drop-shadow-lg" />
+                </motion.div>
+                <p className="text-sm font-bold mt-1">🔥 {milestoneValue}-Day Streak!</p>
+                <p className="text-xs text-muted-foreground">You're on fire! Keep it going!</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
-              <Flame className="w-5 h-5 text-orange-500 shrink-0" />
+              <motion.div animate={currentStreak >= 7 ? { scale: [1, 1.15, 1] } : {}} transition={{ repeat: Infinity, duration: 1.5 }}>
+                <Flame className="w-5 h-5 text-orange-500 shrink-0" />
+              </motion.div>
               <div>
                 <p className="text-lg font-bold leading-none">{currentStreak}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">Current Streak</p>
