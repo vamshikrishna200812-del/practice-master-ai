@@ -85,6 +85,7 @@ const App = () => (
               <Route path="/resume-builder" element={<ResumeBuilder />} />
               <Route path="/classroom" element={<Classroom />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/resume-analyser" element={<ResumeAnalyser />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

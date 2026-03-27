@@ -107,6 +107,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: "/classroom", icon: GraduationCap, label: "Classroom" },
     { path: "/leaderboard", icon: Trophy, label: "Hall of Fame" },
     { path: "/resume-builder", icon: FileText, label: "Resume Builder" },
+    { path: "/resume-analyser", icon: ScanSearch, label: "Resume Analyser" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
     { path: "/settings", icon: Settings, label: "Settings" },
     { path: "/help", icon: HelpCircle, label: "Help" },
