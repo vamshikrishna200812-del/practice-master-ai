@@ -24,7 +24,8 @@ import {
   ChevronRight,
   Sparkles,
   Trophy,
-  GraduationCap
+  GraduationCap,
+  ScanSearch
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
