@@ -32,6 +32,7 @@ const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
 const Classroom = lazy(() => import("./pages/Classroom"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ResumeAnalyser = lazy(() => import("./pages/ResumeAnalyser"));
 
 // Lazy-load chat widget since it's non-critical
 const ChatWidget = lazy(() => import("./components/chat-widget").then(m => ({ default: m.ChatWidget })));
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/resume-builder" element={<ResumeBuilder />} />
               <Route path="/classroom" element={<Classroom />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/resume-analyser" element={<ResumeAnalyser />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
