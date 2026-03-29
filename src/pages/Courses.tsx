@@ -33,7 +33,13 @@ import {
   RotateCcw,
   Play,
   ChevronRight,
-  Download
+  Download,
+  Brain,
+  BarChart3,
+  Shield,
+  Cloud,
+  Megaphone,
+  MonitorSmartphone
 } from "lucide-react";
 import courseBookVideo from "@/assets/course-book.mp4";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
