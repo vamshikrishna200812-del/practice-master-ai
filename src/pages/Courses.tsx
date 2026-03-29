@@ -639,6 +639,12 @@ const courseIcons: Record<string, React.ReactNode> = {
   "Behavioral Interview Excellence": <MessageSquare className="w-6 h-6 text-white" />,
   "System Design Fundamentals": <Layers className="w-6 h-6 text-white" />,
   "Communication Skills for Developers": <Mic className="w-6 h-6 text-white" />,
+  "AI & Machine Learning with Python": <Brain className="w-6 h-6 text-white" />,
+  "Data Science & Analytics": <BarChart3 className="w-6 h-6 text-white" />,
+  "Cybersecurity Fundamentals": <Shield className="w-6 h-6 text-white" />,
+  "Cloud Computing (AWS & Azure)": <Cloud className="w-6 h-6 text-white" />,
+  "Digital Marketing Mastery": <Megaphone className="w-6 h-6 text-white" />,
+  "Full Stack Development": <MonitorSmartphone className="w-6 h-6 text-white" />,
 };
 
 // Skeleton components
