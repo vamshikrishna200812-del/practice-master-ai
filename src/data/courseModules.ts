@@ -825,6 +825,310 @@ Start with the conclusion, then support with details:
         topic: "Active Listening"
       }
     ]
+  },
+  "AI & Machine Learning with Python": {
+    courseTitle: "AI & Machine Learning with Python",
+    learningObjectives: [
+      { id: "obj-1", title: "Understand AI & ML Foundations", description: "Differentiate AI, ML, and deep learning and identify real-world applications." },
+      { id: "obj-2", title: "Master Python for Data Science", description: "Use NumPy, Pandas, and Matplotlib for data manipulation and visualization." },
+      { id: "obj-3", title: "Build ML Models", description: "Implement supervised and unsupervised learning algorithms from scratch." },
+      { id: "obj-4", title: "Deep Learning & Neural Networks", description: "Build and train neural networks using TensorFlow and Keras." },
+      { id: "obj-5", title: "Deploy ML Models", description: "Export, serve, and deploy machine learning models to production." }
+    ],
+    topicExplanation: `
+**AI & Machine Learning Fundamentals**
+
+Machine Learning is a subset of AI that enables systems to learn from data without explicit programming.
+
+**Types of Machine Learning:**
+1. **Supervised Learning** — Labeled data (classification, regression)
+2. **Unsupervised Learning** — Unlabeled data (clustering, dimensionality reduction)
+3. **Reinforcement Learning** — Agent learns through rewards/penalties
+
+**Key Python Libraries:**
+- **NumPy** — Numerical computing and array operations
+- **Pandas** — Data manipulation and analysis
+- **Scikit-learn** — ML algorithms and model evaluation
+- **TensorFlow/Keras** — Deep learning frameworks
+- **Matplotlib/Seaborn** — Data visualization
+
+**The ML Pipeline:**
+Data Collection → Preprocessing → Feature Engineering → Model Training → Evaluation → Deployment
+
+**Model Evaluation Metrics:**
+| Metric | Use Case |
+|--------|----------|
+| Accuracy | Balanced datasets |
+| Precision | When false positives are costly |
+| Recall | When false negatives are costly |
+| F1 Score | Imbalanced datasets |
+| AUC-ROC | Binary classification |
+    `,
+    quiz: [
+      { id: "q1", question: "What type of ML uses labeled training data?", options: ["Unsupervised learning", "Supervised learning", "Reinforcement learning", "Transfer learning"], correctIndex: 1, explanation: "Supervised learning uses labeled data where the algorithm learns to map inputs to known outputs.", topic: "ML Fundamentals" },
+      { id: "q2", question: "Which library is the primary tool for data manipulation in Python?", options: ["NumPy", "TensorFlow", "Pandas", "Flask"], correctIndex: 2, explanation: "Pandas provides DataFrames — the core data structure for data analysis in Python.", topic: "Python Libraries" },
+      { id: "q3", question: "What is overfitting?", options: ["Model performs poorly on all data", "Model memorizes training data and fails on new data", "Model is too simple", "Model has too few features"], correctIndex: 1, explanation: "Overfitting occurs when a model learns noise in training data, performing well on training but poorly on unseen data.", topic: "Model Evaluation" },
+      { id: "q4", question: "What activation function is commonly used in hidden layers?", options: ["Sigmoid", "ReLU", "Softmax", "Linear"], correctIndex: 1, explanation: "ReLU (Rectified Linear Unit) is the most popular activation function for hidden layers due to its simplicity and effectiveness.", topic: "Neural Networks" },
+      { id: "q5", question: "What is the purpose of a train-test split?", options: ["To speed up training", "To evaluate model performance on unseen data", "To reduce dataset size", "To remove outliers"], correctIndex: 1, explanation: "Splitting data ensures we can evaluate how well the model generalizes to new, unseen data.", topic: "Model Evaluation" },
+      { id: "q6", question: "Which algorithm is best for binary classification?", options: ["Linear Regression", "Logistic Regression", "K-Means", "PCA"], correctIndex: 1, explanation: "Logistic Regression is designed for binary classification, predicting probabilities of two classes.", topic: "Algorithms" },
+      { id: "q7", question: "What is a CNN primarily used for?", options: ["Natural language processing", "Image recognition", "Time series forecasting", "Recommendation systems"], correctIndex: 1, explanation: "Convolutional Neural Networks (CNNs) excel at image recognition by detecting spatial patterns.", topic: "Deep Learning" },
+      { id: "q8", question: "What does backpropagation do?", options: ["Forward passes data through the network", "Adjusts weights by calculating gradients of the loss", "Normalizes input data", "Splits data into batches"], correctIndex: 1, explanation: "Backpropagation computes gradients of the loss function to update network weights during training.", topic: "Neural Networks" },
+      { id: "q9", question: "What is transfer learning?", options: ["Moving data between databases", "Using a pre-trained model for a new task", "Transferring files between servers", "Converting Python to JavaScript"], correctIndex: 1, explanation: "Transfer learning leverages knowledge from pre-trained models to solve new, related problems with less data.", topic: "Deep Learning" },
+      { id: "q10", question: "Which metric is best for imbalanced datasets?", options: ["Accuracy", "F1 Score", "Mean Squared Error", "R-squared"], correctIndex: 1, explanation: "F1 Score balances precision and recall, making it ideal for imbalanced datasets where accuracy can be misleading.", topic: "Model Evaluation" }
+    ]
+  },
+  "Data Science & Analytics": {
+    courseTitle: "Data Science & Analytics",
+    learningObjectives: [
+      { id: "obj-1", title: "Understand the Data Science Lifecycle", description: "Learn the end-to-end process from data collection to insight delivery." },
+      { id: "obj-2", title: "Master Data Wrangling", description: "Clean, transform, and prepare messy data for analysis." },
+      { id: "obj-3", title: "Apply Statistical Analysis", description: "Use descriptive and inferential statistics to derive insights." },
+      { id: "obj-4", title: "Create Compelling Visualizations", description: "Build charts and dashboards that tell data stories." },
+      { id: "obj-5", title: "Write SQL for Analytics", description: "Query databases efficiently for data extraction and analysis." }
+    ],
+    topicExplanation: `
+**Data Science Fundamentals**
+
+Data Science combines statistics, programming, and domain expertise to extract insights from data.
+
+**The Data Science Pipeline:**
+1. **Define the Problem** — What question are we answering?
+2. **Collect Data** — APIs, databases, web scraping, surveys
+3. **Clean & Wrangle** — Handle missing values, outliers, formatting
+4. **Explore (EDA)** — Visualize patterns, correlations, distributions
+5. **Model/Analyze** — Statistical tests, ML models, aggregations
+6. **Communicate** — Dashboards, reports, presentations
+
+**Essential Statistical Concepts:**
+- **Mean, Median, Mode** — Measures of central tendency
+- **Standard Deviation** — Spread of data
+- **Correlation** — Relationship between variables
+- **Hypothesis Testing** — Making data-driven decisions
+- **p-value** — Probability of observing results under null hypothesis
+    `,
+    quiz: [
+      { id: "q1", question: "What is the first step in a data science project?", options: ["Build a model", "Define the problem clearly", "Clean the data", "Create visualizations"], correctIndex: 1, explanation: "Clearly defining the business problem ensures all subsequent work is focused and relevant.", topic: "Data Science Lifecycle" },
+      { id: "q2", question: "Which Pandas function handles missing values?", options: ["pd.merge()", "df.fillna()", "df.sort_values()", "pd.concat()"], correctIndex: 1, explanation: "fillna() replaces missing values with a specified value, mean, median, or other strategy.", topic: "Data Wrangling" },
+      { id: "q3", question: "What does a p-value less than 0.05 typically indicate?", options: ["No significance", "Statistical significance", "Data error", "Perfect correlation"], correctIndex: 1, explanation: "A p-value < 0.05 means there's less than 5% probability the results occurred by chance.", topic: "Statistics" },
+      { id: "q4", question: "Which chart is best for showing distributions?", options: ["Pie chart", "Histogram", "Line chart", "Scatter plot"], correctIndex: 1, explanation: "Histograms show the frequency distribution of continuous data, revealing shape, spread, and outliers.", topic: "Visualization" },
+      { id: "q5", question: "What SQL clause filters aggregated results?", options: ["WHERE", "HAVING", "GROUP BY", "ORDER BY"], correctIndex: 1, explanation: "HAVING filters groups after GROUP BY aggregation, while WHERE filters individual rows.", topic: "SQL" },
+      { id: "q6", question: "What is a window function in SQL?", options: ["A function that opens windows", "Performs calculations across related rows", "Creates database views", "Joins two tables"], correctIndex: 1, explanation: "Window functions perform calculations across a set of rows related to the current row.", topic: "SQL" },
+      { id: "q7", question: "What is the correlation coefficient range?", options: ["0 to 1", "-1 to 1", "0 to 100", "-100 to 100"], correctIndex: 1, explanation: "Correlation ranges from -1 (perfect negative) to 1 (perfect positive), with 0 meaning no correlation.", topic: "Statistics" },
+      { id: "q8", question: "What does EDA stand for?", options: ["Extended Data Application", "Exploratory Data Analysis", "Estimated Data Assessment", "External Data Access"], correctIndex: 1, explanation: "Exploratory Data Analysis is the process of visually and statistically examining data to understand its characteristics.", topic: "EDA" },
+      { id: "q9", question: "Which library creates interactive Python visualizations?", options: ["NumPy", "Plotly", "Scikit-learn", "BeautifulSoup"], correctIndex: 1, explanation: "Plotly creates interactive, web-based visualizations including charts, dashboards, and maps.", topic: "Visualization" },
+      { id: "q10", question: "What is a CTE in SQL?", options: ["Common Table Expression", "Central Tracking Engine", "Code Translation Engine", "Client Transfer Entity"], correctIndex: 0, explanation: "CTEs (Common Table Expressions) create temporary named result sets for cleaner, more readable queries.", topic: "SQL" }
+    ]
+  },
+  "Cybersecurity Fundamentals": {
+    courseTitle: "Cybersecurity Fundamentals",
+    learningObjectives: [
+      { id: "obj-1", title: "Understand the Threat Landscape", description: "Identify common threats, attack vectors, and threat actors." },
+      { id: "obj-2", title: "Master Network Security", description: "Configure firewalls, IDS/IPS, and secure network architectures." },
+      { id: "obj-3", title: "Apply Cryptography", description: "Understand encryption, hashing, and digital certificate management." },
+      { id: "obj-4", title: "Secure Web Applications", description: "Prevent OWASP Top 10 vulnerabilities in web applications." },
+      { id: "obj-5", title: "Respond to Incidents", description: "Build and execute incident response plans effectively." }
+    ],
+    topicExplanation: `
+**Cybersecurity Essentials**
+
+Cybersecurity protects systems, networks, and data from digital attacks.
+
+**The CIA Triad:**
+- **Confidentiality** — Only authorized access to data
+- **Integrity** — Data is accurate and unaltered
+- **Availability** — Systems are accessible when needed
+
+**Common Attack Types:**
+| Attack | Description |
+|--------|-------------|
+| Phishing | Social engineering via fake emails |
+| SQL Injection | Malicious SQL through input fields |
+| XSS | Injecting scripts into web pages |
+| DDoS | Overwhelming servers with traffic |
+| Ransomware | Encrypting data for ransom |
+| Man-in-the-Middle | Intercepting communications |
+
+**Defense Layers:**
+1. **Perimeter** — Firewalls, WAF
+2. **Network** — IDS/IPS, segmentation
+3. **Endpoint** — Antivirus, EDR
+4. **Application** — Secure coding, input validation
+5. **Data** — Encryption, access controls
+6. **Identity** — MFA, RBAC, least privilege
+    `,
+    quiz: [
+      { id: "q1", question: "What does the 'I' in CIA triad stand for?", options: ["Intelligence", "Integrity", "Internet", "Infrastructure"], correctIndex: 1, explanation: "Integrity ensures data remains accurate, complete, and unaltered by unauthorized parties.", topic: "CIA Triad" },
+      { id: "q2", question: "What type of attack uses fake emails to steal credentials?", options: ["DDoS", "Phishing", "SQL Injection", "Brute Force"], correctIndex: 1, explanation: "Phishing uses deceptive emails or messages to trick users into revealing sensitive information.", topic: "Threat Types" },
+      { id: "q3", question: "What is the purpose of an IDS?", options: ["Block all traffic", "Detect suspicious network activity", "Encrypt data", "Manage user accounts"], correctIndex: 1, explanation: "Intrusion Detection Systems monitor network traffic for suspicious activity and alert administrators.", topic: "Network Security" },
+      { id: "q4", question: "Which encryption type uses the same key for encryption and decryption?", options: ["Asymmetric", "Symmetric", "Hashing", "Digital signature"], correctIndex: 1, explanation: "Symmetric encryption (like AES) uses one shared key for both encrypting and decrypting data.", topic: "Cryptography" },
+      { id: "q5", question: "What is SQL Injection?", options: ["A database backup method", "Inserting malicious SQL through user inputs", "A SQL optimization technique", "A data migration tool"], correctIndex: 1, explanation: "SQL Injection exploits vulnerable input fields to execute unauthorized database commands.", topic: "Web Security" },
+      { id: "q6", question: "What does MFA stand for?", options: ["Multiple File Access", "Multi-Factor Authentication", "Main Firewall Application", "Managed Feature Audit"], correctIndex: 1, explanation: "Multi-Factor Authentication requires two or more verification methods to grant access.", topic: "Identity Security" },
+      { id: "q7", question: "What is the principle of least privilege?", options: ["Give everyone admin access", "Grant minimum access needed for the job", "Remove all user permissions", "Only use root accounts"], correctIndex: 1, explanation: "Least privilege means users get only the minimum permissions necessary to perform their duties.", topic: "Access Control" },
+      { id: "q8", question: "What does a WAF protect against?", options: ["Physical theft", "Web application attacks", "Power outages", "Hardware failures"], correctIndex: 1, explanation: "Web Application Firewalls filter and monitor HTTP traffic to protect against web-based attacks.", topic: "Web Security" },
+      { id: "q9", question: "What is the first step in incident response?", options: ["Eradication", "Preparation", "Recovery", "Containment"], correctIndex: 1, explanation: "Preparation is the first phase — having an IR plan, team, and tools ready before incidents occur.", topic: "Incident Response" },
+      { id: "q10", question: "What is ethical hacking?", options: ["Illegal hacking", "Authorized testing to find security vulnerabilities", "Hacking for personal gain", "Disabling security systems"], correctIndex: 1, explanation: "Ethical hacking involves authorized security testing to identify and fix vulnerabilities before attackers exploit them.", topic: "Penetration Testing" }
+    ]
+  },
+  "Cloud Computing (AWS & Azure)": {
+    courseTitle: "Cloud Computing (AWS & Azure)",
+    learningObjectives: [
+      { id: "obj-1", title: "Understand Cloud Models", description: "Learn IaaS, PaaS, SaaS and deployment models." },
+      { id: "obj-2", title: "Master AWS Core Services", description: "Deploy and manage EC2, S3, RDS, Lambda, and IAM." },
+      { id: "obj-3", title: "Work with Azure", description: "Navigate Azure portal and deploy key Azure services." },
+      { id: "obj-4", title: "Containerize Applications", description: "Use Docker and Kubernetes for cloud-native deployment." },
+      { id: "obj-5", title: "Build CI/CD Pipelines", description: "Automate testing and deployment with DevOps practices." }
+    ],
+    topicExplanation: `
+**Cloud Computing Essentials**
+
+Cloud computing delivers computing resources over the internet on a pay-as-you-go basis.
+
+**Service Models:**
+- **IaaS** — Virtual machines, storage, networking (EC2, Azure VMs)
+- **PaaS** — Platform for building apps (Elastic Beanstalk, Azure App Service)
+- **SaaS** — Ready-to-use software (Gmail, Salesforce)
+
+**Key AWS Services:**
+| Service | Purpose |
+|---------|---------|
+| EC2 | Virtual servers |
+| S3 | Object storage |
+| RDS | Managed databases |
+| Lambda | Serverless compute |
+| IAM | Identity & access management |
+| CloudFront | CDN |
+
+**Key Azure Services:**
+| Service | Purpose |
+|---------|---------|
+| Virtual Machines | Compute |
+| Blob Storage | Object storage |
+| Azure SQL | Managed database |
+| Functions | Serverless compute |
+| Azure AD | Identity management |
+
+**Cloud Architecture Principles:**
+1. Design for failure — everything fails eventually
+2. Decouple components — use queues and microservices
+3. Think elastic — auto-scale based on demand
+4. Secure by default — least privilege, encryption
+    `,
+    quiz: [
+      { id: "q1", question: "What is IaaS?", options: ["Software delivered via browser", "Infrastructure provided as a cloud service", "A programming language", "A networking protocol"], correctIndex: 1, explanation: "Infrastructure as a Service provides virtualized computing resources over the internet.", topic: "Cloud Models" },
+      { id: "q2", question: "Which AWS service provides serverless compute?", options: ["EC2", "S3", "Lambda", "RDS"], correctIndex: 2, explanation: "AWS Lambda runs code without provisioning servers — you only pay for compute time used.", topic: "AWS" },
+      { id: "q3", question: "What is the primary purpose of IAM?", options: ["Store files", "Manage user access and permissions", "Host websites", "Send emails"], correctIndex: 1, explanation: "IAM (Identity and Access Management) controls who can access which AWS resources.", topic: "Security" },
+      { id: "q4", question: "What does a container do?", options: ["Stores physical servers", "Packages an app with its dependencies for consistent deployment", "Creates virtual machines", "Manages databases"], correctIndex: 1, explanation: "Containers package applications with all dependencies, ensuring consistency across environments.", topic: "Containers" },
+      { id: "q5", question: "What is Kubernetes used for?", options: ["Writing code", "Container orchestration", "Database management", "Email services"], correctIndex: 1, explanation: "Kubernetes automates deployment, scaling, and management of containerized applications.", topic: "Containers" },
+      { id: "q6", question: "What is auto-scaling?", options: ["Manual server addition", "Automatically adjusting resources based on demand", "Turning off servers at night", "Upgrading hardware"], correctIndex: 1, explanation: "Auto-scaling automatically adds or removes resources based on current demand.", topic: "Cloud Architecture" },
+      { id: "q7", question: "What is a VPC?", options: ["Virtual Private Cloud — isolated network in the cloud", "Very Private Computer", "Virtual Processing Core", "Vendor Price Calculator"], correctIndex: 0, explanation: "VPC provides an isolated virtual network where you can launch cloud resources.", topic: "Networking" },
+      { id: "q8", question: "What CI/CD practice deploys code automatically after tests pass?", options: ["Manual deployment", "Continuous Deployment", "Code review", "Load testing"], correctIndex: 1, explanation: "Continuous Deployment automatically releases code to production after passing all tests.", topic: "DevOps" },
+      { id: "q9", question: "What is Azure Blob Storage?", options: ["A compute service", "Object storage for unstructured data", "A database service", "A messaging service"], correctIndex: 1, explanation: "Azure Blob Storage stores large amounts of unstructured data like images, videos, and backups.", topic: "Azure" },
+      { id: "q10", question: "What is the shared responsibility model?", options: ["Cloud provider handles everything", "Customer handles everything", "Provider secures infrastructure, customer secures their data and apps", "No one is responsible"], correctIndex: 2, explanation: "In the shared responsibility model, the cloud provider secures the underlying infrastructure while customers secure their own data and applications.", topic: "Cloud Security" }
+    ]
+  },
+  "Digital Marketing Mastery": {
+    courseTitle: "Digital Marketing Mastery",
+    learningObjectives: [
+      { id: "obj-1", title: "Build a Digital Strategy", description: "Create comprehensive digital marketing strategies aligned with business goals." },
+      { id: "obj-2", title: "Master SEO", description: "Optimize websites for search engines to drive organic traffic." },
+      { id: "obj-3", title: "Run Paid Campaigns", description: "Create and optimize PPC campaigns on Google and social platforms." },
+      { id: "obj-4", title: "Create Engaging Content", description: "Develop content strategies and compelling copywriting." },
+      { id: "obj-5", title: "Analyze Marketing Data", description: "Use analytics tools to measure ROI and optimize campaigns." }
+    ],
+    topicExplanation: `
+**Digital Marketing Essentials**
+
+Digital marketing promotes products and services through digital channels to reach and engage customers.
+
+**Core Channels:**
+1. **SEO** — Organic search visibility
+2. **PPC** — Paid search and display advertising
+3. **Social Media** — Platform-specific engagement
+4. **Content Marketing** — Valuable content creation
+5. **Email Marketing** — Direct communication
+6. **Affiliate Marketing** — Partner-driven sales
+
+**SEO Fundamentals:**
+- **On-Page** — Title tags, meta descriptions, headings, content
+- **Off-Page** — Backlinks, social signals, brand mentions
+- **Technical** — Site speed, mobile-friendly, structured data
+
+**Key Metrics:**
+| Metric | What It Measures |
+|--------|-----------------|
+| CTR | Click-through rate |
+| CPC | Cost per click |
+| ROAS | Return on ad spend |
+| CAC | Customer acquisition cost |
+| LTV | Customer lifetime value |
+| Bounce Rate | Single-page visits |
+    `,
+    quiz: [
+      { id: "q1", question: "What does SEO stand for?", options: ["Social Engagement Optimization", "Search Engine Optimization", "Site Enhancement Operation", "Standard Email Outreach"], correctIndex: 1, explanation: "Search Engine Optimization improves website visibility in organic search results.", topic: "SEO" },
+      { id: "q2", question: "What is a meta description?", options: ["A database field", "A brief summary shown in search results", "A social media post", "An email subject line"], correctIndex: 1, explanation: "Meta descriptions are HTML elements that provide a brief summary of a page shown in search engine results.", topic: "SEO" },
+      { id: "q3", question: "What does PPC stand for?", options: ["Post Per Channel", "Pay Per Click", "Profile Page Content", "Public Private Communication"], correctIndex: 1, explanation: "Pay Per Click is an advertising model where you pay each time someone clicks your ad.", topic: "Paid Advertising" },
+      { id: "q4", question: "What is A/B testing in marketing?", options: ["Testing two versions to see which performs better", "Grading marketing campaigns", "Alphabetical sorting of content", "Testing on Android and iOS"], correctIndex: 0, explanation: "A/B testing compares two versions of content to determine which drives better results.", topic: "Analytics" },
+      { id: "q5", question: "What is ROAS?", options: ["Rate of Average Sales", "Return on Ad Spend", "Reach of Audience Size", "Results of A/B Studies"], correctIndex: 1, explanation: "Return on Ad Spend measures revenue generated per dollar spent on advertising.", topic: "Analytics" },
+      { id: "q6", question: "Which copywriting framework follows Attention, Interest, Desire, Action?", options: ["PAS", "AIDA", "STAR", "SWOT"], correctIndex: 1, explanation: "AIDA guides the reader through Attention → Interest → Desire → Action for conversion.", topic: "Copywriting" },
+      { id: "q7", question: "What is a conversion funnel?", options: ["A kitchen tool", "The journey from awareness to purchase", "A type of chart", "An email template"], correctIndex: 1, explanation: "A conversion funnel maps the customer journey from initial awareness through to final purchase.", topic: "Strategy" },
+      { id: "q8", question: "What is the purpose of UTM parameters?", options: ["Speed up websites", "Track campaign traffic sources in analytics", "Create email templates", "Manage social media accounts"], correctIndex: 1, explanation: "UTM parameters are tags added to URLs to track which campaigns drive traffic and conversions.", topic: "Analytics" },
+      { id: "q9", question: "What is email segmentation?", options: ["Splitting email into paragraphs", "Dividing subscribers into groups based on criteria", "Blocking spam emails", "Forwarding emails automatically"], correctIndex: 1, explanation: "Email segmentation divides your subscriber list into targeted groups for more relevant messaging.", topic: "Email Marketing" },
+      { id: "q10", question: "What is bounce rate?", options: ["Email delivery failure rate", "Percentage of visitors who leave after viewing one page", "Social media unfollows", "Ad click rate"], correctIndex: 1, explanation: "Bounce rate measures the percentage of visitors who leave your site after viewing only one page.", topic: "Analytics" }
+    ]
+  },
+  "Full Stack Development": {
+    courseTitle: "Full Stack Development",
+    learningObjectives: [
+      { id: "obj-1", title: "Understand Full Stack Architecture", description: "Learn how frontend, backend, and database layers work together." },
+      { id: "obj-2", title: "Build React Frontends", description: "Create modern, responsive UIs with React and Tailwind CSS." },
+      { id: "obj-3", title: "Create Backend APIs", description: "Build RESTful APIs with Node.js and Express." },
+      { id: "obj-4", title: "Design Databases", description: "Model data with PostgreSQL and implement efficient queries." },
+      { id: "obj-5", title: "Deploy Full Stack Apps", description: "Containerize and deploy applications to production." }
+    ],
+    topicExplanation: `
+**Full Stack Development**
+
+Full stack developers build complete web applications — from the user interface to the server and database.
+
+**The Three Layers:**
+1. **Frontend** — What users see and interact with (React, HTML, CSS)
+2. **Backend** — Server logic, APIs, business rules (Node.js, Express)
+3. **Database** — Data storage and retrieval (PostgreSQL, MongoDB)
+
+**Modern Tech Stack:**
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React, TypeScript, Tailwind CSS |
+| Backend | Node.js, Express |
+| Database | PostgreSQL |
+| Auth | JWT, OAuth 2.0 |
+| Deployment | Docker, CI/CD |
+
+**REST API Design:**
+- **GET** — Read resources
+- **POST** — Create resources
+- **PUT/PATCH** — Update resources
+- **DELETE** — Remove resources
+
+**Key Concepts:**
+- Component-based architecture
+- State management (hooks, context)
+- Middleware and error handling
+- Database normalization
+- Authentication vs Authorization
+    `,
+    quiz: [
+      { id: "q1", question: "What is the role of the backend in a full stack app?", options: ["Style the UI", "Handle server logic and data processing", "Display images", "Manage CSS"], correctIndex: 1, explanation: "The backend handles business logic, database interactions, authentication, and serves data to the frontend.", topic: "Architecture" },
+      { id: "q2", question: "What is a React component?", options: ["A database table", "A reusable piece of UI", "A CSS class", "A server endpoint"], correctIndex: 1, explanation: "React components are reusable, self-contained pieces of UI that manage their own state and rendering.", topic: "React" },
+      { id: "q3", question: "What HTTP method creates a new resource?", options: ["GET", "POST", "DELETE", "PATCH"], correctIndex: 1, explanation: "POST is used to create new resources on the server, sending data in the request body.", topic: "REST APIs" },
+      { id: "q4", question: "What is database normalization?", options: ["Making the database faster", "Organizing data to reduce redundancy", "Deleting old records", "Converting data types"], correctIndex: 1, explanation: "Normalization organizes data into tables to minimize redundancy and improve data integrity.", topic: "Database" },
+      { id: "q5", question: "What is JWT used for?", options: ["Styling components", "Secure token-based authentication", "Database queries", "Image processing"], correctIndex: 1, explanation: "JSON Web Tokens are used for stateless authentication, encoding user identity and claims.", topic: "Authentication" },
+      { id: "q6", question: "What is middleware in Express?", options: ["A database layer", "Functions that process requests between receipt and response", "A frontend library", "A testing tool"], correctIndex: 1, explanation: "Middleware functions have access to the request and response objects and can modify them or end the request cycle.", topic: "Backend" },
+      { id: "q7", question: "What is the useState hook in React?", options: ["A routing function", "A hook for managing component state", "A CSS utility", "A database connector"], correctIndex: 1, explanation: "useState is a React Hook that lets functional components manage local state.", topic: "React" },
+      { id: "q8", question: "What does CORS handle?", options: ["CSS styling", "Cross-origin resource sharing between domains", "Database connections", "File uploads"], correctIndex: 1, explanation: "CORS controls which domains can make requests to your API, preventing unauthorized cross-origin access.", topic: "Security" },
+      { id: "q9", question: "What is Docker used for?", options: ["Writing code", "Containerizing applications for consistent deployment", "Managing databases", "Creating UI components"], correctIndex: 1, explanation: "Docker packages applications with their dependencies into containers for consistent deployment across environments.", topic: "Deployment" },
+      { id: "q10", question: "What is the difference between authentication and authorization?", options: ["They are the same thing", "Authentication verifies identity, authorization verifies permissions", "Authentication is for servers, authorization is for clients", "There is no difference"], correctIndex: 1, explanation: "Authentication confirms WHO you are, while authorization determines WHAT you can do.", topic: "Security" }
+    ]
   }
 };
 

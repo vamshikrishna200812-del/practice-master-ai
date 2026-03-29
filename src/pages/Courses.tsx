@@ -33,7 +33,13 @@ import {
   RotateCcw,
   Play,
   ChevronRight,
-  Download
+  Download,
+  Brain,
+  BarChart3,
+  Shield,
+  Cloud,
+  Megaphone,
+  MonitorSmartphone
 } from "lucide-react";
 import courseBookVideo from "@/assets/course-book.mp4";
 import { SuccessCelebration } from "@/components/ui/SuccessCelebration";
@@ -455,109 +461,66 @@ const courseCurriculum: Record<string, VideoLesson[]> = {
     },
   ],
   "Communication Skills for Developers": [
-    { 
-      id: "1", 
-      title: "Why Communication Matters", 
-      description: "The impact of clear communication in tech careers and interview success.", 
-      duration: 10,
-      videoUrl: "https://www.youtube.com/embed/DIR_rxusO8Q",
-      hasQuiz: true,
-      hasExercise: false,
-      keyTakeaways: [
-        "Understand communication's role in tech",
-        "Recognize common communication pitfalls",
-        "Build awareness of your communication style"
-      ],
-      resources: [
-        { title: "Communication Self-Assessment", type: "pdf" }
-      ]
-    },
-    { 
-      id: "2", 
-      title: "Explaining Technical Concepts", 
-      description: "Making complex ideas accessible to different audiences without losing accuracy.", 
-      duration: 15,
-      videoUrl: "https://www.youtube.com/embed/5mguZ0gN3SY",
-      hasQuiz: true,
-      hasExercise: true,
-      keyTakeaways: [
-        "Use analogies effectively",
-        "Adjust complexity for your audience",
-        "Check for understanding as you go"
-      ],
-      resources: [
-        { title: "Technical Explanation Templates", type: "pdf" }
-      ]
-    },
-    { 
-      id: "3", 
-      title: "Active Listening Techniques", 
-      description: "Understanding questions before answering and showing genuine engagement.", 
-      duration: 10,
-      videoUrl: "https://www.youtube.com/embed/rzsVh8YwZEQ",
-      hasQuiz: true,
-      hasExercise: true,
-      keyTakeaways: [
-        "Practice pausing before responding",
-        "Ask clarifying questions",
-        "Confirm understanding before diving in"
-      ],
-      resources: [
-        { title: "Active Listening Exercises", type: "pdf" }
-      ]
-    },
-    { 
-      id: "4", 
-      title: "Body Language & Confidence", 
-      description: "Non-verbal cues that build trust and project confidence in interviews.", 
-      duration: 15,
-      videoUrl: "https://www.youtube.com/embed/cFLjudWTuGQ",
-      hasQuiz: true,
-      hasExercise: true,
-      keyTakeaways: [
-        "Master confident posture",
-        "Use appropriate eye contact",
-        "Control nervous habits"
-      ],
-      resources: [
-        { title: "Body Language Tips", type: "pdf" }
-      ]
-    },
-    { 
-      id: "5", 
-      title: "Handling Difficult Questions", 
-      description: "Strategies when you don't know the answer and maintaining composure under pressure.", 
-      duration: 15,
-      videoUrl: "https://www.youtube.com/embed/Hn7GcvL0A20",
-      hasQuiz: true,
-      hasExercise: true,
-      keyTakeaways: [
-        "Admit gaps honestly",
-        "Show problem-solving approach",
-        "Redirect to related strengths"
-      ],
-      resources: [
-        { title: "Difficult Questions Guide", type: "pdf" }
-      ]
-    },
-    { 
-      id: "6", 
-      title: "Virtual Interview Best Practices", 
-      description: "Optimizing your remote interview setup for the best impression.", 
-      duration: 10,
-      videoUrl: "https://www.youtube.com/embed/HG68Ymazo18",
-      hasQuiz: false,
-      hasExercise: true,
-      keyTakeaways: [
-        "Set up professional lighting and audio",
-        "Minimize distractions and interruptions",
-        "Test technology before the interview"
-      ],
-      resources: [
-        { title: "Remote Interview Checklist", type: "pdf" },
-        { title: "Background Setup Guide", type: "doc" }
-      ]
-    },
+    { id: "1", title: "Why Communication Matters", description: "The impact of clear communication in tech careers and interview success.", duration: 10, videoUrl: "https://www.youtube.com/embed/DIR_rxusO8Q", hasQuiz: true, hasExercise: false, keyTakeaways: ["Understand communication's role in tech", "Recognize common communication pitfalls", "Build awareness of your communication style"], resources: [{ title: "Communication Self-Assessment", type: "pdf" }] },
+    { id: "2", title: "Explaining Technical Concepts", description: "Making complex ideas accessible to different audiences without losing accuracy.", duration: 15, videoUrl: "https://www.youtube.com/embed/5mguZ0gN3SY", hasQuiz: true, hasExercise: true, keyTakeaways: ["Use analogies effectively", "Adjust complexity for your audience", "Check for understanding as you go"], resources: [{ title: "Technical Explanation Templates", type: "pdf" }] },
+    { id: "3", title: "Active Listening Techniques", description: "Understanding questions before answering and showing genuine engagement.", duration: 10, videoUrl: "https://www.youtube.com/embed/rzsVh8YwZEQ", hasQuiz: true, hasExercise: true, keyTakeaways: ["Practice pausing before responding", "Ask clarifying questions", "Confirm understanding before diving in"], resources: [{ title: "Active Listening Exercises", type: "pdf" }] },
+    { id: "4", title: "Body Language & Confidence", description: "Non-verbal cues that build trust and project confidence in interviews.", duration: 15, videoUrl: "https://www.youtube.com/embed/cFLjudWTuGQ", hasQuiz: true, hasExercise: true, keyTakeaways: ["Master confident posture", "Use appropriate eye contact", "Control nervous habits"], resources: [{ title: "Body Language Tips", type: "pdf" }] },
+    { id: "5", title: "Handling Difficult Questions", description: "Strategies when you don't know the answer and maintaining composure under pressure.", duration: 15, videoUrl: "https://www.youtube.com/embed/Hn7GcvL0A20", hasQuiz: true, hasExercise: true, keyTakeaways: ["Admit gaps honestly", "Show problem-solving approach", "Redirect to related strengths"], resources: [{ title: "Difficult Questions Guide", type: "pdf" }] },
+    { id: "6", title: "Virtual Interview Best Practices", description: "Optimizing your remote interview setup for the best impression.", duration: 10, videoUrl: "https://www.youtube.com/embed/HG68Ymazo18", hasQuiz: false, hasExercise: true, keyTakeaways: ["Set up professional lighting and audio", "Minimize distractions and interruptions", "Test technology before the interview"], resources: [{ title: "Remote Interview Checklist", type: "pdf" }, { title: "Background Setup Guide", type: "doc" }] },
+  ],
+  "AI & Machine Learning with Python": [
+    { id: "1", title: "Introduction to AI & ML", description: "Understand the landscape of AI, machine learning types, and real-world applications across industries.", duration: 20, videoUrl: "https://www.youtube.com/embed/mJeNghZXtMo", hasQuiz: true, hasExercise: false, keyTakeaways: ["Differentiate AI, ML, and Deep Learning", "Understand supervised vs unsupervised learning", "Identify real-world ML applications"], resources: [{ title: "AI/ML Landscape Guide", type: "pdf" }] },
+    { id: "2", title: "Python for Data Science", description: "Master Python fundamentals including NumPy, Pandas, and Matplotlib for data manipulation and visualization.", duration: 25, videoUrl: "https://www.youtube.com/embed/LHBE6Q9XlzI", hasQuiz: true, hasExercise: true, keyTakeaways: ["Manipulate data with Pandas DataFrames", "Perform numerical computing with NumPy", "Create visualizations with Matplotlib"], resources: [{ title: "Python Data Science Cheat Sheet", type: "pdf" }] },
+    { id: "3", title: "Supervised Learning Algorithms", description: "Learn linear regression, logistic regression, decision trees, and SVMs with hands-on implementations.", duration: 30, videoUrl: "https://www.youtube.com/embed/4qVRBYAdLAo", hasQuiz: true, hasExercise: true, keyTakeaways: ["Implement linear and logistic regression", "Build decision trees and random forests", "Evaluate models with metrics like accuracy and F1"], resources: [{ title: "Supervised Learning Notebook", type: "code" }] },
+    { id: "4", title: "Neural Networks & Deep Learning", description: "Build neural networks from scratch, understand backpropagation, and use TensorFlow/Keras for deep learning.", duration: 35, videoUrl: "https://www.youtube.com/embed/aircAruvnKk", hasQuiz: true, hasExercise: true, keyTakeaways: ["Understand perceptrons and activation functions", "Implement backpropagation", "Build models with TensorFlow/Keras"], resources: [{ title: "Neural Network Architecture Guide", type: "pdf" }] },
+    { id: "5", title: "Natural Language Processing", description: "Text preprocessing, sentiment analysis, word embeddings, and building chatbots with NLP techniques.", duration: 25, videoUrl: "https://www.youtube.com/embed/fOvTtapxa9c", hasQuiz: true, hasExercise: true, keyTakeaways: ["Tokenize and preprocess text data", "Build sentiment analysis models", "Use word embeddings like Word2Vec"], resources: [{ title: "NLP Starter Kit", type: "pdf" }] },
+    { id: "6", title: "Computer Vision Fundamentals", description: "Image classification, object detection, and CNNs for visual data processing.", duration: 30, videoUrl: "https://www.youtube.com/embed/QzY57FaENXg", hasQuiz: true, hasExercise: true, keyTakeaways: ["Understand convolutional neural networks", "Build image classifiers", "Apply transfer learning"], resources: [{ title: "CV Project Templates", type: "code" }] },
+    { id: "7", title: "ML Model Deployment", description: "Deploy ML models using Flask APIs, Docker containers, and cloud platforms for production use.", duration: 25, videoUrl: "https://www.youtube.com/embed/bi0cKgmRuiA", hasQuiz: false, hasExercise: true, keyTakeaways: ["Export models with pickle/joblib", "Create REST APIs for model serving", "Deploy with Docker and cloud services"], resources: [{ title: "Deployment Checklist", type: "pdf" }] },
+  ],
+  "Data Science & Analytics": [
+    { id: "1", title: "Introduction to Data Science", description: "The data science lifecycle, roles, tools, and how to think like a data scientist.", duration: 15, videoUrl: "https://www.youtube.com/embed/X3paOmcrTjQ", hasQuiz: true, hasExercise: false, keyTakeaways: ["Understand the data science pipeline", "Learn key tools and technologies", "Differentiate descriptive vs predictive analytics"], resources: [{ title: "Data Science Roadmap", type: "pdf" }] },
+    { id: "2", title: "Data Wrangling with Pandas", description: "Clean, transform, and reshape messy real-world data into analysis-ready formats.", duration: 25, videoUrl: "https://www.youtube.com/embed/vmEHCJofslg", hasQuiz: true, hasExercise: true, keyTakeaways: ["Handle missing values and outliers", "Merge and join datasets", "Apply groupby and aggregation"], resources: [{ title: "Pandas Cheat Sheet", type: "pdf" }] },
+    { id: "3", title: "Statistical Analysis Fundamentals", description: "Descriptive statistics, probability distributions, hypothesis testing, and confidence intervals.", duration: 30, videoUrl: "https://www.youtube.com/embed/xxpc-HPKN28", hasQuiz: true, hasExercise: true, keyTakeaways: ["Calculate key statistical measures", "Perform hypothesis tests", "Understand p-values and significance"], resources: [{ title: "Statistics Formula Sheet", type: "pdf" }] },
+    { id: "4", title: "Data Visualization Mastery", description: "Create compelling charts, dashboards, and visual stories with Matplotlib, Seaborn, and Plotly.", duration: 25, videoUrl: "https://www.youtube.com/embed/GGL6U0k8WYA", hasQuiz: true, hasExercise: true, keyTakeaways: ["Choose the right chart type", "Build interactive dashboards", "Tell stories with data"], resources: [{ title: "Visualization Best Practices", type: "pdf" }] },
+    { id: "5", title: "SQL for Data Analysis", description: "Write complex queries, joins, window functions, and CTEs to extract insights from relational databases.", duration: 25, videoUrl: "https://www.youtube.com/embed/HXV3zeQKqGY", hasQuiz: true, hasExercise: true, keyTakeaways: ["Write efficient SQL queries", "Use window functions for analytics", "Optimize query performance"], resources: [{ title: "SQL Query Reference", type: "pdf" }] },
+    { id: "6", title: "Exploratory Data Analysis", description: "Systematic approach to understanding datasets through profiling, correlation, and pattern discovery.", duration: 20, videoUrl: "https://www.youtube.com/embed/fHFOANOHwh8", hasQuiz: true, hasExercise: true, keyTakeaways: ["Profile datasets systematically", "Identify correlations and patterns", "Generate actionable hypotheses"], resources: [{ title: "EDA Template Notebook", type: "code" }] },
+    { id: "7", title: "Building a Data Portfolio", description: "Create impactful data science projects and present them professionally for job applications.", duration: 20, videoUrl: "https://www.youtube.com/embed/agHKuUoMwvY", hasQuiz: false, hasExercise: true, keyTakeaways: ["Structure portfolio projects", "Write compelling project READMEs", "Present findings to stakeholders"], resources: [{ title: "Portfolio Project Ideas", type: "pdf" }] },
+  ],
+  "Cybersecurity Fundamentals": [
+    { id: "1", title: "Introduction to Cybersecurity", description: "The cybersecurity landscape, threat actors, attack vectors, and the CIA triad.", duration: 20, videoUrl: "https://www.youtube.com/embed/inWWhr5tnEA", hasQuiz: true, hasExercise: false, keyTakeaways: ["Understand confidentiality, integrity, availability", "Identify common threat actors", "Recognize major attack vectors"], resources: [{ title: "Cybersecurity Fundamentals Guide", type: "pdf" }] },
+    { id: "2", title: "Network Security Essentials", description: "Firewalls, IDS/IPS, VPNs, and securing network infrastructure against attacks.", duration: 25, videoUrl: "https://www.youtube.com/embed/E03gh1huvW4", hasQuiz: true, hasExercise: true, keyTakeaways: ["Configure firewall rules", "Understand IDS vs IPS systems", "Implement network segmentation"], resources: [{ title: "Network Security Checklist", type: "pdf" }] },
+    { id: "3", title: "Cryptography & Encryption", description: "Symmetric and asymmetric encryption, hashing, digital signatures, and PKI fundamentals.", duration: 30, videoUrl: "https://www.youtube.com/embed/jhXCTbFnK8o", hasQuiz: true, hasExercise: true, keyTakeaways: ["Differentiate encryption types", "Implement hashing for data integrity", "Understand certificate-based authentication"], resources: [{ title: "Cryptography Reference", type: "pdf" }] },
+    { id: "4", title: "Web Application Security (OWASP)", description: "The OWASP Top 10 vulnerabilities including XSS, SQL injection, CSRF, and how to prevent them.", duration: 30, videoUrl: "https://www.youtube.com/embed/rWHvp7rUka8", hasQuiz: true, hasExercise: true, keyTakeaways: ["Identify OWASP Top 10 vulnerabilities", "Prevent SQL injection and XSS", "Implement secure coding practices"], resources: [{ title: "OWASP Cheat Sheet", type: "pdf" }] },
+    { id: "5", title: "Ethical Hacking & Penetration Testing", description: "Legal hacking methodologies, reconnaissance, vulnerability scanning, and exploitation basics.", duration: 30, videoUrl: "https://www.youtube.com/embed/3Kq1MIfTWCE", hasQuiz: true, hasExercise: true, keyTakeaways: ["Follow ethical hacking methodology", "Perform vulnerability assessments", "Write penetration test reports"], resources: [{ title: "Pen Testing Framework", type: "pdf" }] },
+    { id: "6", title: "Incident Response & Forensics", description: "Detect, respond to, and recover from security incidents. Digital forensics fundamentals.", duration: 25, videoUrl: "https://www.youtube.com/embed/CEz_Xwpt4Jc", hasQuiz: true, hasExercise: true, keyTakeaways: ["Build an incident response plan", "Collect and preserve digital evidence", "Perform root cause analysis"], resources: [{ title: "IR Playbook Template", type: "pdf" }] },
+    { id: "7", title: "Security Certifications Roadmap", description: "Navigate CompTIA Security+, CEH, CISSP, and other certifications for career advancement.", duration: 15, videoUrl: "https://www.youtube.com/embed/JMJPB3MR7x4", hasQuiz: false, hasExercise: false, keyTakeaways: ["Choose the right certification path", "Prepare study plans for each cert", "Understand industry requirements"], resources: [{ title: "Certification Comparison Guide", type: "pdf" }] },
+  ],
+  "Cloud Computing (AWS & Azure)": [
+    { id: "1", title: "Introduction to Cloud Computing", description: "Cloud models (IaaS, PaaS, SaaS), deployment types, and major providers comparison.", duration: 20, videoUrl: "https://www.youtube.com/embed/mxT233EdY5c", hasQuiz: true, hasExercise: false, keyTakeaways: ["Understand cloud service models", "Compare AWS vs Azure vs GCP", "Identify when to use cloud"], resources: [{ title: "Cloud Computing Overview", type: "pdf" }] },
+    { id: "2", title: "AWS Core Services", description: "EC2, S3, RDS, Lambda, and IAM — the essential AWS services every developer needs.", duration: 30, videoUrl: "https://www.youtube.com/embed/ulprqHHWlng", hasQuiz: true, hasExercise: true, keyTakeaways: ["Launch and manage EC2 instances", "Store data in S3 with proper policies", "Configure IAM roles and permissions"], resources: [{ title: "AWS Services Cheat Sheet", type: "pdf" }] },
+    { id: "3", title: "Azure Fundamentals", description: "Azure VMs, Blob Storage, Azure SQL, Functions, and Active Directory essentials.", duration: 30, videoUrl: "https://www.youtube.com/embed/NKEFWlXp4Yo", hasQuiz: true, hasExercise: true, keyTakeaways: ["Navigate the Azure portal", "Deploy Azure resources", "Manage identity with Azure AD"], resources: [{ title: "Azure Quick Start Guide", type: "pdf" }] },
+    { id: "4", title: "Containers & Kubernetes", description: "Docker fundamentals, container orchestration with Kubernetes, and cloud-native deployment.", duration: 35, videoUrl: "https://www.youtube.com/embed/PziYflu8cB8", hasQuiz: true, hasExercise: true, keyTakeaways: ["Build and run Docker containers", "Deploy apps on Kubernetes", "Manage container registries"], resources: [{ title: "Docker & K8s Commands", type: "pdf" }] },
+    { id: "5", title: "Serverless Architecture", description: "AWS Lambda, Azure Functions, API Gateway, and event-driven architecture patterns.", duration: 25, videoUrl: "https://www.youtube.com/embed/97q30JjEq9Y", hasQuiz: true, hasExercise: true, keyTakeaways: ["Build serverless functions", "Design event-driven workflows", "Optimize cold starts and costs"], resources: [{ title: "Serverless Patterns Guide", type: "pdf" }] },
+    { id: "6", title: "Cloud Networking & Security", description: "VPCs, subnets, security groups, WAF, and cloud-native security best practices.", duration: 25, videoUrl: "https://www.youtube.com/embed/hiKPPy584Mg", hasQuiz: true, hasExercise: true, keyTakeaways: ["Design VPC architectures", "Configure security groups and NACLs", "Implement cloud security controls"], resources: [{ title: "Cloud Security Checklist", type: "pdf" }] },
+    { id: "7", title: "DevOps & CI/CD Pipelines", description: "Build automated deployment pipelines with GitHub Actions, CodePipeline, and Azure DevOps.", duration: 30, videoUrl: "https://www.youtube.com/embed/scEDHsr3APg", hasQuiz: false, hasExercise: true, keyTakeaways: ["Set up CI/CD pipelines", "Automate testing and deployment", "Monitor applications in production"], resources: [{ title: "DevOps Pipeline Templates", type: "pdf" }] },
+  ],
+  "Digital Marketing Mastery": [
+    { id: "1", title: "Digital Marketing Fundamentals", description: "The digital marketing ecosystem, channels, customer journey, and creating a strategy.", duration: 15, videoUrl: "https://www.youtube.com/embed/bixR-KIJKYM", hasQuiz: true, hasExercise: false, keyTakeaways: ["Map the digital marketing landscape", "Understand the customer journey", "Create a digital marketing strategy"], resources: [{ title: "Marketing Strategy Template", type: "pdf" }] },
+    { id: "2", title: "SEO & Search Marketing", description: "On-page SEO, off-page SEO, technical SEO, keyword research, and ranking strategies.", duration: 25, videoUrl: "https://www.youtube.com/embed/DvwS7cV9GmQ", hasQuiz: true, hasExercise: true, keyTakeaways: ["Perform keyword research", "Optimize on-page SEO elements", "Build quality backlinks"], resources: [{ title: "SEO Audit Checklist", type: "pdf" }] },
+    { id: "3", title: "Social Media Marketing", description: "Platform strategies for LinkedIn, Instagram, Twitter, and TikTok. Content calendars and engagement.", duration: 20, videoUrl: "https://www.youtube.com/embed/I2pwcAVonKI", hasQuiz: true, hasExercise: true, keyTakeaways: ["Create platform-specific strategies", "Build content calendars", "Measure social media ROI"], resources: [{ title: "Social Media Playbook", type: "pdf" }] },
+    { id: "4", title: "Content Marketing & Copywriting", description: "Creating compelling content, blog strategy, storytelling, and copywriting frameworks (AIDA, PAS).", duration: 25, videoUrl: "https://www.youtube.com/embed/oBvHISlXkiA", hasQuiz: true, hasExercise: true, keyTakeaways: ["Apply copywriting frameworks", "Create a content strategy", "Write high-converting copy"], resources: [{ title: "Copywriting Templates", type: "pdf" }] },
+    { id: "5", title: "PPC & Paid Advertising", description: "Google Ads, Facebook Ads, campaign structure, bidding strategies, and ROI optimization.", duration: 25, videoUrl: "https://www.youtube.com/embed/oQw8pn-xgZY", hasQuiz: true, hasExercise: true, keyTakeaways: ["Set up Google Ads campaigns", "Optimize ad targeting and bidding", "Track conversions and ROAS"], resources: [{ title: "PPC Campaign Planner", type: "pdf" }] },
+    { id: "6", title: "Email Marketing & Automation", description: "Email list building, segmentation, drip campaigns, A/B testing, and marketing automation.", duration: 20, videoUrl: "https://www.youtube.com/embed/qV30ixoVfHs", hasQuiz: true, hasExercise: true, keyTakeaways: ["Build and segment email lists", "Design automated email flows", "Optimize open and click rates"], resources: [{ title: "Email Marketing Templates", type: "pdf" }] },
+    { id: "7", title: "Analytics & Data-Driven Marketing", description: "Google Analytics, UTM tracking, conversion funnels, and making data-driven marketing decisions.", duration: 20, videoUrl: "https://www.youtube.com/embed/gA-HIhniQmU", hasQuiz: false, hasExercise: true, keyTakeaways: ["Set up Google Analytics 4", "Track campaigns with UTM parameters", "Build marketing dashboards"], resources: [{ title: "Analytics Setup Guide", type: "pdf" }] },
+  ],
+  "Full Stack Development": [
+    { id: "1", title: "Full Stack Overview & Setup", description: "Understanding the full stack, setting up your development environment, and project architecture.", duration: 20, videoUrl: "https://www.youtube.com/embed/nu_pCVPKzTk", hasQuiz: true, hasExercise: false, keyTakeaways: ["Understand frontend vs backend vs database", "Set up a professional dev environment", "Plan full stack project architecture"], resources: [{ title: "Dev Environment Setup Guide", type: "pdf" }] },
+    { id: "2", title: "React & Modern Frontend", description: "React components, hooks, state management, routing, and building responsive UIs with Tailwind.", duration: 30, videoUrl: "https://www.youtube.com/embed/CgkZ7MvWUAA", hasQuiz: true, hasExercise: true, keyTakeaways: ["Build reusable React components", "Manage state with hooks and context", "Style efficiently with Tailwind CSS"], resources: [{ title: "React Patterns Guide", type: "pdf" }] },
+    { id: "3", title: "Node.js & Express Backend", description: "Build REST APIs with Express, middleware, error handling, and server architecture patterns.", duration: 30, videoUrl: "https://www.youtube.com/embed/Oe421EPjeBE", hasQuiz: true, hasExercise: true, keyTakeaways: ["Create RESTful API endpoints", "Implement middleware and error handling", "Structure scalable backend code"], resources: [{ title: "Express API Template", type: "code" }] },
+    { id: "4", title: "Database Design & Integration", description: "PostgreSQL fundamentals, schema design, ORMs, migrations, and connecting to your application.", duration: 30, videoUrl: "https://www.youtube.com/embed/qw--VYLpxG4", hasQuiz: true, hasExercise: true, keyTakeaways: ["Design normalized database schemas", "Write efficient SQL queries", "Use ORMs for database access"], resources: [{ title: "Database Design Patterns", type: "pdf" }] },
+    { id: "5", title: "Authentication & Authorization", description: "JWT tokens, OAuth, session management, role-based access control, and security best practices.", duration: 25, videoUrl: "https://www.youtube.com/embed/7Q17ubqLfaM", hasQuiz: true, hasExercise: true, keyTakeaways: ["Implement JWT authentication", "Handle OAuth social logins", "Build role-based access control"], resources: [{ title: "Auth Implementation Guide", type: "pdf" }] },
+    { id: "6", title: "TypeScript for Full Stack", description: "TypeScript fundamentals, type safety across frontend and backend, generics, and best practices.", duration: 25, videoUrl: "https://www.youtube.com/embed/30LWjhZzg50", hasQuiz: true, hasExercise: true, keyTakeaways: ["Add type safety to your stack", "Use generics and utility types", "Share types between frontend and backend"], resources: [{ title: "TypeScript Cheat Sheet", type: "pdf" }] },
+    { id: "7", title: "Deployment & DevOps", description: "Deploy full stack apps with Docker, CI/CD pipelines, cloud hosting, and monitoring.", duration: 25, videoUrl: "https://www.youtube.com/embed/3c-iBn73dDE", hasQuiz: false, hasExercise: true, keyTakeaways: ["Containerize apps with Docker", "Set up CI/CD pipelines", "Deploy to cloud platforms"], resources: [{ title: "Deployment Checklist", type: "pdf" }] },
   ],
 };
 
@@ -625,6 +588,43 @@ const lessonQuizzes: Record<string, { question: string; options: string[]; corre
       options: ["30 seconds", "1-2 minutes", "5+ minutes", "As long as possible"],
       correct: 1
     }
+  ],
+  "AI & Machine Learning with Python-1": [
+    { question: "What is the main difference between AI and Machine Learning?", options: ["They are the same thing", "ML is a subset of AI that learns from data", "AI is a subset of ML", "ML doesn't use computers"], correct: 1 },
+    { question: "Which type of learning uses labeled data?", options: ["Unsupervised learning", "Reinforcement learning", "Supervised learning", "Transfer learning"], correct: 2 }
+  ],
+  "AI & Machine Learning with Python-2": [
+    { question: "What is a Pandas DataFrame?", options: ["A type of animal", "A 2D labeled data structure", "A Python loop", "A database engine"], correct: 1 },
+  ],
+  "Data Science & Analytics-1": [
+    { question: "What is the first step in the data science lifecycle?", options: ["Model deployment", "Data collection and understanding", "Visualization", "Reporting"], correct: 1 },
+  ],
+  "Data Science & Analytics-2": [
+    { question: "How do you handle missing values in Pandas?", options: ["Ignore them", "Use dropna() or fillna()", "Delete the dataset", "Convert to strings"], correct: 1 }
+  ],
+  "Cybersecurity Fundamentals-1": [
+    { question: "What does the CIA triad stand for?", options: ["Central Intelligence Agency", "Confidentiality, Integrity, Availability", "Cybersecurity, Internet, Access", "Control, Identity, Authorization"], correct: 1 },
+  ],
+  "Cybersecurity Fundamentals-2": [
+    { question: "What does a firewall primarily do?", options: ["Speed up internet", "Filter network traffic", "Store passwords", "Create backups"], correct: 1 }
+  ],
+  "Cloud Computing (AWS & Azure)-1": [
+    { question: "What does IaaS stand for?", options: ["Internet as a Service", "Infrastructure as a Service", "Integration as a Service", "Identity as a Service"], correct: 1 },
+  ],
+  "Cloud Computing (AWS & Azure)-2": [
+    { question: "What is AWS S3 used for?", options: ["Computing", "Object storage", "Database management", "Networking"], correct: 1 }
+  ],
+  "Digital Marketing Mastery-1": [
+    { question: "What is a customer journey?", options: ["A road trip", "The path from awareness to purchase", "A loyalty program", "A refund process"], correct: 1 },
+  ],
+  "Digital Marketing Mastery-2": [
+    { question: "What does SEO stand for?", options: ["Social Engagement Optimization", "Search Engine Optimization", "Site Enhancement Operation", "Standard Email Outreach"], correct: 1 }
+  ],
+  "Full Stack Development-1": [
+    { question: "What is the 'full stack'?", options: ["Only frontend code", "Frontend + backend + database", "Only the database", "Just the server"], correct: 1 },
+  ],
+  "Full Stack Development-2": [
+    { question: "What is JSX?", options: ["A database query language", "JavaScript XML — a syntax extension for React", "A CSS framework", "A testing library"], correct: 1 }
   ]
 };
 
@@ -633,6 +633,12 @@ const courseIcons: Record<string, React.ReactNode> = {
   "Behavioral Interview Excellence": <MessageSquare className="w-6 h-6 text-white" />,
   "System Design Fundamentals": <Layers className="w-6 h-6 text-white" />,
   "Communication Skills for Developers": <Mic className="w-6 h-6 text-white" />,
+  "AI & Machine Learning with Python": <Brain className="w-6 h-6 text-white" />,
+  "Data Science & Analytics": <BarChart3 className="w-6 h-6 text-white" />,
+  "Cybersecurity Fundamentals": <Shield className="w-6 h-6 text-white" />,
+  "Cloud Computing (AWS & Azure)": <Cloud className="w-6 h-6 text-white" />,
+  "Digital Marketing Mastery": <Megaphone className="w-6 h-6 text-white" />,
+  "Full Stack Development": <MonitorSmartphone className="w-6 h-6 text-white" />,
 };
 
 // Skeleton components
