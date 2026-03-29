@@ -588,6 +588,43 @@ const lessonQuizzes: Record<string, { question: string; options: string[]; corre
       options: ["30 seconds", "1-2 minutes", "5+ minutes", "As long as possible"],
       correct: 1
     }
+  ],
+  "AI & Machine Learning with Python-1": [
+    { question: "What is the main difference between AI and Machine Learning?", options: ["They are the same thing", "ML is a subset of AI that learns from data", "AI is a subset of ML", "ML doesn't use computers"], correct: 1 },
+    { question: "Which type of learning uses labeled data?", options: ["Unsupervised learning", "Reinforcement learning", "Supervised learning", "Transfer learning"], correct: 2 }
+  ],
+  "AI & Machine Learning with Python-2": [
+    { question: "What is a Pandas DataFrame?", options: ["A type of animal", "A 2D labeled data structure", "A Python loop", "A database engine"], correct: 1 },
+  ],
+  "Data Science & Analytics-1": [
+    { question: "What is the first step in the data science lifecycle?", options: ["Model deployment", "Data collection and understanding", "Visualization", "Reporting"], correct: 1 },
+  ],
+  "Data Science & Analytics-2": [
+    { question: "How do you handle missing values in Pandas?", options: ["Ignore them", "Use dropna() or fillna()", "Delete the dataset", "Convert to strings"], correct: 1 }
+  ],
+  "Cybersecurity Fundamentals-1": [
+    { question: "What does the CIA triad stand for?", options: ["Central Intelligence Agency", "Confidentiality, Integrity, Availability", "Cybersecurity, Internet, Access", "Control, Identity, Authorization"], correct: 1 },
+  ],
+  "Cybersecurity Fundamentals-2": [
+    { question: "What does a firewall primarily do?", options: ["Speed up internet", "Filter network traffic", "Store passwords", "Create backups"], correct: 1 }
+  ],
+  "Cloud Computing (AWS & Azure)-1": [
+    { question: "What does IaaS stand for?", options: ["Internet as a Service", "Infrastructure as a Service", "Integration as a Service", "Identity as a Service"], correct: 1 },
+  ],
+  "Cloud Computing (AWS & Azure)-2": [
+    { question: "What is AWS S3 used for?", options: ["Computing", "Object storage", "Database management", "Networking"], correct: 1 }
+  ],
+  "Digital Marketing Mastery-1": [
+    { question: "What is a customer journey?", options: ["A road trip", "The path from awareness to purchase", "A loyalty program", "A refund process"], correct: 1 },
+  ],
+  "Digital Marketing Mastery-2": [
+    { question: "What does SEO stand for?", options: ["Social Engagement Optimization", "Search Engine Optimization", "Site Enhancement Operation", "Standard Email Outreach"], correct: 1 }
+  ],
+  "Full Stack Development-1": [
+    { question: "What is the 'full stack'?", options: ["Only frontend code", "Frontend + backend + database", "Only the database", "Just the server"], correct: 1 },
+  ],
+  "Full Stack Development-2": [
+    { question: "What is JSX?", options: ["A database query language", "JavaScript XML — a syntax extension for React", "A CSS framework", "A testing library"], correct: 1 }
   ]
 };
 
