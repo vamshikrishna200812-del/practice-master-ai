@@ -965,4 +965,641 @@ Studies show 55% of communication is body language, 38% is tone, and only 7% is 
 - "Let me try reconnecting. I'll be right back."
 - Stay calm — interviewers understand tech problems
 - Always have a backup plan (phone call, different platform)`,
+
+  // ==========================================
+  // AI & MACHINE LEARNING WITH PYTHON
+  // ==========================================
+  "AI & Machine Learning with Python-1": `## Introduction to AI & ML
+
+### What is Artificial Intelligence?
+AI is the simulation of human intelligence by machines. Machine Learning is a subset where systems learn from data.
+
+### Types of Machine Learning
+| Type | Description | Example |
+|------|-------------|---------|
+| Supervised | Learns from labeled data | Spam detection |
+| Unsupervised | Finds patterns in unlabeled data | Customer segmentation |
+| Reinforcement | Learns through rewards | Game playing AI |
+
+### Key Takeaways
+- AI is the broad field, ML is a subset, Deep Learning is a subset of ML
+- Start with supervised learning — it's the most practical
+- Python is the dominant language for ML`,
+
+  "AI & Machine Learning with Python-2": `## Python for Data Science
+
+### Essential Libraries
+- **NumPy**: Arrays, math operations, linear algebra
+- **Pandas**: DataFrames for data manipulation
+- **Matplotlib/Seaborn**: Visualization
+- **Scikit-learn**: ML algorithms
+
+### Quick Pandas Reference
+\`\`\`python
+import pandas as pd
+df = pd.read_csv('data.csv')
+df.head()          # First 5 rows
+df.describe()      # Statistical summary
+df.isnull().sum()  # Missing values count
+df.groupby('col').mean()  # Group aggregation
+\`\`\``,
+
+  "AI & Machine Learning with Python-3": `## Supervised Learning Algorithms
+
+### Key Algorithms
+1. **Linear Regression** — Predict continuous values
+2. **Logistic Regression** — Binary classification
+3. **Decision Trees** — Rule-based splitting
+4. **Random Forest** — Ensemble of decision trees
+5. **SVM** — Find optimal separating hyperplane
+
+### Model Evaluation
+- Train/test split (80/20 is common)
+- Cross-validation for robust estimates
+- Metrics: Accuracy, Precision, Recall, F1 Score`,
+
+  "AI & Machine Learning with Python-4": `## Neural Networks & Deep Learning
+
+### How Neural Networks Work
+- **Input Layer** → receives features
+- **Hidden Layers** → learn patterns
+- **Output Layer** → produces predictions
+- **Backpropagation** → adjusts weights based on error
+
+### TensorFlow/Keras Quick Start
+\`\`\`python
+from tensorflow import keras
+model = keras.Sequential([
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(64, activation='relu'),
+    keras.layers.Dense(10, activation='softmax')
+])
+model.compile(optimizer='adam', loss='categorical_crossentropy')
+\`\`\``,
+
+  "AI & Machine Learning with Python-5": `## Natural Language Processing
+
+### NLP Pipeline
+1. Text preprocessing (tokenization, lowercasing)
+2. Stop word removal
+3. Stemming/Lemmatization
+4. Feature extraction (TF-IDF, embeddings)
+5. Model training
+
+### Key Concepts
+- **Tokenization**: Splitting text into words/sentences
+- **Word Embeddings**: Dense vector representations (Word2Vec, GloVe)
+- **Sentiment Analysis**: Determining positive/negative/neutral tone`,
+
+  "AI & Machine Learning with Python-6": `## Computer Vision Fundamentals
+
+### CNNs (Convolutional Neural Networks)
+- **Convolution layers**: Detect features (edges, shapes)
+- **Pooling layers**: Reduce spatial dimensions
+- **Fully connected layers**: Classification
+
+### Transfer Learning
+Use pre-trained models (ResNet, VGG) and fine-tune on your data — saves time and requires less data.`,
+
+  "AI & Machine Learning with Python-7": `## ML Model Deployment
+
+### Deployment Options
+1. **Flask/FastAPI** — REST API for model serving
+2. **Docker** — Containerize for consistency
+3. **Cloud** — AWS SageMaker, GCP AI Platform, Azure ML
+
+### Best Practices
+- Version your models
+- Monitor model performance in production
+- Set up A/B testing for model updates
+- Log predictions for retraining`,
+
+  // ==========================================
+  // DATA SCIENCE & ANALYTICS
+  // ==========================================
+  "Data Science & Analytics-1": `## Introduction to Data Science
+
+### The Data Science Lifecycle
+1. Define the problem
+2. Collect data
+3. Clean and wrangle
+4. Explore (EDA)
+5. Model/Analyze
+6. Communicate findings
+
+### Essential Tools
+- Python (Pandas, NumPy, Matplotlib)
+- SQL for database queries
+- Jupyter Notebooks for exploration
+- Git for version control`,
+
+  "Data Science & Analytics-2": `## Data Wrangling with Pandas
+
+### Common Operations
+\`\`\`python
+# Handle missing values
+df.dropna()                    # Remove rows with NaN
+df.fillna(df.mean())           # Fill with mean
+
+# Transform data
+df['col'] = df['col'].apply(lambda x: x.upper())
+df.merge(df2, on='key')        # Join datasets
+df.pivot_table(values='sales', index='region')
+\`\`\`
+
+### Data Quality Checklist
+- [ ] Check for missing values
+- [ ] Identify and handle outliers
+- [ ] Verify data types
+- [ ] Check for duplicates`,
+
+  "Data Science & Analytics-3": `## Statistical Analysis Fundamentals
+
+### Descriptive Statistics
+- Mean, Median, Mode — central tendency
+- Standard Deviation, Variance — spread
+- Skewness, Kurtosis — distribution shape
+
+### Hypothesis Testing Steps
+1. State null hypothesis (H₀) and alternative (H₁)
+2. Choose significance level (α = 0.05)
+3. Calculate test statistic
+4. Find p-value
+5. Make decision: reject or fail to reject H₀`,
+
+  "Data Science & Analytics-4": `## Data Visualization Mastery
+
+### Choosing the Right Chart
+| Data Type | Best Chart |
+|-----------|-----------|
+| Trends over time | Line chart |
+| Comparisons | Bar chart |
+| Distribution | Histogram |
+| Relationships | Scatter plot |
+| Proportions | Pie/Donut chart |
+| Correlation matrix | Heatmap |`,
+
+  "Data Science & Analytics-5": `## SQL for Data Analysis
+
+### Essential Patterns
+\`\`\`sql
+-- Window functions
+SELECT name, salary,
+  RANK() OVER (ORDER BY salary DESC) as rank
+FROM employees;
+
+-- CTEs for readability
+WITH monthly_sales AS (
+  SELECT DATE_TRUNC('month', date) as month, SUM(amount) as total
+  FROM sales GROUP BY 1
+)
+SELECT * FROM monthly_sales WHERE total > 10000;
+\`\`\``,
+
+  "Data Science & Analytics-6": `## Exploratory Data Analysis
+
+### EDA Checklist
+1. Shape and size of dataset
+2. Data types and missing values
+3. Statistical summary (describe())
+4. Distribution of each variable
+5. Correlations between variables
+6. Outlier detection
+7. Feature relationships`,
+
+  "Data Science & Analytics-7": `## Building a Data Portfolio
+
+### What Makes a Great Portfolio Project
+- Solves a real problem
+- Shows end-to-end process
+- Includes clear documentation
+- Has compelling visualizations
+- Demonstrates statistical rigor
+
+### Project Ideas
+1. Customer churn prediction
+2. A/B test analysis
+3. Sales forecasting dashboard
+4. Sentiment analysis of reviews
+5. COVID-19 data exploration`,
+
+  // ==========================================
+  // CYBERSECURITY FUNDAMENTALS
+  // ==========================================
+  "Cybersecurity Fundamentals-1": `## Introduction to Cybersecurity
+
+### The CIA Triad
+- **Confidentiality** — Prevent unauthorized data access
+- **Integrity** — Ensure data accuracy
+- **Availability** — Keep systems operational
+
+### Common Threat Actors
+1. Script kiddies — Low-skill attackers using existing tools
+2. Hacktivists — Politically motivated
+3. Organized crime — Financially motivated
+4. Nation-state — Government-sponsored
+5. Insider threats — Employees with access`,
+
+  "Cybersecurity Fundamentals-2": `## Network Security Essentials
+
+### Defense in Depth
+- **Firewall** — Filter traffic based on rules
+- **IDS** — Detect suspicious activity (alerts)
+- **IPS** — Detect and block suspicious activity
+- **VPN** — Encrypted communication tunnel
+- **Network Segmentation** — Isolate critical systems`,
+
+  "Cybersecurity Fundamentals-3": `## Cryptography & Encryption
+
+### Encryption Types
+| Type | Key Usage | Example | Speed |
+|------|----------|---------|-------|
+| Symmetric | Same key | AES, DES | Fast |
+| Asymmetric | Public/Private pair | RSA, ECC | Slow |
+
+### Hashing
+- One-way function (cannot reverse)
+- Used for password storage, data integrity
+- Common: SHA-256, bcrypt, Argon2`,
+
+  "Cybersecurity Fundamentals-4": `## Web Application Security (OWASP)
+
+### OWASP Top 10 (Key Items)
+1. **Broken Access Control** — Users access unauthorized resources
+2. **Injection** — SQL, NoSQL, OS command injection
+3. **XSS** — Malicious scripts in web pages
+4. **CSRF** — Forged requests from authenticated users
+
+### Prevention
+- Input validation and sanitization
+- Parameterized queries (prevent SQL injection)
+- Content Security Policy headers
+- CSRF tokens`,
+
+  "Cybersecurity Fundamentals-5": `## Ethical Hacking & Penetration Testing
+
+### Pen Testing Methodology
+1. **Reconnaissance** — Gather information
+2. **Scanning** — Identify open ports and services
+3. **Vulnerability Assessment** — Find weaknesses
+4. **Exploitation** — Attempt to exploit vulnerabilities
+5. **Reporting** — Document findings and recommendations`,
+
+  "Cybersecurity Fundamentals-6": `## Incident Response & Forensics
+
+### IR Phases (NIST Framework)
+1. **Preparation** — Plans, tools, training
+2. **Detection & Analysis** — Identify the incident
+3. **Containment** — Limit damage
+4. **Eradication** — Remove the threat
+5. **Recovery** — Restore operations
+6. **Lessons Learned** — Improve for next time`,
+
+  "Cybersecurity Fundamentals-7": `## Security Certifications Roadmap
+
+### Certification Path
+| Level | Certification | Focus |
+|-------|--------------|-------|
+| Entry | CompTIA Security+ | Foundational security |
+| Mid | CEH | Ethical hacking |
+| Mid | CCNA Security | Network security |
+| Advanced | CISSP | Security management |
+| Expert | OSCP | Hands-on penetration testing |`,
+
+  // ==========================================
+  // CLOUD COMPUTING (AWS & AZURE)
+  // ==========================================
+  "Cloud Computing (AWS & Azure)-1": `## Introduction to Cloud Computing
+
+### Service Models
+- **IaaS** — You manage: OS, apps, data. Provider manages: hardware, networking
+- **PaaS** — You manage: apps, data. Provider manages: everything else
+- **SaaS** — Provider manages everything. You just use the software
+
+### Why Cloud?
+- No upfront hardware costs
+- Scale on demand
+- Global deployment in minutes
+- Pay only for what you use`,
+
+  "Cloud Computing (AWS & Azure)-2": `## AWS Core Services
+
+### Essential Services
+- **EC2** — Virtual servers (choose instance type, OS, region)
+- **S3** — Object storage (99.999999999% durability)
+- **RDS** — Managed relational databases
+- **Lambda** — Run code without servers (event-driven)
+- **IAM** — Manage access with users, roles, policies`,
+
+  "Cloud Computing (AWS & Azure)-3": `## Azure Fundamentals
+
+### Key Azure Services
+- **Virtual Machines** — Compute instances
+- **Blob Storage** — Unstructured data storage
+- **Azure SQL** — Managed SQL Server
+- **Azure Functions** — Serverless compute
+- **Azure AD** — Identity and access management
+- **App Service** — Web app hosting`,
+
+  "Cloud Computing (AWS & Azure)-4": `## Containers & Kubernetes
+
+### Docker Essentials
+\`\`\`dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+\`\`\`
+
+### Kubernetes Concepts
+- **Pod** — Smallest deployable unit
+- **Service** — Network endpoint for pods
+- **Deployment** — Manages pod replicas
+- **Ingress** — External access to services`,
+
+  "Cloud Computing (AWS & Azure)-5": `## Serverless Architecture
+
+### When to Use Serverless
+- Event-driven workloads
+- APIs with variable traffic
+- Scheduled tasks / cron jobs
+- Data processing pipelines
+
+### Key Considerations
+- Cold start latency
+- Execution time limits (15 min for Lambda)
+- Stateless design required
+- Cost-effective at low-to-medium scale`,
+
+  "Cloud Computing (AWS & Azure)-6": `## Cloud Networking & Security
+
+### VPC Architecture
+- **Subnets** — Public (internet-facing) and private
+- **Security Groups** — Instance-level firewall (stateful)
+- **NACLs** — Subnet-level firewall (stateless)
+- **NAT Gateway** — Allow private subnet internet access
+
+### Security Best Practices
+- Enable MFA on all accounts
+- Use IAM roles instead of access keys
+- Encrypt data at rest and in transit
+- Enable CloudTrail/Activity Log for auditing`,
+
+  "Cloud Computing (AWS & Azure)-7": `## DevOps & CI/CD Pipelines
+
+### CI/CD Pipeline Stages
+1. **Source** — Code commit triggers pipeline
+2. **Build** — Compile code, install dependencies
+3. **Test** — Unit tests, integration tests
+4. **Deploy to Staging** — Test in production-like environment
+5. **Deploy to Production** — Release to users
+
+### Tools
+- GitHub Actions, AWS CodePipeline, Azure DevOps
+- Docker for consistent builds
+- Terraform/CloudFormation for infrastructure as code`,
+
+  // ==========================================
+  // DIGITAL MARKETING MASTERY
+  // ==========================================
+  "Digital Marketing Mastery-1": `## Digital Marketing Fundamentals
+
+### The Marketing Funnel
+1. **Awareness** — They discover you (SEO, social, ads)
+2. **Interest** — They explore your content
+3. **Consideration** — They compare options
+4. **Conversion** — They take action (buy, sign up)
+5. **Retention** — They come back (email, loyalty)
+
+### Creating a Strategy
+- Define target audience and personas
+- Set SMART goals
+- Choose channels based on audience
+- Create content calendar
+- Measure and optimize`,
+
+  "Digital Marketing Mastery-2": `## SEO & Search Marketing
+
+### On-Page SEO Checklist
+- [ ] Target keyword in title tag (< 60 chars)
+- [ ] Meta description with CTA (< 160 chars)
+- [ ] H1 with primary keyword
+- [ ] Image alt text
+- [ ] Internal linking
+- [ ] Mobile responsive
+- [ ] Page speed < 3 seconds
+
+### Off-Page SEO
+- Quality backlinks from relevant sites
+- Guest blogging
+- Social media signals
+- Brand mentions`,
+
+  "Digital Marketing Mastery-3": `## Social Media Marketing
+
+### Platform Strategy
+| Platform | Best For | Content Type |
+|----------|----------|-------------|
+| LinkedIn | B2B, professional | Articles, insights |
+| Instagram | Visual brands | Photos, Reels, Stories |
+| Twitter/X | News, engagement | Short posts, threads |
+| TikTok | Gen Z, viral | Short-form video |
+| YouTube | Education, demos | Long-form video |`,
+
+  "Digital Marketing Mastery-4": `## Content Marketing & Copywriting
+
+### AIDA Framework
+- **Attention** — Hook them with a bold statement
+- **Interest** — Share relevant information
+- **Desire** — Show the benefit/transformation
+- **Action** — Clear call-to-action
+
+### PAS Framework
+- **Problem** — Identify the pain point
+- **Agitate** — Emphasize the consequences
+- **Solution** — Present your offering`,
+
+  "Digital Marketing Mastery-5": `## PPC & Paid Advertising
+
+### Google Ads Structure
+- **Account** → **Campaigns** → **Ad Groups** → **Ads** → **Keywords**
+
+### Key Metrics
+- **CPC** — Cost per click
+- **CTR** — Click-through rate (clicks / impressions)
+- **Quality Score** — Relevance rating (1-10)
+- **ROAS** — Revenue / Ad Spend
+- **Conversion Rate** — Conversions / Clicks`,
+
+  "Digital Marketing Mastery-6": `## Email Marketing & Automation
+
+### Email Best Practices
+- Segment your audience
+- Personalize subject lines
+- Mobile-optimized design
+- Clear single CTA
+- A/B test everything
+
+### Automation Flows
+1. Welcome series (new subscribers)
+2. Abandoned cart reminders
+3. Post-purchase follow-up
+4. Re-engagement campaigns
+5. Birthday/anniversary emails`,
+
+  "Digital Marketing Mastery-7": `## Analytics & Data-Driven Marketing
+
+### Google Analytics 4 Setup
+- Install GA4 tracking code
+- Set up conversion events
+- Configure UTM parameters for campaigns
+- Build custom dashboards
+
+### Key Reports
+- Acquisition (where users come from)
+- Engagement (what users do)
+- Monetization (revenue tracking)
+- Retention (do users come back)`,
+
+  // ==========================================
+  // FULL STACK DEVELOPMENT
+  // ==========================================
+  "Full Stack Development-1": `## Full Stack Overview & Setup
+
+### The Full Stack
+- **Frontend** — React, HTML, CSS, JavaScript
+- **Backend** — Node.js, Express, APIs
+- **Database** — PostgreSQL, MongoDB
+- **DevOps** — Docker, CI/CD, cloud hosting
+
+### Development Environment
+- VS Code with extensions
+- Node.js and npm/yarn
+- Git for version control
+- Postman for API testing`,
+
+  "Full Stack Development-2": `## React & Modern Frontend
+
+### React Core Concepts
+\`\`\`jsx
+// Functional component with hooks
+const UserProfile = ({ userId }) => {
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    fetchUser(userId).then(setUser);
+  }, [userId]);
+  
+  if (!user) return <Loading />;
+  return <div>{user.name}</div>;
+};
+\`\`\`
+
+### Key Hooks
+- useState — Local state
+- useEffect — Side effects
+- useContext — Shared state
+- useMemo/useCallback — Performance`,
+
+  "Full Stack Development-3": `## Node.js & Express Backend
+
+### Express API Pattern
+\`\`\`javascript
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+app.get('/api/users', async (req, res) => {
+  const users = await db.query('SELECT * FROM users');
+  res.json(users);
+});
+
+app.post('/api/users', async (req, res) => {
+  const { name, email } = req.body;
+  const user = await db.query('INSERT INTO users...');
+  res.status(201).json(user);
+});
+\`\`\``,
+
+  "Full Stack Development-4": `## Database Design & Integration
+
+### Normalization Rules
+1. **1NF** — No repeating groups, atomic values
+2. **2NF** — No partial dependencies
+3. **3NF** — No transitive dependencies
+
+### PostgreSQL Essentials
+\`\`\`sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+\`\`\``,
+
+  "Full Stack Development-5": `## Authentication & Authorization
+
+### JWT Flow
+1. User sends credentials
+2. Server validates and creates JWT
+3. Client stores token (httpOnly cookie preferred)
+4. Client sends token with each request
+5. Server verifies token and grants access
+
+### Security Best Practices
+- Hash passwords with bcrypt
+- Use httpOnly cookies for tokens
+- Implement refresh token rotation
+- Add rate limiting`,
+
+  "Full Stack Development-6": `## TypeScript for Full Stack
+
+### Why TypeScript?
+- Catch errors at compile time
+- Better IDE autocomplete
+- Self-documenting code
+- Safer refactoring
+
+### Key Features
+\`\`\`typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
+function getUser(id: string): Promise<User> {
+  return fetch(\`/api/users/\${id}\`).then(r => r.json());
+}
+\`\`\``,
+
+  "Full Stack Development-7": `## Deployment & DevOps
+
+### Deployment Checklist
+- [ ] Environment variables configured
+- [ ] Database migrations run
+- [ ] SSL/TLS certificate installed
+- [ ] Error monitoring set up (Sentry)
+- [ ] Logging configured
+- [ ] Backup strategy in place
+- [ ] CI/CD pipeline tested
+
+### Docker Compose Example
+\`\`\`yaml
+services:
+  app:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgres://...
+  db:
+    image: postgres:15
+    volumes: [pgdata:/var/lib/postgresql/data]
+\`\`\``,
 };
