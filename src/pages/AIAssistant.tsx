@@ -36,7 +36,7 @@ const loadPersistedMessages = (): ChatMessage[] => {
       id: "greeting",
       role: "assistant",
       content:
-        "👋 Hey! I'm your **AI Training Assistant**.\n\nI can help you with:\n- 🎯 Interview preparation & mock questions\n- 💻 Coding challenges & explanations\n- 📝 Resume & career advice\n- 🧠 Learning strategies\n\nWhat would you like to work on?",
+        "👋 Hey! I'm **Advitya**, your AI Training Assistant.\n\nI can help you with:\n- 🎯 Interview preparation & mock questions\n- 💻 Coding challenges & explanations\n- 📝 Resume & career advice\n- 🧠 Learning strategies\n\nWhat would you like to work on?",
       timestamp: new Date(),
     },
   ];
@@ -298,22 +298,22 @@ const AIAssistant = () => {
   /* ─── Render ─── */
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto -mx-4 -my-6 bg-black">
+      <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto -mx-4 -my-6 bg-background">
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-xl flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 flex items-center justify-center ring-1 ring-white/10">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-base font-semibold text-white/90 flex items-center gap-2">
-                AI Assistant
-                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 text-[10px] font-medium uppercase tracking-wider">
+              <h1 className="text-base font-semibold text-foreground flex items-center gap-2">
+                Advitya
+                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-600 text-[10px] font-medium uppercase tracking-wider">
                   <Zap className="w-2.5 h-2.5" />
                   Live
                 </span>
               </h1>
-              <p className="text-[11px] text-white/30">
+              <p className="text-[11px] text-muted-foreground">
                 {isLoading ? "Generating response..." : `${messages.length - 1} messages`}
               </p>
             </div>
@@ -321,22 +321,22 @@ const AIAssistant = () => {
           <div className="flex items-center gap-0.5">
             <button
               onClick={exportChat}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted/50 rounded-lg transition-colors"
               title="Download transcript"
             >
-              <Download className="w-4 h-4 text-white/30 hover:text-white/60" />
+              <Download className="w-4 h-4 text-muted-foreground hover:text-foreground" />
             </button>
             <button
               onClick={clearChat}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted/50 rounded-lg transition-colors"
               title="Clear chat"
             >
-              <Trash2 className="w-4 h-4 text-white/30 hover:text-white/60" />
+              <Trash2 className="w-4 h-4 text-muted-foreground hover:text-foreground" />
             </button>
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={`p-2 rounded-lg transition-colors ${
-                showSettings ? "bg-white/10 text-cyan-400" : "hover:bg-white/5 text-white/30 hover:text-white/60"
+                showSettings ? "bg-primary/10 text-primary" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
               }`}
               title="Settings"
             >
@@ -347,7 +347,7 @@ const AIAssistant = () => {
 
         {/* ── Settings Panel ── */}
         {showSettings && (
-          <div className="border-b border-white/[0.06] bg-white/[0.01] backdrop-blur-xl max-h-[50vh] overflow-y-auto">
+          <div className="border-b border-border bg-card max-h-[50vh] overflow-y-auto">
             <SettingsPanel settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />
           </div>
         )}
@@ -357,11 +357,7 @@ const AIAssistant = () => {
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="absolute inset-0 overflow-y-auto px-5 py-6 space-y-6 scroll-smooth"
-            style={{
-              background:
-                "radial-gradient(ellipse at 20% 0%, rgba(6, 182, 212, 0.04) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%)",
-            }}
+            className="absolute inset-0 overflow-y-auto px-5 py-6 space-y-6 scroll-smooth bg-background"
           >
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} />
@@ -374,7 +370,7 @@ const AIAssistant = () => {
           {!isAtBottom && (
             <button
               onClick={scrollToBottom}
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white/60 text-xs hover:bg-white/15 transition-all shadow-lg shadow-black/30 animate-fade-in"
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-muted-foreground text-xs hover:bg-muted/50 transition-all shadow-md animate-fade-in"
             >
               <ArrowDown className="w-3 h-3" />
               New messages
@@ -383,7 +379,7 @@ const AIAssistant = () => {
         </div>
 
         {/* ── Input Area ── */}
-        <div className="border-t border-white/[0.06] p-4 bg-white/[0.02] backdrop-blur-xl flex-shrink-0">
+        <div className="border-t border-border p-4 bg-card flex-shrink-0">
           <div className="flex items-end gap-2">
             <input
               ref={fileInputRef}
@@ -394,7 +390,7 @@ const AIAssistant = () => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-2.5 hover:bg-white/5 rounded-xl transition-colors text-white/25 hover:text-white/50 flex-shrink-0"
+              className="p-2.5 hover:bg-muted/50 rounded-xl transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
               title="Upload file"
             >
               <Paperclip className="w-4 h-4" />
@@ -404,14 +400,14 @@ const AIAssistant = () => {
               value={input}
               onChange={handleTextareaInput}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything..."
+              placeholder="Ask Advitya anything..."
               rows={1}
-              className="flex-1 resize-none border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white/90 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 focus:border-cyan-500/20 bg-white/[0.03] placeholder:text-white/20 transition-all max-h-[180px] backdrop-blur-sm"
+              className="flex-1 resize-none border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/20 bg-background placeholder:text-muted-foreground/50 transition-all max-h-[180px]"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="p-2.5 bg-gradient-to-r from-cyan-500 to-violet-500 text-white rounded-xl hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 flex-shrink-0 shadow-lg shadow-cyan-500/20"
+              className="p-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 flex-shrink-0 shadow-md"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -419,7 +415,7 @@ const AIAssistant = () => {
           <div className="mt-2 flex items-center justify-between px-1">
             <button
               onClick={() => setShowSettings(true)}
-              className="text-[11px] text-white/20 hover:text-white/40 transition-colors flex items-center gap-1"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
             >
               <span>
                 {settings.personality === "professional" && "💼"}
@@ -430,7 +426,7 @@ const AIAssistant = () => {
               {settings.personality.charAt(0).toUpperCase() + settings.personality.slice(1)}
               {settings.temperature !== undefined && ` · T:${settings.temperature.toFixed(1)}`}
             </button>
-            <span className="text-[11px] text-white/15">Shift+Enter for new line</span>
+            <span className="text-[11px] text-muted-foreground/50">Shift+Enter for new line</span>
           </div>
         </div>
       </div>

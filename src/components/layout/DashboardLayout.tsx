@@ -98,7 +98,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const navItems = [
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/ai-assistant", icon: Sparkles, label: "AI Assistant" },
+    { path: "/ai-assistant", icon: Sparkles, label: "Advitya" },
     { path: "/courses", icon: BookOpen, label: "Courses" },
     { path: "/practice", icon: Code, label: "Practice" },
     { path: "/question-bank", icon: FileQuestion, label: "Questions" },
