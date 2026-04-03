@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import type { Question } from "@/pages/QuestionBank";
 
 const difficultyStyles: Record<string, string> = {
-  easy: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  medium: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  hard: "bg-red-500/20 text-red-400 border-red-500/30",
+  easy: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  medium: "bg-amber-100 text-amber-700 border-amber-200",
+  hard: "bg-red-100 text-red-700 border-red-200",
 };
 
 interface Props {
@@ -30,15 +30,14 @@ const QuestionCard = ({ question }: Props) => {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-2xl p-6 border border-white/10 backdrop-blur-md"
-      style={{ background: "rgba(255,255,255,0.06)" }}
+      className="rounded-2xl p-6 border border-border bg-card shadow-sm"
     >
       {/* Meta row */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <Badge variant="outline" className="text-xs text-white/70 border-white/20">
+        <Badge variant="outline" className="text-xs text-muted-foreground border-border">
           {question.industry}
         </Badge>
-        <Badge variant="outline" className="text-xs text-white/70 border-white/20">
+        <Badge variant="outline" className="text-xs text-muted-foreground border-border">
           {question.category}
         </Badge>
         <Badge variant="outline" className={`text-xs ${difficultyStyles[question.difficulty] ?? ""}`}>
@@ -47,14 +46,14 @@ const QuestionCard = ({ question }: Props) => {
       </div>
 
       {/* Question */}
-      <h2 className="text-xl font-semibold text-white leading-snug mb-5">
+      <h2 className="text-xl font-semibold text-foreground leading-snug mb-5">
         {question.question}
       </h2>
 
       {/* Reveal button */}
       <button
         onClick={() => setShowAnswer((v) => !v)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/40"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-purple-100 text-purple-700 border border-purple-200 hover:bg-purple-200"
       >
         {showAnswer ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         {showAnswer ? "Hide Expert Response" : "Show Expert Response"}
@@ -70,11 +69,11 @@ const QuestionCard = ({ question }: Props) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="mt-4 flex gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
-              <ShieldCheck className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+            <div className="mt-4 flex gap-3 p-4 rounded-xl bg-muted/50 border border-border">
+              <ShieldCheck className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-semibold text-purple-400 mb-1">Expert Tip</p>
-                <p className="text-sm text-white/70 leading-relaxed">{question.tips}</p>
+                <p className="text-xs font-semibold text-purple-600 mb-1">Expert Tip</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{question.tips}</p>
               </div>
             </div>
           </motion.div>

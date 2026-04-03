@@ -6,12 +6,12 @@ interface Props {
 
 const QuestionBankHeader = ({ totalQuestions }: Props) => (
   <div className="flex items-center gap-3">
-    <div className="p-2.5 rounded-xl bg-purple-500/20 border border-purple-500/30">
-      <Brain className="w-6 h-6 text-purple-400" />
+    <div className="p-2.5 rounded-xl bg-purple-100 border border-purple-200">
+      <Brain className="w-6 h-6 text-purple-600" />
     </div>
     <div>
-      <h1 className="text-2xl font-bold text-white tracking-tight">Question Bank</h1>
-      <p className="text-white/50 text-sm">
+      <h1 className="text-2xl font-bold text-foreground tracking-tight">Question Bank</h1>
+      <p className="text-muted-foreground text-sm">
         {totalQuestions} question{totalQuestions !== 1 ? "s" : ""} — browse by category
       </p>
     </div>
