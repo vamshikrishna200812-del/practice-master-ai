@@ -104,7 +104,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: "/question-bank", icon: FileQuestion, label: "Questions" },
     { path: "/cheat-sheet", icon: ClipboardList, label: "Cheat Sheet" },
     { path: "/schedule", icon: Calendar, label: "Schedule" },
-    { path: "/classroom", icon: GraduationCap, label: "Classroom" },
+    
     { path: "/leaderboard", icon: Trophy, label: "Hall of Fame" },
     { path: "/resume-builder", icon: FileText, label: "Resume Builder" },
     { path: "/resume-analyser", icon: ScanSearch, label: "Resume Analyser" },
