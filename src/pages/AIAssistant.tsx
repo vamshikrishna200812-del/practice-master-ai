@@ -36,7 +36,7 @@ const loadPersistedMessages = (): ChatMessage[] => {
       id: "greeting",
       role: "assistant",
       content:
-        "👋 Hey! I'm your **AI Training Assistant**.\n\nI can help you with:\n- 🎯 Interview preparation & mock questions\n- 💻 Coding challenges & explanations\n- 📝 Resume & career advice\n- 🧠 Learning strategies\n\nWhat would you like to work on?",
+        "👋 Hey! I'm **Advitya**, your AI Training Assistant.\n\nI can help you with:\n- 🎯 Interview preparation & mock questions\n- 💻 Coding challenges & explanations\n- 📝 Resume & career advice\n- 🧠 Learning strategies\n\nWhat would you like to work on?",
       timestamp: new Date(),
     },
   ];
