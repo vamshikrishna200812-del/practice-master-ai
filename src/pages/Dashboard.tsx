@@ -32,26 +32,26 @@ interface UserProgress {
 }
 
 const StatCardSkeleton = () =>
-<div className="rounded-xl border border-white/10 bg-white/5 p-6">
+<div className="rounded-xl border border-border bg-muted/50 p-6">
     <div className="flex items-start justify-between mb-4">
-      <Skeleton className="w-12 h-12 rounded-lg bg-white/10" />
-      <Skeleton className="w-4 h-4 rounded bg-white/10" />
+      <Skeleton className="w-12 h-12 rounded-lg bg-muted" />
+      <Skeleton className="w-4 h-4 rounded bg-muted" />
     </div>
-    <Skeleton className="h-8 w-20 mb-2 bg-white/10" />
-    <Skeleton className="h-4 w-24 mb-2 bg-white/10" />
-    <Skeleton className="h-2 w-full rounded-full bg-white/10" />
+    <Skeleton className="h-8 w-20 mb-2 bg-muted" />
+    <Skeleton className="h-4 w-24 mb-2 bg-muted" />
+    <Skeleton className="h-2 w-full rounded-full bg-muted" />
   </div>;
 
 
 const OverallProgressSkeleton = () =>
-<div className="rounded-xl border border-white/10 bg-white/5 p-6">
-    <Skeleton className="h-7 w-56 mb-6 bg-white/10" />
-    <Skeleton className="h-3 w-full rounded-full mb-6 bg-white/10" />
+<div className="rounded-xl border border-border bg-muted/50 p-6">
+    <Skeleton className="h-7 w-56 mb-6 bg-muted" />
+    <Skeleton className="h-3 w-full rounded-full mb-6 bg-muted" />
     <div className="grid grid-cols-3 gap-4">
       {[1, 2, 3].map((i) =>
     <div key={i} className="text-center">
-          <Skeleton className="h-8 w-12 mx-auto mb-2 bg-white/10" />
-          <Skeleton className="h-4 w-24 mx-auto bg-white/10" />
+          <Skeleton className="h-8 w-12 mx-auto mb-2 bg-muted" />
+          <Skeleton className="h-4 w-24 mx-auto bg-muted" />
         </div>
     )}
     </div>
@@ -59,22 +59,19 @@ const OverallProgressSkeleton = () =>
 
 
 const QuickActionSkeleton = () =>
-<div className="rounded-xl border border-white/10 bg-white/5 p-6">
-    <Skeleton className="w-10 h-10 rounded-lg mb-4 bg-white/10" />
-    <Skeleton className="h-6 w-32 mb-2 bg-white/10" />
-    <Skeleton className="h-4 w-full mb-4 bg-white/10" />
-    <Skeleton className="h-10 w-full rounded-lg bg-white/10" />
+<div className="rounded-xl border border-border bg-muted/50 p-6">
+    <Skeleton className="w-10 h-10 rounded-lg mb-4 bg-muted" />
+    <Skeleton className="h-6 w-32 mb-2 bg-muted" />
+    <Skeleton className="h-4 w-full mb-4 bg-muted" />
+    <Skeleton className="h-10 w-full rounded-lg bg-muted" />
   </div>;
 
 
 const GlowCard = ({
   children,
   className
-
-
-
 }: {children: React.ReactNode;className?: string;}) =>
-<div className={`relative rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 h-full ${className ?? ""}`}>
+<div className={`relative rounded-xl border border-border bg-card shadow-sm p-6 h-full ${className ?? ""}`}>
     {children}
   </div>;
 
@@ -175,7 +172,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 -mx-4 -my-6 px-4 py-6 min-h-screen bg-black text-white rounded-lg">
+      <div className="space-y-8 -mx-4 -my-6 px-4 py-6 min-h-screen bg-background text-foreground rounded-lg">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -184,7 +181,7 @@ const Dashboard = () => {
           
           <GlowCard>
             <div className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent pointer-events-none" />
               {/* Owl Mascot */}
               <div className="absolute right-4 top-1/2 -translate-y-1/2 w-28 h-28 opacity-80 hidden md:block">
                 <video
@@ -198,10 +195,10 @@ const Dashboard = () => {
                 </video>
               </div>
               <div className="relative z-10">
-                <h1 className="text-3xl font-bold mb-2 text-white">
+                <h1 className="text-3xl font-bold mb-2 text-foreground">
                   Welcome to Your Training Dashboard
                 </h1>
-                <p className="text-white/70 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Track your progress and continue your journey to interview
                   mastery
                 </p>
@@ -209,7 +206,7 @@ const Dashboard = () => {
                   <Link to="/interview-bot">
                     <Button
                       size="lg"
-                      className="bg-white text-black hover:bg-white/90 transition-all duration-200">
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200">
                       
                       <Video className="mr-2 w-5 h-5" />
                       Start AI Interview
@@ -218,7 +215,8 @@ const Dashboard = () => {
                   <Link to="/practice">
                     <Button
                       size="lg"
-                      className="border border-white/20 transition-all duration-200 bg-primary-foreground text-black">
+                      variant="outline"
+                      className="transition-all duration-200">
                       
                       <Code className="mr-2 w-5 h-5" />
                       Practice Coding
@@ -257,15 +255,15 @@ const Dashboard = () => {
                   
                       <stat.icon className="w-6 h-6 text-white" />
                     </div>
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <TrendingUp className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <div className="text-3xl font-bold mb-1 text-white">
+                  <div className="text-3xl font-bold mb-1 text-foreground">
                     {stat.value}
                     {stat.suffix || "/100"}
                   </div>
-                  <div className="text-sm text-white/50">{stat.label}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                   {!stat.suffix &&
-              <Progress value={stat.value} className="mt-2 bg-white/10 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-cyan-400" />
+              <Progress value={stat.value} className="mt-2" />
               }
                 </GlowCard>
               </motion.div>
@@ -287,47 +285,47 @@ const Dashboard = () => {
           }}>
           
             <GlowCard>
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
-                <Award className="w-6 h-6 text-amber-400" />
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
+                <Award className="w-6 h-6 text-amber-500" />
                 Overall Interview Readiness
               </h2>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium text-white/80">
+                    <span className="font-medium text-muted-foreground">
                       Overall Score
                     </span>
-                    <span className="font-bold text-cyan-400">
+                    <span className="font-bold text-primary">
                       {userProgress?.overall_score || 0}/100
                     </span>
                   </div>
                   <Progress
                   value={userProgress?.overall_score || 0}
-                  className="h-3 bg-white/10 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-cyan-400" />
+                  className="h-3" />
                 
                 </div>
                 <div className="grid grid-cols-3 gap-4 mt-6">
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <div className="text-2xl font-bold text-blue-400">
+                  <div className="text-center p-4 rounded-lg bg-muted/50 border border-border">
+                    <div className="text-2xl font-bold text-blue-600">
                       {userProgress?.total_interviews || 0}
                     </div>
-                    <div className="text-sm text-white/50">
+                    <div className="text-sm text-muted-foreground">
                       Total Interviews
                     </div>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <div className="text-2xl font-bold text-purple-400">
+                  <div className="text-center p-4 rounded-lg bg-muted/50 border border-border">
+                    <div className="text-2xl font-bold text-purple-600">
                       {Math.floor(
                       (userProgress?.overall_score || 0) / 10
                     )}
                     </div>
-                    <div className="text-sm text-white/50">Skill Level</div>
+                    <div className="text-sm text-muted-foreground">Skill Level</div>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-                    <div className="text-2xl font-bold text-amber-400">
+                  <div className="text-center p-4 rounded-lg bg-muted/50 border border-border">
+                    <div className="text-2xl font-bold text-amber-500">
                       {userProgress?.practice_streak || 0}
                     </div>
-                    <div className="text-sm text-white/50">Day Streak</div>
+                    <div className="text-sm text-muted-foreground">Day Streak</div>
                   </div>
                 </div>
               </div>
@@ -375,14 +373,14 @@ const Dashboard = () => {
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mb-4">
                     <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
                     {action.title}
                   </h3>
-                  <p className="text-sm text-white/50 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     {action.description}
                   </p>
                   <Link to={action.link} className="block">
-                    <Button className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all duration-200">
+                    <Button variant="outline" className="w-full transition-all duration-200">
                       {action.buttonText}
                     </Button>
                   </Link>

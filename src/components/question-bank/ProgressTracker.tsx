@@ -8,11 +8,11 @@ const ProgressTracker = ({ viewed, total }: Props) => {
 
   return (
     <div className="space-y-1.5">
-      <div className="flex justify-between text-xs text-white/50">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{viewed} of {total} viewed</span>
         <span>{pct}%</span>
       </div>
-      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500 ease-out"
           style={{

@@ -12,20 +12,20 @@ const QuestionNavigation = ({ current, total, onPrev, onNext }: Props) => (
     <button
       onClick={onPrev}
       disabled={current === 0}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-muted text-muted-foreground border border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
     >
       <ChevronLeft className="w-4 h-4" />
       Previous
     </button>
 
-    <span className="text-sm text-white/50 tabular-nums">
+    <span className="text-sm text-muted-foreground tabular-nums">
       {current + 1} / {total}
     </span>
 
     <button
       onClick={onNext}
       disabled={current >= total - 1}
-      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-muted text-muted-foreground border border-border hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed"
     >
       Next
       <ChevronRight className="w-4 h-4" />

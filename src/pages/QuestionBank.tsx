@@ -81,7 +81,7 @@ const QuestionBank = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-[80vh] rounded-2xl p-4 md:p-8 space-y-6" style={{ background: "#0f172a" }}>
+      <div className="min-h-[80vh] rounded-2xl p-4 md:p-8 space-y-6 bg-background">
         <QuestionBankHeader totalQuestions={filtered.length} />
 
         <ProgressTracker
@@ -106,19 +106,16 @@ const QuestionBank = () => {
             />
           </>
         ) : (
-          <div className="text-center py-16 text-white/50">No questions in this category.</div>
+          <div className="text-center py-16 text-muted-foreground">No questions in this category.</div>
         )}
 
         {/* Project Showcase */}
-        <div
-          className="mt-8 rounded-xl p-5 border border-white/10 backdrop-blur-md"
-          style={{ background: "rgba(255,255,255,0.05)" }}
-        >
-          <p className="text-xs font-semibold uppercase tracking-widest text-purple-400 mb-2">
+        <div className="mt-8 rounded-xl p-5 border border-border bg-card shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-widest text-purple-600 mb-2">
             Featured Project
           </p>
-          <h3 className="text-white font-bold text-lg mb-1">AI Interview Simulator</h3>
-          <p className="text-white/60 text-sm leading-relaxed">
+          <h3 className="text-foreground font-bold text-lg mb-1">AI Interview Simulator</h3>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Engineered a dynamic learning module using React state hooks and Tailwind CSS, featuring
             a filtered question bank and interactive "reveal" logic to assist 200+ users in
             technical interview prep.
