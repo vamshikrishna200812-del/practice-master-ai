@@ -8,7 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 
 // Lazy-load all pages for code splitting
-const Home = lazy(() => import("./pages/Home"));
+const Home = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
