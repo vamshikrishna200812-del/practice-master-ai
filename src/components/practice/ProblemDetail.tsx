@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { codingProblems } from "@/data/codingProblems";
+import { problemStories } from "@/data/problemStories";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCodingSubmissions, CodingSubmission } from "@/hooks/useCodingSubmissions";
