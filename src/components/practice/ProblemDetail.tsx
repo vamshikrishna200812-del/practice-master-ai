@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { codingProblems } from "@/data/codingProblems";
+import { problemStories } from "@/data/problemStories";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCodingSubmissions, CodingSubmission } from "@/hooks/useCodingSubmissions";
@@ -284,8 +285,21 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                 ))}
               </div>
 
+              {/* Story / Scenario */}
+              {problemStories[problem.id]?.story && (
+                <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-primary mb-1.5 flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" /> Scenario
+                  </h4>
+                  <p className="text-sm leading-relaxed text-foreground/90 italic">
+                    {problemStories[problem.id].story}
+                  </p>
+                </div>
+              )}
+
               {/* Description */}
               <div className="prose prose-sm dark:prose-invert max-w-none">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Problem Statement</h4>
                 <div className="whitespace-pre-wrap text-sm">{problem.description}</div>
               </div>
 
@@ -330,6 +344,16 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                   </div>
                 ))}
               </div>
+
+              {/* Note / Hint */}
+              {problemStories[problem.id]?.note && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5" /> Note
+                  </h4>
+                  <p className="text-sm text-foreground/90">{problemStories[problem.id].note}</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="results" className="flex-1 overflow-auto p-5 m-0">
