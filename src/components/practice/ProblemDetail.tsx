@@ -285,8 +285,21 @@ const ProblemDetail = ({ slug, onBack }: ProblemDetailProps) => {
                 ))}
               </div>
 
+              {/* Story / Scenario */}
+              {problemStories[problem.id]?.story && (
+                <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 p-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-primary mb-1.5 flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" /> Scenario
+                  </h4>
+                  <p className="text-sm leading-relaxed text-foreground/90 italic">
+                    {problemStories[problem.id].story}
+                  </p>
+                </div>
+              )}
+
               {/* Description */}
               <div className="prose prose-sm dark:prose-invert max-w-none">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Problem Statement</h4>
                 <div className="whitespace-pre-wrap text-sm">{problem.description}</div>
               </div>
 
