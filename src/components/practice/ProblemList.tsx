@@ -224,7 +224,25 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                 </Button>
               ))}
             </div>
+            <div className="flex gap-2 flex-wrap">
+              {([
+                { v: "all", label: "Any" },
+                { v: "with", label: "With Scenario" },
+                { v: "without", label: "No Scenario" },
+              ] as const).map((opt) => (
+                <Button
+                  key={opt.v}
+                  size="sm"
+                  variant={scenarioFilter === opt.v ? "default" : "outline"}
+                  onClick={() => setScenarioFilter(opt.v)}
+                  className="text-xs gap-1"
+                >
+                  <BookOpen className="w-3 h-3" /> {opt.label}
+                </Button>
+              ))}
+            </div>
           </div>
+
 
           {/* Category pills */}
           <div className="flex gap-2 flex-wrap">
