@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { problemStories } from "@/data/problemStories";
 import DailyChallenge from "./DailyChallenge";
 import ProgressDashboard from "./ProgressDashboard";
 import RecommendedNext from "./RecommendedNext";
