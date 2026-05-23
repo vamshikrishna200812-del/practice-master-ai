@@ -50,23 +50,23 @@ const CourseCertificate = ({
         if (existingCert) {
           setCertificateId(existingCert.certificate_id);
         } else {
-          // Generate new certificate ID
-          const newCertId = `CERT-${Date.now().toString(36).toUpperCase()}`;
-          
-          // Save to database
-          const { error } = await supabase
-            .from("certificates")
-            .insert({
-              certificate_id: newCertId,
-              user_id: user.id,
-              course_id: courseId,
-              user_name: userName,
-              course_title: courseName,
-              completion_date: completionDate,
-            });
+          // Server validates course completion and issues certificate
+          const { data, error } = await supabase.functions.invoke("secure-writes", {
+            body: {
+              action: "issue_certificate",
+              payload: {
+                courseId,
+                courseName,
+                userName,
+                completionDate,
+              },
+            },
+          });
 
-          if (!error) {
-            setCertificateId(newCertId);
+          if (!error && (data as any)?.certificate_id) {
+            setCertificateId((data as any).certificate_id);
+          } else {
+            console.error("Certificate issuance failed:", error || data);
           }
         }
       } catch (error) {
