@@ -135,15 +135,12 @@ export const useAchievements = () => {
         }
 
         if (shouldAward) {
-          // Award the achievement
-          const { error } = await supabase
-            .from("user_achievements")
-            .insert({
-              user_id: user.id,
-              achievement_id: achievement.id,
-            });
+          // Server validates criteria and grants the achievement
+          const { data, error } = await supabase.functions.invoke("secure-writes", {
+            body: { action: "grant_achievement", payload: { achievementId: achievement.id } },
+          });
 
-          if (!error) {
+          if (!error && (data as any)?.granted) {
             earnedAchievements.push(achievement);
             toast.success(`🏆 Achievement Unlocked: ${achievement.name}!`, {
               description: achievement.description,
