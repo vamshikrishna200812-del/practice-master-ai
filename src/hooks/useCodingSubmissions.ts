@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { codingProblems, POINTS_MAP } from "@/data/codingProblems";
+import { codingProblems } from "@/data/codingProblems";
 
 /** Deterministic daily hash – must match DailyChallenge component */
 const dayHash = (s: string) => {
@@ -43,92 +43,29 @@ export const useCodingSubmissions = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const allPassed = params.passedTests === params.totalTests;
-    const verdict = allPassed ? "Accepted" : "Wrong Answer";
-    const basePoints = allPassed ? (POINTS_MAP[params.difficulty] || 10) : 0;
-
-    // Check if this is the daily challenge for 2× bonus
     const solvedSoFar = await getSolvedProblems();
     const dailyId = getDailyProblemId(solvedSoFar);
     const isDailyChallenge = params.problemId === dailyId;
-    const points = isDailyChallenge ? basePoints * 2 : basePoints;
 
-    // Check if already solved
-    const { data: existing } = await supabase
-      .from("coding_submissions")
-      .select("id, verdict")
-      .eq("user_id", user.id)
-      .eq("problem_id", params.problemId)
-      .eq("verdict", "Accepted")
-      .limit(1);
-
-    const alreadySolved = existing && existing.length > 0;
-
-    // Save submission
-    const { error } = await supabase.from("coding_submissions").insert({
-      user_id: user.id,
-      problem_id: params.problemId,
-      problem_title: params.problemTitle,
-      language: params.language,
-      code: params.code,
-      verdict,
-      passed_tests: params.passedTests,
-      total_tests: params.totalTests,
-      points_earned: alreadySolved ? 0 : points,
-      execution_time_ms: params.executionTimeMs,
+    const { data, error } = await supabase.functions.invoke("secure-writes", {
+      body: {
+        action: "submit_coding",
+        payload: {
+          problemId: params.problemId,
+          problemTitle: params.problemTitle,
+          difficulty: params.difficulty,
+          language: params.language,
+          code: params.code,
+          passedTests: params.passedTests,
+          totalTests: params.totalTests,
+          executionTimeMs: params.executionTimeMs,
+          isDailyChallenge,
+        },
+      },
     });
 
     if (error) { console.error("Submission error:", error); return null; }
-
-    // Update points only if newly solved
-    if (allPassed && !alreadySolved) {
-      await updatePoints(user.id, params.difficulty, isDailyChallenge);
-    }
-
-    return { verdict, points: alreadySolved ? 0 : points, alreadySolved, isDailyChallenge };
-  };
-
-  const updatePoints = async (userId: string, difficulty: string, isDailyBonus = false) => {
-    const base = POINTS_MAP[difficulty] || 10;
-    const points = isDailyBonus ? base * 2 : base;
-    const today = new Date().toISOString().split("T")[0];
-
-    const { data: existing } = await supabase
-      .from("coding_points")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (existing) {
-      const lastDate = existing.last_solve_date;
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-      let streak = existing.current_streak;
-      if (lastDate === today) { /* same day */ }
-      else if (lastDate === yesterday) streak += 1;
-      else streak = 1;
-
-      await supabase.from("coding_points").update({
-        total_points: existing.total_points + points,
-        problems_solved: existing.problems_solved + 1,
-        easy_solved: existing.easy_solved + (difficulty === "Easy" ? 1 : 0),
-        medium_solved: existing.medium_solved + (difficulty === "Medium" ? 1 : 0),
-        hard_solved: existing.hard_solved + (difficulty === "Hard" ? 1 : 0),
-        current_streak: streak,
-        last_solve_date: today,
-        updated_at: new Date().toISOString(),
-      }).eq("user_id", userId);
-    } else {
-      await supabase.from("coding_points").insert({
-        user_id: userId,
-        total_points: points,
-        problems_solved: 1,
-        easy_solved: difficulty === "Easy" ? 1 : 0,
-        medium_solved: difficulty === "Medium" ? 1 : 0,
-        hard_solved: difficulty === "Hard" ? 1 : 0,
-        current_streak: 1,
-        last_solve_date: today,
-      });
-    }
+    return data as { verdict: string; points: number; alreadySolved: boolean; isDailyChallenge: boolean };
   };
 
   const getSubmissions = async (problemId?: string) => {
@@ -162,13 +99,8 @@ export const useCodingSubmissions = () => {
 
   const getLeaderboard = async () => {
     const { data } = await supabase.rpc("get_leaderboard");
-
     if (!data || data.length === 0) return [];
-
-    return (data as any[]).map((entry, i) => ({
-      rank: i + 1,
-      ...entry,
-    }));
+    return (data as any[]).map((entry, i) => ({ rank: i + 1, ...entry }));
   };
 
   return { submitSolution, getSubmissions, getSolvedProblems, getLeaderboard };
