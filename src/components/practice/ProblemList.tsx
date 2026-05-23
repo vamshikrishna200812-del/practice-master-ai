@@ -61,9 +61,14 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
       if (difficultyFilter !== "all" && p.difficulty !== difficultyFilter) return false;
       if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
       if (selectedTag && !p.tags.includes(selectedTag)) return false;
+      if (scenarioFilter !== "all") {
+        const hasStory = !!problemStories[p.id];
+        if (scenarioFilter === "with" && !hasStory) return false;
+        if (scenarioFilter === "without" && hasStory) return false;
+      }
       return true;
     });
-  }, [search, difficultyFilter, categoryFilter, selectedTag]);
+  }, [search, difficultyFilter, categoryFilter, selectedTag, scenarioFilter]);
 
   return (
     <div className="space-y-6">
