@@ -1119,38 +1119,18 @@ const Courses = () => {
         return;
       }
 
-      // Check if there's already an assessment completion for this course
-      const existing = assessmentCompletions.find(a => a.course_id === courseId);
-      
-      if (existing) {
-        // Update existing record only if new score is better
-        if (score > existing.score) {
-          const { error } = await supabase
-            .from("course_assessment_completions")
-            .update({ score, passed, completed_at: new Date().toISOString() })
-            .eq("id", existing.id);
-          
-          if (error) throw error;
-        }
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("course_assessment_completions")
-          .insert({
-            user_id: user.id,
-            course_id: courseId,
-            score,
-            passed,
-          });
-        
-        if (error) throw error;
-      }
+      const { data, error } = await supabase.functions.invoke("secure-writes", {
+        body: { action: "complete_assessment", payload: { courseId, score } },
+      });
+      if (error) throw error;
+
+      const serverPassed = (data as any)?.passed ?? passed;
 
       // Refresh assessment completions
-      const { data } = await supabase.from("course_assessment_completions").select("*");
-      setAssessmentCompletions(data || []);
+      const { data: refreshed } = await supabase.from("course_assessment_completions").select("*");
+      setAssessmentCompletions(refreshed || []);
 
-      if (passed) {
+      if (serverPassed) {
         toast({
           title: "🎉 Assessment Passed!",
           description: `You scored ${score}% on the course assessment!`,
