@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Home = lazy(() => import("./pages/Home"));
 const Auth = lazy(() => import("./pages/Auth"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
+const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const AIInterviewBot = lazy(() => import("./pages/AIInterviewBot"));
 const VideoInterview = lazy(() => import("./pages/VideoInterview"));
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/verify-email" element={<EmailVerification />} />
+              <Route path="/verify-otp" element={<VerifyOTP />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/interview-bot" element={<AIInterviewBot />} />
               <Route path="/video-interview" element={<VideoInterview />} />

@@ -343,6 +343,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {children}
         </main>
       </div>
+      <IdleLogoutWarning open={idle.warning} secondsUntilLogout={idle.secondsUntilLogout} onStayActive={idle.stayActive} />
     </div>
   );
 };
