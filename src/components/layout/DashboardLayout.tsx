@@ -3,6 +3,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useSessionWatcher } from "@/hooks/useSessionWatcher";
+import { useIdleLogout } from "@/hooks/useIdleLogout";
+import { IdleLogoutWarning } from "@/components/auth/IdleLogoutWarning";
 import { User } from "@supabase/supabase-js";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -47,6 +49,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   useSessionWatcher();
   const [user, setUser] = useState<User | null>(null);
+  const idle = useIdleLogout(!!user);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -340,6 +343,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {children}
         </main>
       </div>
+      <IdleLogoutWarning open={idle.warning} secondsUntilLogout={idle.secondsUntilLogout} onStayActive={idle.stayActive} />
     </div>
   );
 };
