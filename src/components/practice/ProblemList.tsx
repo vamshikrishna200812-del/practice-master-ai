@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { getTier, getTierProgress, getNextTier } from "@/utils/levelTiers";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { problemStories } from "@/data/problemStories";
 import DailyChallenge from "./DailyChallenge";
 import ProgressDashboard from "./ProgressDashboard";
 import RecommendedNext from "./RecommendedNext";
@@ -35,6 +36,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [scenarioFilter, setScenarioFilter] = useState<"all" | "with" | "without">("all");
   const [view, setView] = useState<"problems" | "courses">("problems");
   const [solvedSet, setSolvedSet] = useState<Set<string>>(new Set());
   const [totalPoints, setTotalPoints] = useState(0);
@@ -59,9 +61,14 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
       if (difficultyFilter !== "all" && p.difficulty !== difficultyFilter) return false;
       if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
       if (selectedTag && !p.tags.includes(selectedTag)) return false;
+      if (scenarioFilter !== "all") {
+        const hasStory = !!problemStories[p.id];
+        if (scenarioFilter === "with" && !hasStory) return false;
+        if (scenarioFilter === "without" && hasStory) return false;
+      }
       return true;
     });
-  }, [search, difficultyFilter, categoryFilter, selectedTag]);
+  }, [search, difficultyFilter, categoryFilter, selectedTag, scenarioFilter]);
 
   return (
     <div className="space-y-6">
@@ -217,7 +224,25 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
                 </Button>
               ))}
             </div>
+            <div className="flex gap-2 flex-wrap">
+              {([
+                { v: "all", label: "Any" },
+                { v: "with", label: "With Scenario" },
+                { v: "without", label: "No Scenario" },
+              ] as const).map((opt) => (
+                <Button
+                  key={opt.v}
+                  size="sm"
+                  variant={scenarioFilter === opt.v ? "default" : "outline"}
+                  onClick={() => setScenarioFilter(opt.v)}
+                  className="text-xs gap-1"
+                >
+                  <BookOpen className="w-3 h-3" /> {opt.label}
+                </Button>
+              ))}
+            </div>
           </div>
+
 
           {/* Category pills */}
           <div className="flex gap-2 flex-wrap">
