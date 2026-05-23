@@ -36,6 +36,7 @@ const ProblemList = ({ onSelectProblem }: ProblemListProps) => {
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [scenarioFilter, setScenarioFilter] = useState<"all" | "with" | "without">("all");
   const [view, setView] = useState<"problems" | "courses">("problems");
   const [solvedSet, setSolvedSet] = useState<Set<string>>(new Set());
   const [totalPoints, setTotalPoints] = useState(0);
